@@ -76,9 +76,11 @@ function FieldInput({
   );
   const showHint = Boolean(f.help || hasComputed);
   const badge = f.legal ? <LegalBadge text={L(f.legal)} /> : f.required ? null : null;
+  // Some labels already say "(opcional)"; show the marker once, in the UI language.
+  const bare = L(f.label).replace(/\s*\((opcional|optional)\)\s*$/i, '');
   const label = (
     <>
-      {L(f.label)}
+      {bare}
       {!f.required && !f.legal && f.type !== 'toggle' ? <span className="font-normal text-muted"> {t('common.optional')}</span> : null}
     </>
   );
@@ -92,7 +94,7 @@ function FieldInput({
   if (f.type === 'toggle') {
     return (
       <div id={id}>
-        <Checkbox label={L(f.label)} hint={f.help ? L(f.help) : undefined} checked={Boolean(field.value)} onChange={(v) => field.onChange(v)} id={`${id}-input`} />
+        <Checkbox label={bare} hint={f.help ? L(f.help) : undefined} checked={Boolean(field.value)} onChange={(v) => field.onChange(v)} id={`${id}-input`} />
         {warnBox}
       </div>
     );

@@ -66,6 +66,7 @@ export type Profile = {
 
   // Pessoa
   nome?: string;
+  genero?: 'M' | 'F';
   docTipo?: 'BI' | 'DIRE' | 'Passaporte';
   docNumero?: string;
   docEmissao?: string; // ISO

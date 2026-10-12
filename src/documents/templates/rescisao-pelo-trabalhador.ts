@@ -15,12 +15,6 @@ const fromPessoa = (f: FieldDef, get: (p: Profile) => unknown): FieldDef => ({
   default: (c) => (c.profile?.kind === 'pessoa' ? get(c.profile) ?? '' : f.default ?? ''),
 });
 
-// Service thresholds named by the keys of `avisoPrevioTrabalhador` (ate3Anos /
-// mais3Anos) and of its summary ("mais de 6 meses"). Not legal values in
-// themselves, but kept here so the comparison is explicit.
-const LIMIAR_MESES_MAIS3ANOS = 36;
-const LIMIAR_MESES_MINIMO = 6;
-
 const [fNome, fGenero, fCargo, fDepartamento, fDataAdmissao, fMorada, fTelefone] = workerFields([
   'nome', 'genero', 'cargo', 'departamento', 'dataAdmissao', 'morada', 'telefone',
 ]);
@@ -125,11 +119,11 @@ export default defineTemplate({
   ],
 
   computed: (v, { legal }) => {
-    const a = legal.value<{ ate3Anos: number; mais3Anos: number; prazo: number }>('avisoPrevioTrabalhador');
+    const a = legal.value<{ ate3Anos: number; mais3Anos: number; prazo: number; limiarMeses: number; minimoMeses: number }>('avisoPrevioTrabalhador');
     const ref = v.data || '';
     const admissao = v.trabalhadorDataAdmissao || '';
-    const mais3 = Boolean(admissao && ref && diffDays(addMonths(admissao, LIMIAR_MESES_MAIS3ANOS), ref) > 0);
-    const menos6Meses = Boolean(admissao && ref && diffDays(addMonths(admissao, LIMIAR_MESES_MINIMO), ref) <= 0);
+    const mais3 = Boolean(admissao && ref && diffDays(addMonths(admissao, a.limiarMeses), ref) > 0);
+    const menos6Meses = Boolean(admissao && ref && diffDays(addMonths(admissao, a.minimoMeses), ref) <= 0);
     const aviso = v.tipoContrato === 'prazo' ? a.prazo : mais3 ? a.mais3Anos : a.ate3Anos;
     const dado = v.data && v.dataFimContrato ? diffDays(v.data, v.dataFimContrato) : null;
     return {

@@ -418,7 +418,8 @@ export const LEGAL = {
     },
     law: 'lei13_2023',
     article: 'art. 140.º',
-    value: { ate3Anos: 15, mais3Anos: 30, prazo: 30 },
+    // Thresholds in months of service: notice applies after 6 months; 30 days after 3 years.
+    value: { ate3Anos: 15, mais3Anos: 30, prazo: 30, limiarMeses: 36, minimoMeses: 6 },
     sourceUrl: LEI,
     lastVerified: V,
     confidence: 'verified',
@@ -444,7 +445,8 @@ export const LEGAL = {
     },
     law: 'lei13_2023',
     article: 'arts. 43.º e 136.º',
-    value: { ate1Ano: 15, mais1Ano: 30 },
+    // Thresholds in months of contract length: notice applies from 3 months; 30 days above 1 year.
+    value: { ate1Ano: 15, mais1Ano: 30, limiarMeses: 12, minimoMeses: 3 },
     sourceUrl: LEI,
     lastVerified: V,
     confidence: 'verified',

@@ -13,6 +13,7 @@ const extenso = (n: number | null) => (n != null && n >= 0 && n <= MAX_EXTENSO ?
 
 const PROFILE_GET: Record<string, (p: Profile) => unknown> = {
   Nome: (p) => p.nome,
+  Genero: (p) => p.genero,
   EstadoCivil: (p) => p.estadoCivil,
   Nacionalidade: (p) => p.nacionalidade,
   DocTipo: (p) => p.docTipo,

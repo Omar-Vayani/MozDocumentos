@@ -10,7 +10,7 @@ import {
   clLitigios, clLocal, clObjecto, clRemuneracao, clSigilo, commonWarnings, CONTRATO_SECTIONS, contratoTitle,
   contratoWorkerFields, doCite, noCite, documentoFields, enumerate, fechoBlocks, funcoesFields, horarioFields, horasComputed, lc,
   num, opcionaisFields, partesBlocks, qty, remuneracaoFields, startDateField, wk,
-} from './contrato-indeterminado';
+} from './_contrato-trabalho';
 
 type PrazoCerto = { duracaoMaxAnos: number; renovacoesMax: number; pmeAnosLivre: number };
 type ProbPrazo = { maisDe1Ano: number; de6MesesA1Ano: number; ate6Meses: number };

@@ -4,7 +4,7 @@ import {
   BLANK, dateField, dateLong, employerParty, employerSignature, FORMA_PAGAMENTO_OPTIONS, formatMoney, isF, l, localField, money,
   placeDate, refField, splitLines, workerFields, workerParty,
 } from './_shared';
-import { doCite, enumerate, lc, moneyExt, num, qty } from './contrato-indeterminado';
+import { doCite, enumerate, lc, moneyExt, num, qty } from './_contrato-trabalho';
 
 const trim = (s: unknown) => String(s ?? '').trim();
 const isEmpresa = (v: Values) => v.prestadorTipo === 'empresa';

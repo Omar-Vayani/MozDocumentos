@@ -117,3 +117,24 @@ test('language switch translates the interface', async ({ page }, info) => {
   await page.reload();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Create professional documents in minutes');
 });
+
+test('process: data flows from the nota de culpa to the next documents', async ({ page }, info) => {
+  test.skip(info.project.name === 'mobile', 'desktop only');
+  await page.goto('/processos/despedimento-justa-causa');
+  await page.getByLabel(/Data de entrega da nota de culpa/).fill('2026-10-12');
+  await page.getByRole('button', { name: 'Iniciar este processo' }).click();
+  await expect(page).toHaveURL(/processo=/);
+  // reply deadline computed from mz-legal (15 days)
+  await expect(page.getByText('até 27 de Outubro de 2026')).toBeVisible();
+
+  await page.getByRole('link', { name: /Criar documento: Nota de culpa/ }).click();
+  await page.getByLabel('Nome completo').fill('Carlos Manuel Sitoe');
+  await page.getByLabel('N.º do processo disciplinar').fill('PD/2026/007');
+  await expect(page.getByText('Guardado neste dispositivo')).toBeVisible({ timeout: 15_000 });
+
+  await page.getByRole('link', { name: 'Passos' }).click();
+  await expect(page.getByRole('link', { name: /Continuar: Nota de culpa/ })).toBeVisible();
+  await page.getByRole('link', { name: /Criar documento: Convocatória para audição/ }).click();
+  await expect(page.getByLabel('Nome completo')).toHaveValue('Carlos Manuel Sitoe');
+  await expect(page.getByLabel('N.º do processo disciplinar')).toHaveValue('PD/2026/007');
+});

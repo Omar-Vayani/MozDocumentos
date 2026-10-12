@@ -357,7 +357,12 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
       </nav>
       <div className="flex flex-wrap items-center gap-2 mb-1">
         <Tag tone={status === 'final' ? 'green' : 'neutral'}>{status === 'final' ? t('editor.final') : t('editor.draft')}</Tag>
-        <span className="text-muted text-[0.9rem]">{t('editor.reviewed', { date: formatDateLong(template.lastReviewed) })}</span>
+        <span className="text-muted text-[0.9rem]">{t('editor.reviewed', {
+            date:
+              lang === 'en'
+                ? new Date(`${template.lastReviewed}T12:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+                : formatDateLong(template.lastReviewed),
+          })}</span>
       </div>
       <h1 className="text-[1.8rem] sm:text-[2.1rem] font-bold leading-tight">{L(template.title)}</h1>
       <p className="text-[1.1rem] text-muted mt-1">{template.formalTitle}</p>

@@ -11,11 +11,6 @@ const doCite = (id: LegalRefId) => {
   return `${/^arts\./.test(c) ? 'dos' : /^art/.test(c) ? 'do' : 'da'} ${c}`;
 };
 
-// Contract-length thresholds named by the keys of `naoRenovacaoAviso`
-// (ate1Ano / mais1Ano) and its summary ("de 3 meses a 1 ano").
-const MESES_1ANO = 12;
-const MESES_MINIMO = 3;
-
 export default defineTemplate({
   id: 'nao-renovacao',
   sections: [
@@ -63,12 +58,12 @@ export default defineTemplate({
   ],
 
   computed: (v, { legal }) => {
-    const a = legal.value<{ ate1Ano: number; mais1Ano: number }>('naoRenovacaoAviso');
+    const a = legal.value<{ ate1Ano: number; mais1Ano: number; limiarMeses: number; minimoMeses: number }>('naoRenovacaoAviso');
     const inicio = v.dataInicioContrato || '';
     const fim = v.dataFimContrato || '';
     // The end date is the last day of the contract, so a one-year contract ends the day before the anniversary.
-    const mais1Ano = Boolean(inicio && fim && diffDays(addMonths(inicio, MESES_1ANO), fim) >= 0);
-    const curto = Boolean(inicio && fim && diffDays(addMonths(inicio, MESES_MINIMO), fim) < -1);
+    const mais1Ano = Boolean(inicio && fim && diffDays(addMonths(inicio, a.limiarMeses), fim) >= 0);
+    const curto = Boolean(inicio && fim && diffDays(addMonths(inicio, a.minimoMeses), fim) < -1);
     const aviso = mais1Ano ? a.mais1Ano : a.ate1Ano;
     const dado = v.data && fim ? diffDays(v.data, fim) : null;
     return {

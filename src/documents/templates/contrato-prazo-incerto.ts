@@ -9,7 +9,7 @@ import {
   clLitigios, clLocal, clObjecto, clRemuneracao, clSigilo, commonWarnings, CONTRATO_SECTIONS, contratoTitle,
   contratoWorkerFields, doCite, documentoFields, fechoBlocks, funcoesFields, horarioFields, horasComputed, lc, num,
   opcionaisFields, partesBlocks, qty, remuneracaoFields, startDateField, wk,
-} from './contrato-indeterminado';
+} from './_contrato-trabalho';
 
 type MotivoTipo = 'substituicao' | 'obra' | 'projecto' | 'sazonal';
 

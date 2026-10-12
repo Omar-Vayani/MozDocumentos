@@ -161,12 +161,11 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
               fontSize: theme.bodySize + 2.5,
               fontWeight: 700,
               textAlign: 'center',
-              letterSpacing: 0.6,
-              textTransform: 'uppercase',
               lineHeight: 1.25,
             }}
           >
-            {block.text}
+            {/* Uppercased before layout: react-pdf measures lines before textTransform/letterSpacing. */}
+            {block.text.toLocaleUpperCase('pt')}
           </Text>
           {block.subtitle ? (
             <Text style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center', color: theme.muted, marginTop: 3 }}>
@@ -374,47 +373,47 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
 
     case 'keyValue': {
       const cols = block.columns ?? 1;
+      const row = (it: { label: string; value: string }, i: number) => (
+        <View
+          key={i}
+          wrap={false}
+          style={{
+            width: cols === 2 ? '50%' : '100%',
+            flexDirection: 'row',
+            paddingVertical: 2,
+            paddingRight: cols === 2 ? 8 : 0,
+            borderBottomWidth: 0.3,
+            borderBottomColor: '#e1e4e8',
+          }}
+        >
+          <Text style={{ width: cols === 2 ? '45%' : '35%', fontSize: theme.bodySize - 1.5, color: theme.muted, paddingRight: 6 }}>{it.label}</Text>
+          <Text style={{ flex: 1, fontSize: theme.bodySize - 1 }}>{oneLine(it.value) || '—'}</Text>
+        </View>
+      );
+      // The title travels with the first row(s) so it is never stranded at the foot of a page.
+      const head = block.items.slice(0, cols * 2);
+      const tail = block.items.slice(cols * 2);
       return (
         <View key={key} style={{ marginBottom: theme.gap + 2 }}>
-          {block.title ? (
-            <Text
-              style={{
-                fontSize: theme.smallSize + 1,
-                fontWeight: 700,
-                color: theme.accent,
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-                borderBottomWidth: 0.75,
-                borderBottomColor: theme.accent,
-                paddingBottom: 2,
-                marginBottom: 3,
-              }}
-              minPresenceAhead={40}
-            >
-              {block.title}
-            </Text>
-          ) : null}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            {block.items.map((it, i) => (
-              <View
-                key={i}
-                wrap={false}
+          <View wrap={false}>
+            {block.title ? (
+              <Text
                 style={{
-                  width: cols === 2 ? '50%' : '100%',
-                  flexDirection: 'row',
-                  paddingVertical: 2,
-                  paddingRight: cols === 2 ? 8 : 0,
-                  borderBottomWidth: 0.3,
-                  borderBottomColor: '#e1e4e8',
+                  fontSize: theme.smallSize + 1,
+                  fontWeight: 700,
+                  color: theme.accent,
+                  borderBottomWidth: 0.75,
+                  borderBottomColor: theme.accent,
+                  paddingBottom: 2,
+                  marginBottom: 3,
                 }}
               >
-                <Text style={{ width: cols === 2 ? '45%' : '35%', fontSize: theme.bodySize - 1.5, color: theme.muted, paddingRight: 6 }}>
-                  {it.label}
-                </Text>
-                <Text style={{ flex: 1, fontSize: theme.bodySize - 1 }}>{oneLine(it.value) || '—'}</Text>
-              </View>
-            ))}
+                {block.title.toLocaleUpperCase('pt')}
+              </Text>
+            ) : null}
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{head.map((it, i) => row(it, i))}</View>
           </View>
+          {tail.length ? <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{tail.map((it, i) => row(it, i + head.length))}</View> : null}
         </View>
       );
     }

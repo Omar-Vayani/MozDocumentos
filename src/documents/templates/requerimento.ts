@@ -7,6 +7,7 @@ import { BLANK, dateField, dateLong, employerRep, g, isF, l, lineItems, localFie
 
 const PROFILE_GET: Record<string, (p: Profile) => unknown> = {
   Nome: (p) => p.nome,
+  Genero: (p) => p.genero,
   EstadoCivil: (p) => p.estadoCivil,
   Nacionalidade: (p) => p.nacionalidade,
   Naturalidade: (p) => p.naturalidade,

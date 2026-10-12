@@ -160,20 +160,30 @@ export function DocumentPdf({ input, template, blocks, refNumber }: Props) {
             alignItems: 'flex-end',
           }}
         >
-          <View style={{ flex: 1, paddingRight: 8 }}>
+          <View style={{ flex: 1, paddingRight: pageNumbers ? 90 : 0 }}>
             {fLines.map((l, i) => (
               <Text key={i} style={{ fontSize: 7, color: theme.muted, lineHeight: 1.35, maxLines: 2, textOverflow: 'ellipsis' }}>
                 {l}
               </Text>
             ))}
           </View>
-          {pageNumbers ? (
-            <Text
-              style={{ fontSize: 7.5, color: theme.muted, width: 60, textAlign: 'right' }}
-              render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`}
-            />
-          ) : null}
         </View>
+
+        {pageNumbers ? (
+          <Text
+            fixed
+            style={{
+              position: 'absolute',
+              top: A4.height - footerBottom - 10,
+              right: theme.margin.right,
+              width: 80,
+              fontSize: 7.5,
+              color: theme.muted,
+              textAlign: 'right',
+            }}
+            render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`}
+          />
+        ) : null}
 
         {footerImg ? (
           <Image

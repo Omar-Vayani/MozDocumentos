@@ -7,6 +7,7 @@ import { BLANK, dateField, dateLong, g, isF, l, localField, splitLines, workerFi
 
 const PROFILE_VALUES: Record<string, (p: Profile) => string | undefined> = {
   Nome: (p) => p.nome,
+  Genero: (p) => p.genero,
   DocTipo: (p) => p.docTipo,
   DocNumero: (p) => p.docNumero,
   DocEmissao: (p) => p.docEmissao,

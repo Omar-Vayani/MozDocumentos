@@ -292,6 +292,15 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
     <>
       <Group title={t('profiles.personSection')}>
         <Text className="sm:col-span-2" label={tx('Nome completo', 'Full name')} value={d.nome} onChange={(v) => set({ nome: v })} />
+        <FieldWrap label={tx('Tratamento', 'Form of address')} hint={tx('Para a concordância do texto (portador / portadora).', 'For grammatical agreement in documents.')}>
+          {({ id, describedBy }) => (
+            <Select id={id} aria-describedby={describedBy} value={d.genero ?? ''} onChange={(e) => set({ genero: (e.target.value || undefined) as Profile['genero'] })}>
+              <option value="">—</option>
+              <option value="M">{tx('Senhor', 'Mr')}</option>
+              <option value="F">{tx('Senhora', 'Ms')}</option>
+            </Select>
+          )}
+        </FieldWrap>
         <FieldWrap label={tx('Documento de identificação', 'ID document')}>
           {({ id }) => (
             <Select id={id} value={d.docTipo ?? 'BI'} onChange={(e) => set({ docTipo: e.target.value as Profile['docTipo'] })}>

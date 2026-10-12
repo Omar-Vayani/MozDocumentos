@@ -182,15 +182,19 @@ export function employerParty(ctx: TemplateContext, designation = 'Empregador'):
 }
 
 export function personProfileParty(p: Profile, designation: string): string {
+  const f = p.genero === 'F';
   const parts = [
     `**${p.nome || BLANK}**`,
-    p.estadoCivil ? p.estadoCivil : '',
+    p.estadoCivil ? (f ? estadoCivilF(p.estadoCivil) : p.estadoCivil) : '',
     p.nacionalidade ? `de nacionalidade ${p.nacionalidade}` : '',
-    p.docNumero ? `portador(a) do ${p.docTipo ?? 'BI'} n.º ${p.docNumero}${p.docEmissao ? `, emitido em ${dateLong(p.docEmissao)}` : ''}${p.docLocal ? `, em ${p.docLocal}` : ''}` : '',
+    p.docNumero
+      ? `${p.genero ? (f ? 'portadora' : 'portador') : 'titular'} do ${p.docTipo ?? 'BI'} n.º ${p.docNumero}${p.docEmissao ? `, emitido em ${dateLong(p.docEmissao)}` : ''}${p.docLocal ? `, em ${p.docLocal}` : ''}`
+      : '',
     p.nuit ? `NUIT ${p.nuit}` : '',
     addressLine(p) ? `residente em ${addressLine(p)}` : '',
   ].filter(Boolean);
-  return `${parts.join(', ')}, adiante designado(a) por **${designation}**`;
+  const des = p.genero ? (f ? 'designada' : 'designado') : 'designado(a)';
+  return `${parts.join(', ')}, adiante ${des} por **${designation}**`;
 }
 
 /** Contract party description for a worker, from `trabalhador*` fields. */

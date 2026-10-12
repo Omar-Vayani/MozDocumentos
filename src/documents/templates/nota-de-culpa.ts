@@ -166,7 +166,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'abertura',
-        text: `Nos termos do ${cite('notaCulpaPrazoResposta')}, de 25 de Agosto (Lei do Trabalho), a **${empresa}** comunica a V. Ex.ª que lhe foi instaurado o processo disciplinar acima referido e que é ${acusado} dos factos seguintes:`,
+        text: `Nos termos do ${cite('notaCulpaPrazoResposta')} (Lei do Trabalho), ${ctx.profile?.kind === 'pessoa' ? '' : 'a '}**${empresa}** comunica a V. Ex.ª que lhe foi instaurado o processo disciplinar acima referido e que é ${acusado} dos factos seguintes:`,
         en: `Under the Labour Law, ${empresa} informs you that the above disciplinary case has been opened against you and that you are charged with the following facts:`,
       },
       {

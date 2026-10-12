@@ -3,7 +3,7 @@ import {
   BLANK, cite, dateField, DOC_TIPO_OPTIONS, employerParty, GENERO_OPTIONS, isF, l, localField, money, placeDate, refField,
   workerFields, workerParty,
 } from './_shared';
-import { employerSig, enumerate, lc, moneyExt, num, qty } from './contrato-indeterminado';
+import { employerSig, enumerate, lc, moneyExt, num, qty } from './_contrato-trabalho';
 
 const trim = (s: unknown) => String(s ?? '').trim();
 const isTrab = (v: Values) => (v.tipoContraparte ?? 'trabalhador') === 'trabalhador';

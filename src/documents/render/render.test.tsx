@@ -93,6 +93,11 @@ describe('templates render without overflow', () => {
             writeFileSync(join(OUT, `${id}--${fx.name}--${mode}.pdf`), Buffer.from(res.pdf));
           }
           expect(pages, `${fx.name}/${mode}`).toBeGreaterThan(0);
+          // "Página N de M" on every page.
+          for (let p = 1; p <= doc.numPages; p++) {
+            const text = (await (await doc.getPage(p)).getTextContent()).items.map((i) => ('str' in i ? i.str : '')).join(' ');
+            expect(text, `${fx.name}/${mode} page number p${p}`).toContain(`Página ${p} de ${doc.numPages}`);
+          }
           // Every font must be embedded (a stray "\n" in a Text pulls in Helvetica).
           expect(Buffer.from(res.pdf).toString('latin1').includes('/BaseFont /Helvetica'), `${fx.name}/${mode} unembedded font`).toBe(false);
           expect(issues, `${fx.name}/${mode} off-page`).toEqual([]);
