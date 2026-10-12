@@ -42,7 +42,10 @@ acknowledgement). Shared helpers: `_shared.ts`.
 7. **Keep signatures with the text.** Mark the closing paragraph
    (`"Com os melhores cumprimentos,"` or the last clause) with
    `keepWithNext: true` so it is placed on the same page as the `signatures`
-   block. Keep these groups short (closing + signatures only).
+   block. Groups are only made unbreakable when they fit comfortably on a
+   page (the renderer estimates their height); a lead-in before a long table
+   or list is kept with the start of it instead. Headings and clause titles
+   are kept with the text that follows automatically.
 8. **Stable paragraph ids.** Every `paragraph` block and every clause item has
    an `id` unique within the template. Users can reword paragraphs ("Editar
    texto"); the override is stored under that id.
@@ -120,7 +123,7 @@ breaks a legal limit. `personName(v)` and `documentDate(v)` name the PDF file.
 | `numberedClauses` | Contract clauses. `style: 'clausula'` → "Cláusula Primeira (Objecto)"; `'numeric'` → "1. Objecto". Items `{ id, heading?, text, en?, items?: string[] }` (sub-items print as a), b)…) |
 | `table` | `{ columns: [{label, width?, align?}], rows: string[][], totals?, caption?, note? }` — header row repeats on page breaks |
 | `keyValue` | Label/value list, `columns: 1 | 2`, optional `title` |
-| `amount` | Money figure in a box + extenso `(quinze mil meticais)` |
+| `amount` | Money figure in a box + extenso `(quinze mil meticais)`; `value: null` prints a blank to fill in |
 | `signatures` | 1–3 columns `{ role, name?, detail?, image?: 'signature'|'stamp'|'both' }`, optional `placeDate`. Use `image: 'both'` for the issuing company's signatory |
 | `acknowledgement` | "Recebi o original em ___/___/______" + signer line |
 | `annexList` | "Anexos:" numbered list |
@@ -137,6 +140,10 @@ Typical contract: `title` → `paragraph` parties ("Entre: … e …, é celebra
 presente contrato, que se rege pelas cláusulas seguintes:") →
 `numberedClauses` (style `clausula`) → `paragraph` ("Feito em duplicado…",
 `keepWithNext`) → `signatures` with both parties.
+
+Shared helpers for employment contracts (clauses, field groups, text
+helpers such as `doCite`, `qty`, `moneyExt`) live in `_contrato-trabalho.ts`.
+Files starting with `_` are not templates.
 
 ## Checking your work
 

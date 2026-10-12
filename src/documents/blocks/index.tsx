@@ -4,7 +4,7 @@
 
 import { Image, Text, View } from '@react-pdf/renderer';
 import type { Style } from '@react-pdf/types';
-import type { ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { formatMoney, numeroPorExtenso, MAX_EXTENSO } from '@/lib/format';
 import type { Block, ClauseItem } from '../model';
 import { ORDINAIS_F } from '../model';
@@ -91,6 +91,20 @@ function clauseHeading(style: 'clausula' | 'numeric' | 'artigo', i: number, item
 }
 
 const ALPHA = 'abcdefghijklmnopqrstuvwxyz';
+
+/** Estimated rendered lines of text in a column of `width` (fraction of the content width). */
+function textLines(theme: Theme, t: string | undefined, width = 1, size = theme.bodySize): number {
+  const perLine = Math.max(8, Math.floor((theme.contentWidth * width) / (size * 0.5)));
+  return (t ?? '').split('\n').reduce((n, ln) => n + Math.max(1, Math.ceil(ln.length / perLine)), 0);
+}
+
+/**
+ * Whether a piece may be kept unbreakable. react-pdf overlaps content when an
+ * unbreakable element cannot fit on a page, so only short pieces qualify.
+ */
+function canKeep(theme: Theme, heightPt: number): boolean {
+  return heightPt < 250 && theme.contentWidth > 0;
+}
 
 function SignatureColumnView({
   col,
@@ -260,15 +274,18 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       );
 
     case 'numberedClauses':
+      // Returned as a flat fragment: react-pdf only moves an unbreakable View to
+      // the next page when it is at most one level below the page, so every
+      // keep-together piece here must be a direct child of the page.
       return (
-        <View key={key} style={{ marginBottom: theme.gap }}>
+        <Fragment key={key}>
           {block.items.map((item, i) => {
             // Keep the heading with the first paragraph of its clause so it is
             // never left alone at the foot of a page.
             const lines = (item.text ?? '').split(/\r?\n/);
             const first = lines[0] ?? '';
             const rest = lines.slice(1).join('\n');
-            const groupFirst = first.length > 0 && first.length < 1600;
+            const groupFirst = first.length > 0 && canKeep(theme, textLines(theme, first) * theme.bodySize * theme.lineHeight + 40);
             const heading =
               block.style === 'numeric' ? (
                 <Text style={{ ...para(env), fontWeight: 700, marginBottom: 2 }}>{clauseHeading('numeric', i, item)}</Text>
@@ -278,30 +295,28 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
                   {item.heading ? <Text style={{ fontSize: theme.bodySize, textAlign: 'center' }}>({item.heading})</Text> : null}
                 </View>
               );
+            const last = i === block.items.length - 1;
             return (
-            <View key={item.id} style={{ marginBottom: theme.gap + 1 }}>
-              {groupFirst ? (
+              <Fragment key={item.id}>
                 <View wrap={false}>
                   {heading}
-                  <RichText text={first} style={para(env)} />
+                  {groupFirst ? <RichText text={first} style={para(env)} /> : null}
                 </View>
-              ) : (
-                <View wrap={false}>{heading}</View>
-              )}
-              {groupFirst ? (rest ? <RichText text={rest} style={para(env)} /> : null) : item.text ? <RichText text={item.text} style={para(env)} /> : null}
-              {item.items?.map((sub, j) => (
-                <View key={j} style={{ flexDirection: 'row', marginTop: 2, paddingLeft: 12 }}>
-                  <Text style={{ width: 16, fontSize: theme.bodySize }}>{ALPHA[j]})</Text>
-                  <View style={{ flex: 1 }}>
-                    <RichText text={sub} style={para(env)} />
+                {groupFirst ? (rest ? <RichText text={rest} style={para(env)} /> : null) : item.text ? <RichText text={item.text} style={para(env)} /> : null}
+                {item.items?.map((sub, j) => (
+                  <View key={j} style={{ flexDirection: 'row', marginTop: 2, paddingLeft: 12 }}>
+                    <Text style={{ width: 16, fontSize: theme.bodySize }}>{ALPHA[j]})</Text>
+                    <View style={{ flex: 1 }}>
+                      <RichText text={sub} style={para(env)} />
+                    </View>
                   </View>
-                </View>
-              ))}
-              <Translation text={item.en} env={env} />
-            </View>
+                ))}
+                <Translation text={item.en} env={env} />
+                <View style={{ height: theme.gap + 1 + (last ? theme.gap : 0) }} />
+              </Fragment>
             );
           })}
-        </View>
+        </Fragment>
       );
 
     case 'table': {
@@ -344,7 +359,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           {block.rows.map((r, ri) => (
             <View
               key={ri}
-              wrap={false}
+              wrap={!canKeep(theme, Math.max(...r.map((c, ci) => textLines(theme, c, widths[ci] / total, theme.bodySize - 1))) * (theme.bodySize - 1) * 1.4 + 8)}
               style={{ flexDirection: 'row', borderBottomWidth: 0.4, borderBottomColor: '#d0d4d8' }}
             >
               {r.map((c, i) => cell(c, i))}
@@ -373,10 +388,9 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
 
     case 'keyValue': {
       const cols = block.columns ?? 1;
-      const row = (it: { label: string; value: string }, i: number) => (
+      const cell = (it: { label: string; value: string }, i: number) => (
         <View
           key={i}
-          wrap={false}
           style={{
             width: cols === 2 ? '50%' : '100%',
             flexDirection: 'row',
@@ -390,12 +404,21 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           <Text style={{ flex: 1, fontSize: theme.bodySize - 1 }}>{oneLine(it.value) || '—'}</Text>
         </View>
       );
-      // The title travels with the first row(s) so it is never stranded at the foot of a page.
-      const head = block.items.slice(0, cols * 2);
-      const tail = block.items.slice(cols * 2);
+      const rows: { label: string; value: string }[][] = [];
+      for (let i = 0; i < block.items.length; i += cols) rows.push(block.items.slice(i, i + cols));
+      const rowHeight = (r: { label: string; value: string }[]) =>
+        Math.max(...r.map((it) => textLines(theme, oneLine(it.value), cols === 2 ? 0.27 : 0.6, theme.bodySize - 1))) * (theme.bodySize - 1) * 1.4 + 6;
+      const row = (r: { label: string; value: string }[], i: number) => (
+        <View key={`r${i}`} wrap={!canKeep(theme, rowHeight(r))} style={{ flexDirection: 'row' }}>
+          {r.map((it, j) => cell(it, i * cols + j))}
+        </View>
+      );
+      // Flat fragment (see numberedClauses). The title travels with the first rows.
+      const headRows = rows.slice(0, 2);
+      const keepHead = canKeep(theme, 20 + headRows.reduce((h, r) => h + rowHeight(r), 0));
       return (
-        <View key={key} style={{ marginBottom: theme.gap + 2 }}>
-          <View wrap={false}>
+        <Fragment key={key}>
+          <View wrap={!keepHead}>
             {block.title ? (
               <Text
                 style={{
@@ -411,10 +434,11 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
                 {block.title.toLocaleUpperCase('pt')}
               </Text>
             ) : null}
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{head.map((it, i) => row(it, i))}</View>
+            {headRows.map((r, i) => row(r, i))}
           </View>
-          {tail.length ? <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>{tail.map((it, i) => row(it, i + head.length))}</View> : null}
-        </View>
+          {rows.slice(2).map((r, i) => row(r, i + 2))}
+          <View style={{ height: theme.gap + 2 }} />
+        </Fragment>
       );
     }
 
@@ -498,7 +522,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       return (
         <View key={key} style={{ marginBottom: theme.gap }}>
           {block.items.map((it, i) => (
-            <View key={i} style={{ flexDirection: 'row', marginBottom: 2, paddingLeft: 8 }} wrap={false}>
+            <View key={i} style={{ flexDirection: 'row', marginBottom: 2, paddingLeft: 8 }} wrap={!canKeep(theme, textLines(theme, it, 0.92) * theme.bodySize * theme.lineHeight)}>
               <Text style={{ width: 18, fontSize: theme.bodySize }}>
                 {block.style === 'alpha' ? `${ALPHA[i]})` : block.style === 'numeric' ? `${i + 1}.` : '•'}
               </Text>
@@ -553,26 +577,100 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
   }
 }
 
+/** Rough height (pt) of a block, used to decide whether a group can be kept unbreakable. */
+export function estimateHeight(b: Block, theme: Theme): number {
+  const lineH = theme.bodySize * theme.lineHeight;
+  const perLine = Math.max(30, Math.floor(theme.contentWidth / (theme.bodySize * 0.5)));
+  const lines = (t: string | undefined, width = 1) =>
+    (t ?? '').split('\n').reduce((n, ln) => n + Math.max(1, Math.ceil(ln.length / (perLine * width))), 0);
+  switch (b.type) {
+    case 'paragraph':
+    case 'note':
+      return lines(b.text) * lineH + theme.gap;
+    case 'heading':
+    case 'salutation':
+    case 'subject':
+      return 2 * lineH;
+    case 'title':
+      return 45;
+    case 'reference':
+      return 25;
+    case 'recipient':
+      return (b.lines.length + 2) * lineH;
+    case 'table': {
+      const n = b.columns.length || 1;
+      const rowH = (r: string[]) => Math.max(1, ...r.map((c) => lines(c, 1 / n))) * (theme.bodySize - 1) * 1.4 + 8;
+      return [...b.rows, ...(b.totals ?? [])].reduce((h, r) => h + rowH(r), 30);
+    }
+    case 'keyValue': {
+      const cols = b.columns ?? 1;
+      const width = cols === 2 ? 0.3 : 0.6;
+      let h = 20;
+      for (let i = 0; i < b.items.length; i += cols) {
+        const row = b.items.slice(i, i + cols);
+        h += Math.max(...row.map((it) => lines(it.value, width))) * (theme.bodySize - 1) * 1.4 + 4;
+      }
+      return h;
+    }
+    case 'list':
+    case 'annexList':
+      return b.items.reduce((h, it) => h + lines(it, 0.9) * lineH, 0) + theme.gap;
+    case 'checklist':
+      return b.items.length * 16;
+    case 'numberedClauses':
+      return b.items.reduce((h, it) => h + 32 + lines(it.text) * lineH + (it.items ?? []).reduce((x, sub) => x + lines(sub, 0.9) * lineH, 0), 0);
+    case 'amount':
+      return 50;
+    case 'signatures':
+      return 130;
+    case 'acknowledgement':
+      return 60;
+    case 'spacer':
+      return 20;
+    default:
+      return 20;
+  }
+}
+
 /**
  * Renders blocks, grouping each run of `keepWithNext` blocks with the block
  * that follows into an unbreakable unit (e.g. closing paragraph + signatures).
+ * A group is only made unbreakable when it comfortably fits on a page:
+ * react-pdf overlaps lines when an unbreakable unit is taller than the page.
  */
 export function renderBlocks(blocks: Block[], env: BlockEnv): ReactNode[] {
   const out: ReactNode[] = [];
   let group: Block[] = [];
-  const textSize = (b: Block | undefined) => (b ? JSON.stringify(b).length : 0);
+  const pageBody = 297 * 2.8346 - env.theme.margin.top - env.theme.margin.bottom - 60;
   blocks.forEach((b, i) => {
     group.push(b);
-    const autoKeep = (b.type === 'heading' || b.type === 'subject') && textSize(blocks[i + 1]) < 1500;
-    if ((b.keepWithNext || autoKeep) && i < blocks.length - 1) return;
+    const next = blocks[i + 1];
+    const autoKeep = b.type === 'heading' || b.type === 'subject';
+    if ((b.keepWithNext || autoKeep) && next) return;
     if (group.length === 1) {
       out.push(renderBlock(b, i, env));
     } else {
-      out.push(
-        <View key={`g${i}`} wrap={false}>
-          {group.map((g, j) => renderBlock(g, `${i}-${j}`, env))}
-        </View>,
-      );
+      const height = group.reduce((h, g) => h + estimateHeight(g, env.theme), 0);
+      if (height <= pageBody * 0.6) {
+        out.push(
+          <View key={`g${i}`} wrap={false}>
+            {group.map((g, j) => renderBlock(g, `${i}-${j}`, env))}
+          </View>,
+        );
+      } else {
+        // Too tall to keep together: keep the lead-in with at least the start of what follows.
+        group.forEach((g, j) =>
+          out.push(
+            j < group.length - 1 ? (
+              <View key={`${i}-${j}`} minPresenceAhead={80}>
+                {renderBlock(g, `${i}-${j}-i`, env)}
+              </View>
+            ) : (
+              renderBlock(g, `${i}-${j}`, env)
+            ),
+          ),
+        );
+      }
     }
     group = [];
   });

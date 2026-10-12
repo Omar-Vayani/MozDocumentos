@@ -76,6 +76,10 @@ describe('template sources', () => {
 });
 
 describe('catalogue', () => {
+  it('has a template for every document', () => {
+    expect(CATALOG.filter((m) => !AVAILABLE_TEMPLATE_IDS.includes(m.id)).map((m) => m.id)).toEqual([]);
+  });
+
   it('has unique ids and valid references', () => {
     const ids = new Set<string>();
     for (const m of CATALOG) {

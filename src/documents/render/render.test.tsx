@@ -88,11 +88,31 @@ describe('templates render without overflow', () => {
               }
             }
           }
+          if (id === 'recibo-de-renda' && fx.name === 'pessoa' && mode === 'long') {
+            const { writeFileSync: w } = await import('node:fs');
+            w('/tmp/claude-0/-home-user-MozDocumentos/fc8df599-9b12-593e-b5f6-31f4c3d9913a/scratchpad/renda-in-suite.pdf', Buffer.from(res.pdf));
+          }
           if (OUT) {
             mkdirSync(OUT, { recursive: true });
             writeFileSync(join(OUT, `${id}--${fx.name}--${mode}.pdf`), Buffer.from(res.pdf));
           }
           expect(pages, `${fx.name}/${mode}`).toBeGreaterThan(0);
+          // No overlapping lines of text (two items on top of each other).
+          for (let p = 1; p <= doc.numPages; p++) {
+            const items = (await (await doc.getPage(p)).getTextContent()).items
+              .filter((i): i is Extract<typeof i, { str: string }> => 'str' in i && i.str.trim().length > 0)
+              .map((i) => ({ s: i.str, x0: i.transform[4], x1: i.transform[4] + i.width, y: i.transform[5], h: i.transform[0] }));
+            for (let a = 0; a < items.length; a++) {
+              for (let b = a + 1; b < items.length; b++) {
+                const A = items[a];
+                const B = items[b];
+                const dy = Math.abs(A.y - B.y);
+                if (dy > 0.6 * Math.min(A.h, B.h) || dy < 0.01) continue;
+                const overlapX = Math.min(A.x1, B.x1) - Math.max(A.x0, B.x0);
+                if (overlapX > 4) strict.push(`p${p} overlap "${A.s.slice(0, 25)}" / "${B.s.slice(0, 25)}"`);
+              }
+            }
+          }
           // "Página N de M" on every page.
           for (let p = 1; p <= doc.numPages; p++) {
             const text = (await (await doc.getPage(p)).getTextContent()).items.map((i) => ('str' in i ? i.str : '')).join(' ');

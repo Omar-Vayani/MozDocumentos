@@ -103,7 +103,14 @@ export function PdfPreview({ pdf, busy, error }: { pdf: ArrayBuffer | null; busy
           <IconButton icon="zoomIn" label={t('editor.zoomIn')} onClick={() => setZoom((z) => Math.min(2.4, z + 0.2))} />
         </div>
       </div>
-      <div ref={wrapRef} className="flex-1 overflow-auto bg-surface-2 p-3" style={{ colorScheme: 'light' }}>
+      <div
+        ref={wrapRef}
+        tabIndex={0}
+        role="region"
+        aria-label={t('editor.preview')}
+        className="flex-1 overflow-auto bg-surface-2 p-3"
+        style={{ colorScheme: 'light' }}
+      >
         {error ? <p className="text-error font-semibold p-4">{t('editor.renderError')}</p> : null}
         <div ref={pagesRef} className={busy && numPages ? 'opacity-80 transition-opacity' : ''} />
         {!pdf && !error ? (

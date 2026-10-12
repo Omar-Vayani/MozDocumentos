@@ -4,15 +4,16 @@ import { renderBlocks, type BlockEnv } from '../blocks';
 import { estimateLines, FaixaBand, footerLines, Letterhead, type LetterheadEnv } from '../layouts';
 import type { Block } from '../model';
 import type { FullTemplate } from '../registry';
+import type { FontFamilies } from './fonts';
 import { A4, MM, makeTheme } from './theme';
 import type { RenderInput } from './types';
 
-type Props = { input: RenderInput; template: FullTemplate; blocks: Block[]; refNumber?: string };
+type Props = { input: RenderInput; template: FullTemplate; blocks: Block[]; refNumber?: string; families?: FontFamilies };
 
-export function DocumentPdf({ input, template, blocks, refNumber }: Props) {
+export function DocumentPdf({ input, template, blocks, refNumber, families }: Props) {
   const { profile, assets } = input;
   const branding = profile?.branding;
-  const theme = makeTheme(branding);
+  const theme = makeTheme(branding, families);
   const isCompany = profile?.kind === 'empresa';
   const showLetterhead = isCompany && template.letterhead !== false;
   const layout = branding?.layout ?? 'classico';

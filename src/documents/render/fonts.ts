@@ -9,7 +9,8 @@ export const FONT_FAMILIES: Record<FontPreset, { family: string; file: string; l
   moderno: { family: 'IBMPlexSans', file: 'ibm-plex-sans', label: 'IBM Plex Sans' },
 };
 
-let registeredBase: string | null = null;
+let hyphenationRegistered = false;
+let generation = 0;
 
 const MAX_UNBROKEN = 22;
 
@@ -22,12 +23,40 @@ function splitLong(word: string): string[] {
   return parts;
 }
 
-export function registerFonts(base: string): void {
-  if (registeredBase === base) return;
+function registerHyphenation() {
+  if (hyphenationRegistered) return;
+  const hyphenateSync = (hyphenPt as unknown as { hyphenateSync: (w: string, o: { hyphenChar: string }) => string })
+    .hyphenateSync;
+  Font.registerHyphenationCallback((word: string) => {
+    if (word.length < 6 || /[\d_@/.]/.test(word)) return splitLong(word);
+    try {
+      const parts = hyphenateSync(word, { hyphenChar: '\u00AD' }).split('\u00AD');
+      return parts.flatMap(splitLong);
+    } catch {
+      return splitLong(word);
+    }
+  });
+  hyphenationRegistered = true;
+}
+
+export type FontFamilies = Record<FontPreset, string>;
+
+/**
+ * Registers the document fonts under fresh family names for one render.
+ * Reusing parsed font objects across many documents in the same process
+ * corrupts glyph subsets (dropped characters, missing page numbers), so each
+ * render gets its own font objects. Font files stay in the HTTP cache; only
+ * the parse is repeated. Older generations are dropped to bound memory.
+ */
+export function registerFontGeneration(base: string): FontFamilies {
+  registerHyphenation();
+  generation += 1;
   const sep = base.endsWith('/') ? '' : '/';
-  for (const { family, file } of Object.values(FONT_FAMILIES)) {
+  const out = {} as FontFamilies;
+  for (const [preset, { family, file }] of Object.entries(FONT_FAMILIES) as [FontPreset, (typeof FONT_FAMILIES)[FontPreset]][]) {
+    const name = `${family}-g${generation}`;
     Font.register({
-      family,
+      family: name,
       fonts: [
         { src: `${base}${sep}${file}-latin-400-normal.woff`, fontWeight: 400 },
         { src: `${base}${sep}${file}-latin-400-italic.woff`, fontWeight: 400, fontStyle: 'italic' },
@@ -35,18 +64,12 @@ export function registerFonts(base: string): void {
         { src: `${base}${sep}${file}-latin-700-italic.woff`, fontWeight: 700, fontStyle: 'italic' },
       ],
     });
+    out[preset] = name;
   }
-
-  const hyphenateSync = (hyphenPt as unknown as { hyphenateSync: (w: string, o: { hyphenChar: string }) => string })
-    .hyphenateSync;
-  Font.registerHyphenationCallback((word: string) => {
-    if (word.length < 6 || /[\d_@/.]/.test(word)) return splitLong(word);
-    try {
-      const parts = hyphenateSync(word, { hyphenChar: '­' }).split('­');
-      return parts.flatMap(splitLong);
-    } catch {
-      return splitLong(word);
-    }
-  });
-  registeredBase = base;
+  const registered = Font.getRegisteredFonts() as Record<string, unknown>;
+  for (const key of Object.keys(registered)) {
+    const m = /-g(\d+)$/.exec(key);
+    if (m && Number(m[1]) < generation - 1) delete registered[key];
+  }
+  return out;
 }

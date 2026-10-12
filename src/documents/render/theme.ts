@@ -1,6 +1,6 @@
 import { ensurePrintContrast, tint } from '@/lib/color';
 import { DEFAULT_BRANDING, type Branding } from '@/lib/storage/types';
-import { FONT_FAMILIES } from './fonts';
+import { FONT_FAMILIES, type FontFamilies } from './fonts';
 
 export const MM = 2.8346457; // points per millimetre
 export const A4 = { width: 210 * MM, height: 297 * MM };
@@ -21,7 +21,7 @@ export type Theme = {
   gap: number; // vertical space between blocks
 };
 
-export function makeTheme(branding: Branding | undefined): Theme {
+export function makeTheme(branding: Branding | undefined, families?: FontFamilies): Theme {
   const b = branding ?? DEFAULT_BRANDING;
   const accent = ensurePrintContrast(b.accent || DEFAULT_BRANDING.accent);
   const margin =
@@ -30,7 +30,7 @@ export function makeTheme(branding: Branding | undefined): Theme {
       : { top: 25 * MM, right: 20 * MM, bottom: 25 * MM, left: 25 * MM };
   const serif = b.font === 'classico';
   return {
-    font: FONT_FAMILIES[b.font]?.family ?? FONT_FAMILIES.classico.family,
+    font: families?.[b.font] ?? families?.classico ?? FONT_FAMILIES[b.font]?.family ?? FONT_FAMILIES.classico.family,
     accent,
     accentTint: tint(accent, 0.9),
     rule: '#9aa0a6',
