@@ -115,7 +115,8 @@ describe('templates', () => {
           const ids = editableTexts(blocks).map((e) => e.id);
           expect(new Set(ids).size, `duplicate paragraph ids in ${id}`).toBe(ids.length);
           // No "undefined" / "null" / "NaN" leaking into the text.
-          const text = JSON.stringify(blocks);
+          // An amount block may legitimately have no value yet ("value":null prints a blank).
+          const text = JSON.stringify(blocks).replace(/"value":null/g, '');
           expect(text, `${id} ${mode}`).not.toMatch(/\bundefined\b|\bnull\b(?!")|NaN|\[object Object\]/);
           // Document text: no banned phrases after rendering either.
           const n = normalize(text);

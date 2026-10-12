@@ -114,6 +114,11 @@ export function workerFields(keys: WorkerKey[], section = 'trabalhador', prefix 
 // ---------------------------------------------------------------- Gender helpers
 
 export const isF = (g: unknown) => g === 'F';
+
+/** Feminine form of a marital status ("casado" → "casada"); "união de facto" is unchanged. */
+export function estadoCivilF(ec: string): string {
+  return ec.replace(/^(solteir|casad|divorciad|viúv|separad)o\b/i, '$1a');
+}
 /** g(v.trabalhadorGenero, 'o trabalhador', 'a trabalhadora') */
 export const g = (genero: unknown, m: string, f: string) => (isF(genero) ? f : m);
 export const exmo = (genero: unknown) => (isF(genero) ? 'Exma. Senhora' : 'Exmo. Senhor');
@@ -198,7 +203,7 @@ export function workerParty(v: Values, designation?: string, prefix = 'trabalhad
     : '';
   const parts = [
     `**${get('Nome') || BLANK}**`,
-    get('EstadoCivil') ? (f ? get('EstadoCivil')!.replace(/o$/, 'a') : get('EstadoCivil')) : '',
+    get('EstadoCivil') ? (f ? estadoCivilF(get('EstadoCivil')!) : get('EstadoCivil')) : '',
     get('Nacionalidade') ? `de nacionalidade ${get('Nacionalidade')}` : '',
     doc,
     get('Nuit') ? `NUIT ${get('Nuit')}` : '',
@@ -211,7 +216,9 @@ export function workerParty(v: Values, designation?: string, prefix = 'trabalhad
 
 export function employerSignature(ctx: TemplateContext, role = 'A Entidade Empregadora'): SignatureColumn {
   const rep = employerRep(ctx);
-  return { role, name: rep.nome || undefined, detail: rep.cargo || undefined, image: 'both' };
+  // An individual employer signs in their own name.
+  const name = rep.nome || (ctx.profile?.kind === 'pessoa' ? ctx.profile.nome : '') || undefined;
+  return { role, name, detail: rep.cargo || undefined, image: 'both' };
 }
 
 export function workerSignature(v: Values, role?: string, prefix = 'trabalhador'): SignatureColumn {

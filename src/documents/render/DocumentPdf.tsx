@@ -49,7 +49,7 @@ export function DocumentPdf({ input, template, blocks, refNumber }: Props) {
     wmW = watermark ? (wmH * watermark.width) / Math.max(1, watermark.height) : 0;
   }
 
-  const runningLeft = [refNumber ? `N/Ref.ª ${refNumber}` : '', isCompany ? profileDisplayName(profile) : '']
+  const runningLeft = [refNumber ? `N/Ref.ª ${refNumber}` : '', showLetterhead ? profileDisplayName(profile) : '']
     .filter(Boolean)
     .join(' · ');
 
@@ -145,8 +145,11 @@ export function DocumentPdf({ input, template, blocks, refNumber }: Props) {
         <View
           fixed
           style={{
+            // Positioned from the top: react-pdf misplaces bottom-anchored fixed
+            // elements on later pages of long documents.
             position: 'absolute',
-            bottom: footerBottom,
+            top: A4.height - footerBottom - footerTextH,
+            height: footerTextH,
             left: theme.margin.left,
             right: theme.margin.right,
             borderTopWidth: fLines.length ? 0.5 : 0,
@@ -176,7 +179,7 @@ export function DocumentPdf({ input, template, blocks, refNumber }: Props) {
           <Image
             fixed
             src={footerImg.dataUrl}
-            style={{ position: 'absolute', bottom: 0, left: 0, width: A4.width, height: footerImgH, objectFit: 'cover' }}
+            style={{ position: 'absolute', top: A4.height - footerImgH, left: 0, width: A4.width, height: footerImgH, objectFit: 'cover' }}
           />
         ) : null}
       </Page>

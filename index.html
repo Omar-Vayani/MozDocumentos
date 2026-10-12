@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-MZ">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Crie documentos profissionais para Moçambique — contratos, recibos de salário, declarações e cartas — no seu dispositivo, sem conta." />
+    <meta name="theme-color" content="#14532d" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <title>Documentos MZ</title>
+    <script>
+      // Apply the saved colour theme before first paint.
+      try {
+        var t = JSON.parse(localStorage.getItem('dmz-prefs') || '{}').state?.theme || 'system';
+        var dark = t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

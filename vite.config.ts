@@ -37,6 +37,9 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  worker: {
+    format: 'es',
+  },
   build: {
     target: 'es2022',
     chunkSizeWarningLimit: 2000,

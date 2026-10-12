@@ -79,6 +79,10 @@ describe('templates render without overflow', () => {
             for (const item of content.items) {
               if (!('str' in item) || !item.str.trim()) continue;
               const x = item.transform[4];
+              // Footer lines are the only 7pt text: they must sit in the bottom margin on every page.
+              if (Math.abs(item.transform[0] - 7) < 0.01 && item.transform[5] > 45 * 2.8346) {
+                strict.push(`p${p} footer text out of place "${item.str.slice(0, 30)}" y=${item.transform[5].toFixed(1)}`);
+              }
               if (x < theme.margin.left - 2 || x + item.width > A4.width - theme.margin.right + 2) {
                 strict.push(`p${p} "${item.str.slice(0, 50)}" x=${x.toFixed(1)} right=${(x + item.width).toFixed(1)}`);
               }

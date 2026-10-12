@@ -263,23 +263,33 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
     case 'numberedClauses':
       return (
         <View key={key} style={{ marginBottom: theme.gap }}>
-          {block.items.map((item, i) => (
+          {block.items.map((item, i) => {
+            // Keep the heading with the first paragraph of its clause so it is
+            // never left alone at the foot of a page.
+            const lines = (item.text ?? '').split(/\r?\n/);
+            const first = lines[0] ?? '';
+            const rest = lines.slice(1).join('\n');
+            const groupFirst = first.length > 0 && first.length < 1600;
+            const heading =
+              block.style === 'numeric' ? (
+                <Text style={{ ...para(env), fontWeight: 700, marginBottom: 2 }}>{clauseHeading('numeric', i, item)}</Text>
+              ) : (
+                <View style={{ marginBottom: 3 }}>
+                  <Text style={{ fontSize: theme.bodySize, fontWeight: 700, textAlign: 'center' }}>{clauseHeading(block.style, i, item)}</Text>
+                  {item.heading ? <Text style={{ fontSize: theme.bodySize, textAlign: 'center' }}>({item.heading})</Text> : null}
+                </View>
+              );
+            return (
             <View key={item.id} style={{ marginBottom: theme.gap + 1 }}>
-              {block.style === 'numeric' ? (
-                <View minPresenceAhead={36}>
-                  <Text style={{ ...para(env), fontWeight: 700, marginBottom: 2 }}>{clauseHeading('numeric', i, item)}</Text>
+              {groupFirst ? (
+                <View wrap={false}>
+                  {heading}
+                  <RichText text={first} style={para(env)} />
                 </View>
               ) : (
-                <View minPresenceAhead={40} style={{ marginBottom: 3 }}>
-                  <Text style={{ fontSize: theme.bodySize, fontWeight: 700, textAlign: 'center' }}>
-                    {clauseHeading(block.style, i, item)}
-                  </Text>
-                  {item.heading ? (
-                    <Text style={{ fontSize: theme.bodySize, textAlign: 'center' }}>({item.heading})</Text>
-                  ) : null}
-                </View>
+                <View wrap={false}>{heading}</View>
               )}
-              {item.text ? <RichText text={item.text} style={para(env)} /> : null}
+              {groupFirst ? (rest ? <RichText text={rest} style={para(env)} /> : null) : item.text ? <RichText text={item.text} style={para(env)} /> : null}
               {item.items?.map((sub, j) => (
                 <View key={j} style={{ flexDirection: 'row', marginTop: 2, paddingLeft: 12 }}>
                   <Text style={{ width: 16, fontSize: theme.bodySize }}>{ALPHA[j]})</Text>
@@ -290,7 +300,8 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
               ))}
               <Translation text={item.en} env={env} />
             </View>
-          ))}
+            );
+          })}
         </View>
       );
 
@@ -550,9 +561,11 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
 export function renderBlocks(blocks: Block[], env: BlockEnv): ReactNode[] {
   const out: ReactNode[] = [];
   let group: Block[] = [];
+  const textSize = (b: Block | undefined) => (b ? JSON.stringify(b).length : 0);
   blocks.forEach((b, i) => {
     group.push(b);
-    if (b.keepWithNext && i < blocks.length - 1) return;
+    const autoKeep = (b.type === 'heading' || b.type === 'subject') && textSize(blocks[i + 1]) < 1500;
+    if ((b.keepWithNext || autoKeep) && i < blocks.length - 1) return;
     if (group.length === 1) {
       out.push(renderBlock(b, i, env));
     } else {

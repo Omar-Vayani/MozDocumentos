@@ -707,6 +707,10 @@ export const CATALOG: TemplateMeta[] = [
 
 export const catalogById = new Map(CATALOG.map((m) => [m.id, m]));
 
+export function popularDocuments(n = 6): TemplateMeta[] {
+  return [...CATALOG].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0)).slice(0, n);
+}
+
 export function getMeta(id: string): TemplateMeta | undefined {
   return catalogById.get(id);
 }

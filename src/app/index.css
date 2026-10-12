@@ -1,0 +1,156 @@
+@import 'tailwindcss';
+@import '@fontsource/public-sans/400.css';
+@import '@fontsource/public-sans/600.css';
+@import '@fontsource/public-sans/700.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens. Calm, plain, high-contrast — in the spirit of GOV.UK / USWDS. */
+:root {
+  --bg: #ffffff;
+  --surface: #f3f4f2;
+  --surface-2: #e8eae6;
+  --text: #0b0c0c;
+  --muted: #4f5650;
+  --border: #b1b4b0;
+  --border-strong: #0b0c0c;
+  --primary: #14532d;
+  --primary-hover: #0f3f22;
+  --primary-text: #ffffff;
+  --link: #1a4d8f;
+  --link-visited: #4c2c92;
+  --focus: #ffdd00;
+  --focus-text: #0b0c0c;
+  --error: #b3261e;
+  --warning: #8a4b00;
+  --warning-bg: #fff4e0;
+  --info-bg: #eaf2fb;
+  --success-bg: #e6f2ea;
+  --paper: #ffffff;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #101211;
+  --surface: #1a1d1b;
+  --surface-2: #252a27;
+  --text: #f1f2ef;
+  --muted: #b3b9b4;
+  --border: #4d554f;
+  --border-strong: #e8eae6;
+  --primary: #5fbf88;
+  --primary-hover: #7fd0a1;
+  --primary-text: #08140d;
+  --link: #9cc3ff;
+  --link-visited: #c9b1ff;
+  --focus: #ffdd00;
+  --focus-text: #0b0c0c;
+  --error: #ff8a80;
+  --warning: #ffc266;
+  --warning-bg: #2e2412;
+  --info-bg: #15212f;
+  --success-bg: #14261b;
+  --paper: #ffffff;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-text: var(--primary-text);
+  --color-link: var(--link);
+  --color-focus: var(--focus);
+  --color-error: var(--error);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-info-bg: var(--info-bg);
+  --color-success-bg: var(--success-bg);
+  --color-paper: var(--paper);
+  --radius-sm: 2px;
+  --radius: 3px;
+  --radius-md: 4px;
+}
+
+@layer base {
+  html {
+    font-size: 17px;
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (min-width: 768px) {
+    html {
+      font-size: 17px;
+    }
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3 {
+    line-height: 1.2;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  a {
+    color: var(--link);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+  }
+  a:hover {
+    text-decoration-thickness: 3px;
+  }
+  /* Strong, visible focus everywhere. */
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 0;
+    box-shadow: 0 0 0 6px var(--border-strong);
+  }
+  a:focus-visible {
+    background: var(--focus);
+    color: var(--focus-text);
+    box-shadow: 0 4px 0 var(--focus-text);
+    outline: none;
+    text-decoration: none;
+  }
+  ::selection {
+    background: #b5d6c1;
+    color: #0b0c0c;
+  }
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 1100px;
+    margin-inline: auto;
+    padding-inline: 16px;
+  }
+  @media (min-width: 640px) {
+    .container-page {
+      padding-inline: 24px;
+    }
+  }
+  .prose-plain p + p {
+    margin-top: 0.75rem;
+  }
+}

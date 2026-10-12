@@ -134,6 +134,8 @@ export type Case = {
   title: string;
   startDate: string; // ISO — e.g. date the nota de culpa was delivered
   shared: Record<string, unknown>;
+  /** Document ids created for each process step. */
+  docs?: Record<string, string>;
   profileId?: string;
   createdAt: number;
   updatedAt: number;
