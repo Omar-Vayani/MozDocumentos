@@ -76,7 +76,7 @@ function formaPagamentoTexto(forma: unknown, genero: unknown): string {
   const w = wk(genero);
   switch (forma) {
     case 'numerário':
-      return 'em numerário, contra recibo';
+      return 'em numerário';
     case 'cheque':
       return 'por cheque';
     case 'M-Pesa':
@@ -109,6 +109,15 @@ export function contratoWorkerFields(): FieldDef[] {
     'docTipo', 'docNumero', 'docEmissao', 'docLocal', 'nuit', 'inss', 'morada',
   ]).map((f) => {
     if (f.name === 'trabalhadorCargo') return { ...f, required: true, label: l('Cargo / funções', 'Position') };
+    if (f.name === 'trabalhadorCategoria') {
+      return {
+        ...f,
+        legal: l(
+          'O contrato deve indicar a categoria profissional e as tarefas acordadas. Se a empresa não tiver tabela de categorias, repita o cargo.',
+          'The contract must state the job grade and agreed duties. If the company has no grading table, repeat the position.',
+        ),
+      };
+    }
     if (f.name === 'trabalhadorDocNumero') {
       return { ...f, help: l('Identifica o trabalhador como parte do contrato.', 'Identifies the employee as a party to the contract.') };
     }
@@ -250,6 +259,17 @@ export function opcionaisFields(): FieldDef[] {
       label: l('Cláusula de exclusividade', 'Exclusivity clause'),
       help: l('O trabalhador não pode exercer actividade concorrente sem autorização escrita.', 'The employee may not carry out competing work without written consent.'),
     },
+    {
+      name: 'regulamentoInterno',
+      type: 'toggle',
+      section: 'clausulas',
+      default: false,
+      label: l('A empresa tem regulamento interno', 'The company has internal regulations'),
+      help: l(
+        'O contrato refere o regulamento interno e o trabalhador declara conhecê-lo. Assim, presume-se que adere a ele.',
+        'The contract mentions the internal regulations and the employee confirms knowing them, so they are presumed to accept them.',
+      ),
+    },
   ];
 }
 
@@ -332,15 +352,16 @@ export function clRemuneracao(v: Values): ClauseItem {
   const lines = [
     `1. Como contrapartida do trabalho prestado, a Entidade Empregadora pagará ${w.ao} a remuneração base mensal ilíquida de **${moneyExt(v.trabalhadorSalario)}**.`,
     `2. A remuneração é paga mensalmente, ${String(v.diaPagamento || 'até ao último dia útil do mês a que respeita').trim().replace(/\.$/, '')}, ${formaPagamentoTexto(v.formaPagamento, v.trabalhadorGenero)}.`,
-    '3. Sobre a remuneração incidem os descontos obrigatórios por lei, designadamente a contribuição para o sistema de segurança social obrigatória (INSS) e a retenção na fonte do IRPS.',
+    `3. No acto do pagamento, a Entidade Empregadora entrega ${w.ao} o recibo da remuneração, com a discriminação da remuneração base, das prestações adicionais, dos descontos e do valor líquido, nos termos ${doCite('reciboRemuneracao')}.`,
+    '4. Sobre a remuneração incidem os descontos obrigatórios por lei, designadamente a contribuição para o sistema de segurança social obrigatória (INSS) e a retenção na fonte do IRPS.',
   ];
-  if (subs.length) lines.push('4. Acrescem à remuneração base os seguintes subsídios:');
+  if (subs.length) lines.push('5. Acrescem à remuneração base as seguintes prestações adicionais:');
   return {
     id: 'remuneracao',
     heading: 'Remuneração',
     text: lines.join('\n'),
     items: subs.length ? enumerate(subs.map((s) => `${String(s.descricao || 'Subsídio').trim()}: ${moneyExt(s.valor)} por mês`)) : undefined,
-    en: `1. The Employer pays a gross monthly base salary of ${formatMoney(money(v.trabalhadorSalario))}. 2. Paid monthly, ${v.diaPagamento || 'by the last working day of the month'}, by ${v.formaPagamento || 'bank transfer'}. 3. Statutory deductions apply (INSS and IRPS withholding).${subs.length ? ' 4. The following allowances are added.' : ''}`,
+    en: `1. The Employer pays a gross monthly base salary of ${formatMoney(money(v.trabalhadorSalario))}. 2. Paid monthly, ${v.diaPagamento || 'by the last working day of the month'}, by ${v.formaPagamento || 'bank transfer'}. 3. A payslip showing base pay, additional payments, deductions and net pay is handed over on payment. 4. Statutory deductions apply (INSS and IRPS withholding).${subs.length ? ' 5. The following allowances are added.' : ''}`,
   };
 }
 
@@ -397,9 +418,9 @@ export function clDeveresTrabalhador(v: Values): ClauseItem {
       'Cumprir as ordens e instruções legítimas da Entidade Empregadora e dos seus superiores hierárquicos',
       'Guardar lealdade à Entidade Empregadora, não negociando por conta própria ou alheia em concorrência com ela',
       'Zelar pela boa conservação e utilização dos bens e equipamentos que lhe forem confiados',
-      'Cumprir as normas de higiene, saúde e segurança no trabalho e o regulamento interno da Entidade Empregadora',
+      'Cumprir as normas de higiene, saúde e segurança no trabalho e as normas internas da Entidade Empregadora',
     ]),
-    en: 'The Employee shall: attend punctually; work with care and diligence; follow lawful instructions; be loyal and not compete with the Employer; look after equipment entrusted to them; comply with health and safety rules and the internal regulations.',
+    en: 'The Employee shall: attend punctually; work with care and diligence; follow lawful instructions; be loyal and not compete with the Employer; look after equipment entrusted to them; comply with health and safety rules and the Employer’s internal rules.',
   };
 }
 
@@ -429,33 +450,52 @@ export function clExclusividade(v: Values): ClauseItem {
 
 export function clCessacao(v: Values, ctx: Pick<TemplateContext, 'legal'>, modalidade: Modalidade): ClauseItem {
   const w = wk(v.trabalhadorGenero);
-  const ap = ctx.legal.value<{ ate3Anos: number; mais3Anos: number; prazo: number }>('avisoPrevioTrabalhador');
-  const aviso =
-    modalidade === 'indeterminado'
-      ? `2. A denúncia do contrato por iniciativa ${w.do} está sujeita a aviso prévio escrito de ${ap.ate3Anos} ou ${ap.mais3Anos} dias, consoante a sua antiguidade, nos termos ${doCite('avisoPrevioTrabalhador')}.`
-      : `2. ${w.O} que pretenda denunciar o contrato antes do seu termo deve comunicá-lo por escrito à Entidade Empregadora com a antecedência mínima de ${qty(ap.prazo, 'dia', 'dias')}, nos termos ${doCite('avisoPrevioTrabalhador')}.`;
+  type Aviso = { ate3Anos: number; mais3Anos: number; minimoMeses: number; limiarMeses: number };
+  let aviso: string;
+  let avisoEn: string;
+  if (modalidade === 'certo') {
+    const ap = ctx.legal.value<{ prazo: number }>('avisoPrevioTrabalhador');
+    aviso = `2. ${w.O} que pretenda denunciar o contrato antes do seu termo deve comunicá-lo por escrito à Entidade Empregadora com a antecedência mínima de ${qty(ap.prazo, 'dia', 'dias')}, nos termos ${doCite('avisoPrevioTrabalhador')}.`;
+    avisoEn = `The Employee must give ${ap.prazo} days’ written notice to end the contract early.`;
+  } else {
+    // Indefinite term: notice by length of service (art. 140). Uncertain term: same periods by time worked (art. 46).
+    const id = modalidade === 'indeterminado' ? 'avisoPrevioTrabalhador' : 'caducidadePrazoIncertoAviso';
+    const ap = ctx.legal.value<Aviso>(id);
+    const anos = Math.round(ap.limiarMeses / 12);
+    const tempo = modalidade === 'indeterminado' ? 'a antiguidade' : 'o tempo de trabalho';
+    aviso = `2. ${w.O} que pretenda denunciar o contrato deve comunicá-lo por escrito à Entidade Empregadora com a antecedência mínima de ${qty(ap.ate3Anos, 'dia', 'dias')}, se ${tempo} for superior a ${qty(ap.minimoMeses, 'mês', 'meses')} e não exceder ${qty(anos, 'ano', 'anos')}, ou de ${qty(ap.mais3Anos, 'dia', 'dias')}, se for superior a ${qty(anos, 'ano', 'anos')}, nos termos ${doCite(id)}.`;
+    avisoEn = `The Employee must give ${ap.ate3Anos} days’ written notice if the ${modalidade === 'indeterminado' ? 'length of service' : 'time worked'} is over ${ap.minimoMeses} months and up to ${anos} years, or ${ap.mais3Anos} days if over ${anos} years.`;
+  }
   return {
     id: 'cessacao',
     heading: 'Cessação do contrato',
     text: [
-      '1. O presente contrato pode cessar por caducidade, por acordo revogatório, por denúncia de qualquer das partes com aviso prévio ou por rescisão com justa causa, nos termos e com os efeitos previstos na Lei do Trabalho.',
+      '1. O presente contrato pode cessar por caducidade, por acordo revogatório, por denúncia de qualquer das partes ou por rescisão com justa causa, nos termos e com os efeitos previstos na Lei do Trabalho.',
       aviso,
       `3. Em qualquer caso de cessação, a Entidade Empregadora entrega ${w.ao} um certificado de trabalho, nos termos ${doCite('certificadoTrabalho')}.`,
     ].join('\n'),
-    en: `1. The contract may end by expiry, mutual agreement, notice by either party or termination for just cause, as provided in the Labour Law. 2. ${
-      modalidade === 'indeterminado'
-        ? `The Employee must give ${ap.ate3Anos} or ${ap.mais3Anos} days’ written notice, depending on length of service.`
-        : `The Employee must give ${ap.prazo} days’ written notice to end the contract early.`
-    } 3. On termination the Employer issues a certificate of employment.`,
+    en: `1. The contract may end by expiry, mutual agreement, notice by either party or termination for just cause, as provided in the Labour Law. 2. ${avisoEn} 3. On termination the Employer issues a certificate of employment.`,
   };
 }
 
-export function clLegislacao(): ClauseItem {
+export function clLegislacao(v: Values): ClauseItem {
+  const w = wk(v.trabalhadorGenero);
+  if (!v.regulamentoInterno) {
+    return {
+      id: 'legislacao',
+      heading: 'Legislação aplicável',
+      text: `Em tudo o que não estiver expressamente previsto no presente contrato aplica-se o disposto na ${LEI_TRABALHO} e nos instrumentos de regulamentação colectiva de trabalho aplicáveis.`,
+      en: 'Anything not provided for in this contract is governed by the Labour Law and any applicable collective agreement.',
+    };
+  }
   return {
     id: 'legislacao',
-    heading: 'Legislação aplicável',
-    text: `Em tudo o que não estiver expressamente previsto no presente contrato aplica-se o disposto na ${LEI_TRABALHO}, nos instrumentos de regulamentação colectiva de trabalho aplicáveis e no regulamento interno da Entidade Empregadora.`,
-    en: 'Anything not provided for in this contract is governed by the Labour Law, any applicable collective agreement and the Employer’s internal regulations.',
+    heading: 'Legislação aplicável e regulamento interno',
+    text: [
+      `1. Em tudo o que não estiver expressamente previsto no presente contrato aplica-se o disposto na ${LEI_TRABALHO}, nos instrumentos de regulamentação colectiva de trabalho aplicáveis e no regulamento interno da Entidade Empregadora.`,
+      `2. ${w.O} declara ter tomado conhecimento do regulamento interno de trabalho em vigor na Entidade Empregadora, ao qual adere, nos termos ${doCite('regulamentoInterno')}.`,
+    ].join('\n'),
+    en: '1. Anything not provided for in this contract is governed by the Labour Law, any applicable collective agreement and the Employer’s internal regulations. 2. The Employee confirms having read the internal regulations in force and accepts them.',
   };
 }
 
@@ -571,6 +611,16 @@ export function commonWarnings(v: Values, ctx: TemplateContext): Warning[] {
   }
   if (!v.trabalhadorDataAdmissao) {
     w.push({ level: 'warning', field: 'trabalhadorDataAdmissao', message: l('Indique a data de início do contrato.', 'Enter the contract start date.') });
+  }
+  if (!String(v.trabalhadorCategoria ?? '').trim()) {
+    w.push({
+      level: 'warning',
+      field: 'trabalhadorCategoria',
+      message: l(
+        `Indique a categoria profissional: é uma menção obrigatória do contrato (${cite('contratoTrabalhoForma')}). Se não houver tabela de categorias, repita o cargo.`,
+        'Enter the job grade: the contract must state it. If there is no grading table, repeat the position.',
+      ),
+    });
   }
   if (!v.trabalhadorDocNumero) {
     w.push({

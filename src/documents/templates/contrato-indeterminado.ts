@@ -138,16 +138,16 @@ export default defineTemplate({
           `1. O presente contrato fica sujeito a um período probatório de ${qty(c.probatorioMeses, 'mês', 'meses')}, contado a partir do início da prestação de trabalho${
             c.probatorioFim ? ` e com termo em ${dateLong(c.probatorioFim)}` : ''
           }, nos termos ${doCite('periodoProbatorioIndeterminado')}.`,
-          `2. Durante o período probatório, qualquer das partes pode denunciar o contrato mediante aviso prévio escrito de ${qty(pd.geral, 'dia', 'dias')}, sem necessidade de invocação de justa causa, nos termos ${doCite('denunciaPeriodoProbatorio')}.`,
+          `2. Durante o período probatório, qualquer das partes pode denunciar o contrato mediante aviso prévio escrito de ${qty(pd.geral, 'dia', 'dias')}, sem necessidade de invocação de justa causa e sem direito a indemnização, nos termos ${doCite('denunciaPeriodoProbatorio')}.`,
           `3. O período probatório conta para efeitos de antiguidade ${w.do}.`,
         ].join('\n'),
-        en: `1. Probation of ${c.probatorioMeses} month(s) from the start of work${c.probatorioFim ? `, ending on ${c.probatorioFim}` : ''}. 2. During probation either party may end the contract with ${pd.geral} days’ written notice, without stating just cause. 3. Probation counts towards seniority.`,
+        en: `1. Probation of ${c.probatorioMeses} month(s) from the start of work${c.probatorioFim ? `, ending on ${c.probatorioFim}` : ''}. 2. During probation either party may end the contract with ${pd.geral} days’ written notice, without stating just cause and without compensation. 3. Probation counts towards seniority.`,
       });
     }
     clauses.push(clHorario(v, c), clRemuneracao(v), clFerias(v, ctx), clDeveresEmpregador(v), clDeveresTrabalhador(v));
     if (v.sigilo) clauses.push(clSigilo(v));
     if (v.exclusividade) clauses.push(clExclusividade(v));
-    clauses.push(clCessacao(v, ctx, 'indeterminado'), clLegislacao(), clLitigios(), clFinais());
+    clauses.push(clCessacao(v, ctx, 'indeterminado'), clLegislacao(v), clLitigios(), clFinais());
 
     return [
       contratoTitle(v, 'Contrato de trabalho por tempo indeterminado'),

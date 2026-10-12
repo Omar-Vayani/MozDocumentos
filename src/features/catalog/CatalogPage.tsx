@@ -83,8 +83,8 @@ export function CatalogPage() {
               type="button"
               aria-pressed={on}
               onClick={() => update({ cat: c.id })}
-              className={`min-h-11 px-3.5 rounded-full border-2 font-semibold text-[0.95rem] cursor-pointer ${
-                on ? 'bg-primary text-primary-text border-primary' : 'bg-bg border-border hover:border-border-strong'
+              className={`min-h-11 px-4 rounded-full border font-semibold text-[0.95rem] cursor-pointer transition-colors ${
+                on ? 'bg-primary text-primary-text border-primary' : 'bg-bg border-border hover:border-primary hover:text-primary'
               }`}
             >
               {c.label}
@@ -103,7 +103,7 @@ export function CatalogPage() {
               {t('catalog.useGuide')}
             </ButtonLink>
             <SectionTitle className="mt-10">{t('home.popular')}</SectionTitle>
-            <ul className="border-t border-border">
+            <ul className="card overflow-hidden">
               {popularDocuments(6).map((m) => (
                 <DocListItem key={m.id} m={m} />
               ))}
@@ -112,10 +112,13 @@ export function CatalogPage() {
         ) : grouped ? (
           CATEGORIES.map((c) => (
             <section key={c.id} className="mt-8" aria-labelledby={`cat-${c.id}`}>
-              <h2 id={`cat-${c.id}`} className="text-[1.4rem] font-bold">
+              <h2 id={`cat-${c.id}`} className="text-[1.35rem] font-bold flex items-center gap-2.5">
+                <span className="size-9 rounded-[var(--radius)] bg-primary-soft text-primary grid place-items-center">
+                  <Icon name={c.icon} size={20} />
+                </span>
                 {L(c.title)}
               </h2>
-              <ul className="border-t-2 border-border-strong mt-2 max-w-3xl">
+              <ul className="card overflow-hidden mt-3 max-w-3xl">
                 {results
                   .filter((m) => m.category === c.id)
                   .map((m) => (
@@ -125,7 +128,7 @@ export function CatalogPage() {
             </section>
           ))
         ) : (
-          <ul className="border-t-2 border-border-strong max-w-3xl">
+          <ul className="card overflow-hidden max-w-3xl">
             {results.map((m) => (
               <DocListItem key={m.id} m={m} />
             ))}
@@ -136,9 +139,9 @@ export function CatalogPage() {
       <section className="mt-14 max-w-3xl" aria-labelledby="oos">
         <SectionTitle id="oos">{t('catalog.outOfScope')}</SectionTitle>
         <p className="text-muted mb-3">{t('catalog.outOfScopeText')}</p>
-        <ul className="border-t border-border">
+        <ul className="card overflow-hidden divide-y divide-border">
           {OUT_OF_SCOPE.map((o) => (
-            <li key={o.title.pt} className="border-b border-border py-3">
+            <li key={o.title.pt} className="px-4 py-3">
               <p className="font-semibold">{L(o.title)}</p>
               <p className="text-muted">
                 {t('catalog.issuer')}:{' '}

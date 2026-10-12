@@ -18,6 +18,7 @@ import { brandingAssets, formatRef, saveAsset, saveProfile } from '@/lib/storage
 import { newProfile, type Asset, type Branding, type Profile } from '@/lib/storage/types';
 import { Button } from '@/ui/Button';
 import { Checkbox, FieldWrap, RadioGroup, Select, TextInput } from '@/ui/Field';
+import { SizeSlider } from '@/ui/Slider';
 import { Notice, Spinner, toast } from '@/ui/misc';
 import { Tabs } from '@/ui/Tabs';
 
@@ -31,6 +32,8 @@ function Text({
   type = 'text',
   className = '',
   inputMode,
+  error,
+  inputId,
 }: {
   label: string;
   value: string | undefined;
@@ -39,11 +42,22 @@ function Text({
   type?: string;
   className?: string;
   inputMode?: 'numeric' | 'tel' | 'email' | 'text' | 'decimal' | 'url';
+  error?: string;
+  inputId?: string;
 }) {
   return (
-    <FieldWrap label={label} hint={hint} className={className}>
+    <FieldWrap label={label} hint={hint} className={className} error={error} id={inputId}>
       {({ id, describedBy }) => (
-        <TextInput id={id} aria-describedby={describedBy} type={type} inputMode={inputMode} value={value ?? ''} onChange={(e) => onChange(e.target.value)} autoComplete="off" />
+        <TextInput
+          id={id}
+          aria-describedby={describedBy}
+          aria-invalid={error ? true : undefined}
+          type={type}
+          inputMode={inputMode}
+          value={value ?? ''}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete="off"
+        />
       )}
     </FieldWrap>
   );
@@ -51,7 +65,7 @@ function Text({
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <fieldset className="mb-8 border-t-2 border-border-strong pt-4">
+    <fieldset className="mb-8 border-t border-border pt-5 first:border-t-0 first:pt-2">
       <legend className="sr-only">{title}</legend>
       <h2 className="text-[1.25rem] font-bold mb-4">{title}</h2>
       <div className="grid gap-5 sm:grid-cols-2">{children}</div>
@@ -159,6 +173,11 @@ function ImageField({
 
 function LetterheadPreview({ draft }: { draft: Draft }) {
   const legal = useLegalOverrides();
+  // Show sample text while the profile is still empty, so the layout can be judged.
+  const previewProfile: Draft =
+    draft.kind === 'empresa'
+      ? { ...draft, firma: draft.firma?.trim() || 'Nome da Empresa, Lda', nuit: draft.nuit || '400 000 000', telefones: draft.telefones || '+258 84 000 0000' }
+      : { ...draft, nome: draft.nome?.trim() || 'Nome Completo' };
   const [values, setValues] = useState<Record<string, unknown> | null>(null);
   const [assets, setAssets] = useState<RenderInput['assets'] | null>(null);
   const tplId = AVAILABLE_TEMPLATE_IDS.includes('carta-oficial') ? 'carta-oficial' : AVAILABLE_TEMPLATE_IDS[0];
@@ -182,9 +201,9 @@ function LetterheadPreview({ draft }: { draft: Draft }) {
 
   const input: RenderInput | null =
     values && assets && legal && tplId
-      ? { templateId: tplId, values: { ...values, ref: formatRef(draft) }, overrides: {}, profile: draft, assets, legalOverrides: legal, bilingual: false, today, fontBase: fontBase() }
+      ? { templateId: tplId, values: { ...values, ref: formatRef(draft) }, overrides: {}, profile: previewProfile, assets, legalOverrides: legal, bilingual: false, today, fontBase: fontBase() }
       : null;
-  const key = JSON.stringify(draft) + Object.keys(assets ?? {}).join();
+  const key = JSON.stringify(previewProfile) + Object.keys(assets ?? {}).join();
   const { pdf, busy, error } = usePdfRender(input, key, 500);
   return <PdfPreview pdf={pdf} busy={busy} error={error} />;
 }
@@ -209,7 +228,7 @@ export function ProfileEditPage() {
       </div>
     );
   }
-  return <ProfileForm key={id ?? 'novo'} initial={stored ?? newProfile(kind, uid())} isNew={isNew} />;
+  return <ProfileForm key={id ?? `novo-${kind}`} initial={stored ?? newProfile(kind, uid())} isNew={isNew} />;
 }
 
 function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
@@ -240,7 +259,16 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
     }
   }, [d, dirty, isNew]);
 
+  const [nameError, setNameError] = useState(false);
   const save = async () => {
+    const name = (d.kind === 'empresa' ? d.firma : d.nome)?.trim();
+    if (!name) {
+      setNameError(true);
+      setTab('data');
+      requestAnimationFrame(() => document.getElementById('profile-name')?.focus());
+      return;
+    }
+    setNameError(false);
     await saveProfile(d);
     setDirty(false);
     toast(t('profiles.saved'));
@@ -257,7 +285,7 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
   const dataTab = company ? (
     <>
       <Group title={t('profiles.companySection')}>
-        <Text className="sm:col-span-2" label={tx('Firma (nome legal)', 'Registered name')} value={d.firma} onChange={(v) => set({ firma: v })} hint={tx('Ex.: Construções Machava, Lda', 'E.g. Construções Machava, Lda')} />
+        <Text className="sm:col-span-2" label={tx('Firma (nome legal)', 'Registered name')} value={d.firma} onChange={(v) => set({ firma: v })} inputId="profile-name" error={nameError && !d.firma?.trim() ? tx('Indique o nome da empresa', 'Enter the company name') : undefined} hint={tx('Ex.: Construções Machava, Lda', 'E.g. Construções Machava, Lda')} />
         <Text label={tx('Nome comercial', 'Trading name')} value={d.nomeComercial} onChange={(v) => set({ nomeComercial: v })} />
         <Text label="NUIT" value={d.nuit} onChange={(v) => set({ nuit: v })} inputMode="numeric" />
         <Text label="NUEL" value={d.nuel} onChange={(v) => set({ nuel: v })} inputMode="numeric" />
@@ -291,7 +319,7 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
   ) : (
     <>
       <Group title={t('profiles.personSection')}>
-        <Text className="sm:col-span-2" label={tx('Nome completo', 'Full name')} value={d.nome} onChange={(v) => set({ nome: v })} />
+        <Text className="sm:col-span-2" label={tx('Nome completo', 'Full name')} value={d.nome} onChange={(v) => set({ nome: v })} inputId="profile-name" error={nameError && !d.nome?.trim() ? tx('Indique o seu nome completo', 'Enter your full name') : undefined} />
         <FieldWrap label={tx('Tratamento', 'Form of address')} hint={tx('Para a concordância do texto (portador / portadora).', 'For grammatical agreement in documents.')}>
           {({ id, describedBy }) => (
             <Select id={id} aria-describedby={describedBy} value={d.genero ?? ''} onChange={(e) => set({ genero: (e.target.value || undefined) as Profile['genero'] })}>
@@ -350,7 +378,7 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
             name="layout"
             value={b.layout}
             onChange={(v) => setB({ layout: v as Branding['layout'] })}
-            options={(['classico', 'lateral', 'faixa', 'minimo'] as const).map((k) => ({
+            options={(['classico', 'lateral', 'moderno', 'elegante', 'faixa', 'minimo'] as const).map((k) => ({
               value: k,
               label: <span className="font-semibold">{t(`profiles.layouts.${k}`)}</span>,
               hint: t(`profiles.layouts.${k}Help`),
@@ -379,6 +407,35 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
         <ImageField kind="signature" label={t('profiles.signature')} hint={t('profiles.signatureHelp')} branding={b} onChange={setB} />
         {company ? <ImageField kind="stamp" label={t('profiles.stamp')} branding={b} onChange={setB} /> : null}
       </div>
+
+      <fieldset className="mt-8 border border-border rounded-[var(--radius-md)] p-4 sm:p-5">
+        <legend className="font-bold text-[1.1rem] px-1">{t('profiles.sizes')}</legend>
+        <p className="text-muted mb-4">{t('profiles.sizesHelp')}</p>
+        <div className="grid gap-6 sm:grid-cols-2">
+          {company ? (
+            <SizeSlider label={t('profiles.logoSize')} value={b.logoScale ?? 1} min={0.5} max={2.5} onChange={(v) => setB({ logoScale: v })} resetLabel={t('profiles.resetSize')} />
+          ) : null}
+          <SizeSlider label={t('profiles.signatureSize')} value={b.signatureScale ?? 1} min={0.5} max={3} onChange={(v) => setB({ signatureScale: v })} resetLabel={t('profiles.resetSize')} />
+          {company ? (
+            <SizeSlider label={t('profiles.stampSize')} value={b.stampScale ?? 1} min={0.5} max={2.5} onChange={(v) => setB({ stampScale: v })} resetLabel={t('profiles.resetSize')} />
+          ) : null}
+        </div>
+      </fieldset>
+
+      {company ? (
+        <div className="grid gap-5 sm:grid-cols-2 mt-8">
+          <FieldWrap label={t('profiles.tagline')} hint={t('profiles.taglineHelp')} className="sm:col-span-2">
+            {({ id, describedBy }) => (
+              <TextInput id={id} aria-describedby={describedBy} maxLength={120} value={b.tagline ?? ''} onChange={(e) => setB({ tagline: e.target.value })} />
+            )}
+          </FieldWrap>
+          <FieldWrap label={t('profiles.footerNote')} hint={t('profiles.footerNoteHelp')} className="sm:col-span-2">
+            {({ id, describedBy }) => (
+              <TextInput id={id} aria-describedby={describedBy} maxLength={200} value={b.footerNote ?? ''} onChange={(e) => setB({ footerNote: e.target.value })} />
+            )}
+          </FieldWrap>
+        </div>
+      ) : null}
 
       <fieldset className="mt-8">
         <legend className="font-semibold mb-2">{t('profiles.accent')}</legend>
@@ -439,8 +496,24 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
             <Checkbox label={t('profiles.footerContacts')} checked={b.footer.contacts} onChange={(v) => setB({ footer: { ...b.footer, contacts: v } })} />
           </fieldset>
         ) : null}
+        <RadioGroup
+          legend={t('profiles.textSize')}
+          name="textSize"
+          value={b.textSize ?? 'normal'}
+          onChange={(v) => setB({ textSize: v as Branding['textSize'] })}
+          options={(['pequeno', 'normal', 'grande'] as const).map((k) => ({ value: k, label: t(`profiles.textSizes.${k}`) }))}
+        />
+        <RadioGroup
+          legend={t('profiles.lineSpacing')}
+          name="lineSpacing"
+          value={b.lineSpacing ?? 'normal'}
+          onChange={(v) => setB({ lineSpacing: v as Branding['lineSpacing'] })}
+          options={(['compacto', 'normal', 'amplo'] as const).map((k) => ({ value: k, label: t(`profiles.lineSpacings.${k}`) }))}
+        />
         <div className="sm:col-span-2">
           <Checkbox label={t('profiles.pageNumbers')} checked={b.pageNumbers} onChange={(v) => setB({ pageNumbers: v })} />
+          <Checkbox label={t('profiles.accentHeadings')} checked={b.accentHeadings !== false} onChange={(v) => setB({ accentHeadings: v })} />
+          <Checkbox label={t('profiles.pageBorder')} checked={Boolean(b.pageBorder)} onChange={(v) => setB({ pageBorder: v })} />
         </div>
       </div>
     </>

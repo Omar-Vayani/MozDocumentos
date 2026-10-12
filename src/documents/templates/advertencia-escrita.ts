@@ -183,6 +183,12 @@ export default defineTemplate({
         text: `Adverte-se V. Ex.ª de que a repetição de comportamentos desta natureza poderá dar lugar à instauração de processo disciplinar e à aplicação de sanções mais graves, nos termos ${doCite('procedimentoDisciplinar')}.`,
         en: 'You are warned that repeating such conduct may lead to disciplinary proceedings and heavier sanctions.',
       },
+      {
+        type: 'paragraph',
+        id: 'reclamacao',
+        text: 'V. Ex.ª pode reclamar desta decisão junto de quem a proferiu ou dela recorrer para o superior hierárquico.',
+        en: 'You may lodge a complaint about this decision with whoever took it or appeal to the next level of management.',
+      },
       { type: 'paragraph', id: 'fecho', text: 'Com os melhores cumprimentos,', align: 'left', keepWithNext: true },
       { type: 'signatures', columns: [employerSignature(ctx)] },
       {

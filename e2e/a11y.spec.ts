@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-const PAGES = ['/', '/documentos', '/assistente', '/assistente?r=empresa/disciplinar/grave', '/processos/despedimento-justa-causa', '/documentos/nota-de-culpa', '/meus-documentos', '/perfis', '/perfis/novo?tipo=empresa', '/pessoas', '/definicoes', '/sobre'];
+const PAGES = ['/', '/documentos', '/assistente', '/assistente?r=empresa/disciplinar/grave', '/processos/despedimento-justa-causa', '/documentos/nota-de-culpa', '/meus-documentos', '/perfis', '/perfis/novo?tipo=empresa', '/pessoas', '/definicoes', '/sobre', '/termos', '/privacidade', '/ferramentas', '/ferramentas/recibos-em-lote'];
 
 for (const path of PAGES) {
   test(`no WCAG 2.2 AA violations on ${path}`, async ({ page }, info) => {

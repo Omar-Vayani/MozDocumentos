@@ -16,9 +16,10 @@ import { formatDateLong, todayISO, uid } from '@/lib/format';
 import { db } from '@/lib/storage/db';
 import { useActiveProfile, useLegalOverrides, useProfiles } from '@/lib/storage/hooks';
 import { brandingAssets, commitRef, formatRef, saveCase, saveDocument } from '@/lib/storage/repo';
-import { profileDisplayName, type Case, type Profile, type SavedDocument } from '@/lib/storage/types';
+import { profileDisplayName, type Case, type Presentation, type Profile, type SavedDocument } from '@/lib/storage/types';
 import { Button } from '@/ui/Button';
-import { Checkbox, Select, TextArea } from '@/ui/Field';
+import { Checkbox, FieldWrap, Select, TextArea, TextInput } from '@/ui/Field';
+import { SizeSlider } from '@/ui/Slider';
 import { Icon } from '@/ui/Icon';
 import { Notice, Spinner, Tag, toast, useMediaQuery } from '@/ui/misc';
 import { Tabs } from '@/ui/Tabs';
@@ -31,6 +32,9 @@ import { usePdfRender } from './useRender';
 // ---------------------------------------------------------------------------
 // Route wrapper: loads the template, the saved document and the case.
 // ---------------------------------------------------------------------------
+
+// Narrow phones: tighter buttons, and no icon below 360px so all actions fit on one row.
+const COMPACT_BTN = 'flex-1 min-w-0 px-1.5 gap-1.5 [&>svg]:shrink-0 max-[359px]:[&>svg]:hidden';
 
 export function EditorPage() {
   const { id = '' } = useParams();
@@ -172,6 +176,8 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
 
   const [overrides, setOverrides] = useState<Record<string, string>>(saved?.overrides ?? {});
   const [bilingual, setBilingual] = useState<boolean>(Boolean(saved?.values?.__bilingual));
+  const [presentation, setPresentation] = useState<Presentation>((saved?.values?.__presentation as Presentation) ?? {});
+  const presentationKey = JSON.stringify(presentation);
   const [status, setStatus] = useState<SavedDocument['status']>(saved?.status ?? 'draft');
   const [saveState, setSaveState] = useState<'idle' | 'dirty' | 'saving' | 'saved'>(saved ? 'saved' : 'idle');
   const [errorList, setErrorList] = useState<{ name: string; message: string }[]>([]);
@@ -220,7 +226,7 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
       assets
         ? {
             templateId: template.id,
-            values,
+            values: { ...values, __presentation: presentation },
             overrides,
             profile,
             assets,
@@ -231,14 +237,14 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
           }
         : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [assets, valuesKey, overrides, profile, legal, bilingual, today, template],
+    [assets, valuesKey, overrides, profile, legal, bilingual, today, template, presentationKey],
   );
-  const renderKey = `${valuesKey}|${JSON.stringify(overrides)}|${JSON.stringify(profile)}|${Object.keys(assets ?? {}).join(',')}|${bilingual}|${JSON.stringify(legal)}`;
+  const renderKey = `${valuesKey}|${JSON.stringify(overrides)}|${JSON.stringify(profile)}|${Object.keys(assets ?? {}).join(',')}|${bilingual}|${JSON.stringify(legal)}|${presentationKey}`;
   const { pdf, busy, error, current } = usePdfRender(renderInput, renderKey);
 
   // ------------------------------------------------------------------ Save
   const persist = async (nextStatus = status) => {
-    const v: Values = { ...(methods.getValues() as Values), __bilingual: bilingual };
+    const v: Values = { ...(methods.getValues() as Values), __bilingual: bilingual, __presentation: presentation };
     const doc: SavedDocument = {
       id: docIdRef.current,
       templateId: template.id,
@@ -263,7 +269,7 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
   };
 
   // Autosave drafts a few seconds after the last change (never just for opening the page).
-  const changeKey = `${valuesKey}|${JSON.stringify(overrides)}|${bilingual}|${profileId}`;
+  const changeKey = `${valuesKey}|${JSON.stringify(overrides)}|${bilingual}|${profileId}|${presentationKey}`;
   const initialChangeKey = useRef(changeKey);
   useEffect(() => {
     if (changeKey === initialChangeKey.current) return;
@@ -320,6 +326,16 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
     await finalise();
     toast(t('editor.downloadReady'));
   };
+  /** Download without validation: missing fields print as blank lines to fill in by hand. */
+  const onDownloadBlank = async () => {
+    const buf = await current();
+    if (!buf) return;
+    downloadPdf(buf, fileName());
+    setErrorList([]);
+    await persist();
+    toast(t('editor.downloadReady'));
+  };
+
   const onPrint = async () => {
     if (!(await validate())) return;
     const buf = await current();
@@ -424,6 +440,12 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
             </li>
           ))}
         </ul>
+        <div className="mt-4 pt-3 border-t border-border">
+          <p className="text-[0.95rem] text-muted">{t('editor.blankHelp')}</p>
+          <Button variant="secondary" icon="download" className="mt-2" onClick={onDownloadBlank}>
+            {t('editor.downloadBlank')}
+          </Button>
+        </div>
       </div>
     ) : null;
 
@@ -464,6 +486,109 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
           );
         })}
         <p className="text-[0.9rem] text-muted">{t('editor.lawNote')}</p>
+      </div>
+    </details>
+  );
+
+  const hasSignature = Boolean(profile?.branding.signatureAssetId);
+  const hasStamp = Boolean(profile?.branding.stampAssetId);
+  const setP = (patch: Partial<Presentation>) => setPresentation((p) => ({ ...p, ...patch }));
+  const wmPreset = ['', 'CÓPIA', 'ORIGINAL', 'RASCUNHO', 'CONFIDENCIAL', 'PAGO', 'ANULADO'];
+  const wmValue = presentation.watermarkText ?? '';
+  const wmIsCustom = wmValue !== '' && !wmPreset.includes(wmValue);
+  const presentationPanel = (
+    <details className="mb-6 border border-border rounded-[var(--radius-md)] group">
+      <summary className="cursor-pointer min-h-12 px-4 flex items-center gap-2 font-semibold list-none">
+        <Icon name="image" size={18} />
+        {t('editor.presentation')}
+        <Icon name="chevronDown" size={18} className="ml-auto group-open:rotate-180 transition-transform" />
+      </summary>
+      <div className="px-4 pb-5 grid gap-6">
+        <p className="text-muted">{t('editor.presentationIntro')}</p>
+        {hasSignature || hasStamp ? (
+          <div className="grid gap-6 sm:grid-cols-2">
+            {hasSignature ? (
+              <div className="grid gap-2">
+                <Checkbox label={t('editor.showSignature')} checked={presentation.showSignature !== false} onChange={(v) => setP({ showSignature: v })} />
+                {presentation.showSignature !== false ? (
+                  <SizeSlider
+                    label={t('profiles.signatureSize')}
+                    value={presentation.signatureScale ?? profile?.branding.signatureScale ?? 1}
+                    min={0.5}
+                    max={3}
+                    onChange={(v) => setP({ signatureScale: v })}
+                    resetLabel={t('profiles.resetSize')}
+                  />
+                ) : null}
+              </div>
+            ) : null}
+            {hasStamp ? (
+              <div className="grid gap-2">
+                <Checkbox label={t('editor.showStamp')} checked={presentation.showStamp !== false} onChange={(v) => setP({ showStamp: v })} />
+                {presentation.showStamp !== false ? (
+                  <SizeSlider
+                    label={t('profiles.stampSize')}
+                    value={presentation.stampScale ?? profile?.branding.stampScale ?? 1}
+                    min={0.5}
+                    max={2.5}
+                    onChange={(v) => setP({ stampScale: v })}
+                    resetLabel={t('profiles.resetSize')}
+                  />
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <p className="text-[0.95rem]">
+            {t('editor.noSignatureYet')}{' '}
+            <Link to={profile ? `/perfis/${profile.id}` : '/perfis/novo?tipo=empresa'}>{t('editor.addSignature')}</Link>
+          </p>
+        )}
+        <div className="grid gap-5 sm:grid-cols-2">
+          <FieldWrap label={t('profiles.textSize')}>
+            {({ id }) => (
+              <Select id={id} value={presentation.textSize ?? ''} onChange={(e) => setP({ textSize: (e.target.value || undefined) as Presentation['textSize'] })}>
+                <option value="">{t('editor.sameAsProfile')}</option>
+                <option value="pequeno">{t('profiles.textSizes.pequeno')}</option>
+                <option value="normal">{t('profiles.textSizes.normal')}</option>
+                <option value="grande">{t('profiles.textSizes.grande')}</option>
+              </Select>
+            )}
+          </FieldWrap>
+          <FieldWrap label={t('profiles.lineSpacing')}>
+            {({ id }) => (
+              <Select id={id} value={presentation.lineSpacing ?? ''} onChange={(e) => setP({ lineSpacing: (e.target.value || undefined) as Presentation['lineSpacing'] })}>
+                <option value="">{t('editor.sameAsProfile')}</option>
+                <option value="compacto">{t('profiles.lineSpacings.compacto')}</option>
+                <option value="normal">{t('profiles.lineSpacings.normal')}</option>
+                <option value="amplo">{t('profiles.lineSpacings.amplo')}</option>
+              </Select>
+            )}
+          </FieldWrap>
+          <FieldWrap label={t('editor.watermarkText')} hint={t('editor.watermarkTextHelp')}>
+            {({ id, describedBy }) => (
+              <Select
+                id={id}
+                aria-describedby={describedBy}
+                value={wmIsCustom ? '__custom' : wmValue}
+                onChange={(e) => setP({ watermarkText: e.target.value === '__custom' ? t('editor.watermarkCustomDefault') : e.target.value })}
+              >
+                <option value="">{t('editor.watermarkNone')}</option>
+                {wmPreset.slice(1).map((w) => (
+                  <option key={w} value={w}>
+                    {w}
+                  </option>
+                ))}
+                <option value="__custom">{t('editor.watermarkCustom')}</option>
+              </Select>
+            )}
+          </FieldWrap>
+          {wmIsCustom ? (
+            <FieldWrap label={t('editor.watermarkCustom')}>
+              {({ id }) => <TextInput id={id} maxLength={24} value={wmValue} onChange={(e) => setP({ watermarkText: e.target.value })} />}
+            </FieldWrap>
+          ) : null}
+        </div>
       </div>
     </details>
   );
@@ -559,6 +684,7 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
           <Checkbox label={t('editor.bilingual')} hint={t('editor.bilingualHelp')} checked={bilingual} onChange={setBilingual} />
         </div>
       ) : null}
+      {presentationPanel}
       {wordingPanel}
       {legalPanel}
       {nextDocs.length ? (
@@ -593,14 +719,14 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
   );
 
   const actions = (compact: boolean) => (
-    <div className={`flex items-center gap-2 ${compact ? 'justify-between' : 'flex-wrap'}`}>
-      <Button variant="secondary" icon="save" onClick={onSave} className={compact ? 'flex-1 px-2' : ''}>
+    <div className={`flex items-center ${compact ? 'gap-1.5 justify-between' : 'gap-2 flex-wrap'}`}>
+      <Button variant="secondary" icon="save" onClick={onSave} className={compact ? COMPACT_BTN : ''}>
         {t('editor.save')}
       </Button>
-      <Button variant="primary" icon="download" onClick={onDownload} className={compact ? 'flex-1 px-2' : ''}>
+      <Button variant="primary" icon="download" onClick={onDownload} className={compact ? 'flex-1 min-w-0 px-1.5 gap-1.5 [&>svg]:shrink-0' : ''}>
         {compact ? t('editor.downloadShort') : t('editor.download')}
       </Button>
-      <Button variant="secondary" icon="print" onClick={onPrint} className={compact ? 'flex-1 px-2' : ''}>
+      <Button variant="secondary" icon="print" onClick={onPrint} className={compact ? COMPACT_BTN : ''}>
         {t('editor.print')}
       </Button>
       {shareable && !compact ? (

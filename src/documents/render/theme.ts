@@ -1,5 +1,5 @@
 import { ensurePrintContrast, tint } from '@/lib/color';
-import { DEFAULT_BRANDING, type Branding } from '@/lib/storage/types';
+import { DEFAULT_BRANDING, type Branding, type Presentation } from '@/lib/storage/types';
 import { FONT_FAMILIES, type FontFamilies } from './fonts';
 
 export const MM = 2.8346457; // points per millimetre
@@ -19,10 +19,22 @@ export type Theme = {
   margin: { top: number; right: number; bottom: number; left: number };
   contentWidth: number;
   gap: number; // vertical space between blocks
+  /** Colour for titles, clause headings and section labels. */
+  heading: string;
+  /** Faint tint for table stripes and boxes. */
+  wash: string;
+  signatureScale: number;
+  stampScale: number;
+  logoScale: number;
 };
 
-export function makeTheme(branding: Branding | undefined, families?: FontFamilies): Theme {
+const clamp = (n: unknown, lo: number, hi: number, d: number) =>
+  typeof n === 'number' && Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d;
+
+export function makeTheme(branding: Branding | undefined, families?: FontFamilies, presentation: Presentation = {}): Theme {
   const b = branding ?? DEFAULT_BRANDING;
+  const size = presentation.textSize ?? b.textSize ?? 'normal';
+  const spacing = presentation.lineSpacing ?? b.lineSpacing ?? 'normal';
   const accent = ensurePrintContrast(b.accent || DEFAULT_BRANDING.accent);
   const margin =
     b.margins === 'estreito'
@@ -37,12 +49,17 @@ export function makeTheme(branding: Branding | undefined, families?: FontFamilie
     text: '#111111',
     muted: '#4a4f55',
     // Sans faces look larger at the same size; keep visual size consistent.
-    bodySize: serif ? 11 : 10.5,
+    bodySize: (serif ? 11 : 10.5) + (size === 'pequeno' ? -1 : size === 'grande' ? 1 : 0),
     smallSize: 8,
-    lineHeight: 1.4,
+    lineHeight: spacing === 'compacto' ? 1.3 : spacing === 'amplo' ? 1.55 : 1.42,
     align: b.textAlign === 'left' ? 'left' : 'justify',
     margin,
     contentWidth: A4.width - margin.left - margin.right,
-    gap: 7,
+    gap: spacing === 'compacto' ? 5 : spacing === 'amplo' ? 9 : 7,
+    heading: b.accentHeadings === false ? '#111111' : accent,
+    wash: tint(accent, 0.955),
+    logoScale: clamp(b.logoScale, 0.4, 2.5, 1),
+    signatureScale: clamp(presentation.signatureScale ?? b.signatureScale, 0.4, 3, 1),
+    stampScale: clamp(presentation.stampScale ?? b.stampScale, 0.4, 3, 1),
   };
 }

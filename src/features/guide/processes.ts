@@ -102,7 +102,10 @@ export const PROCESSES: ProcessDef[] = [
       {
         id: 'parecer',
         title: l('Parecer do comité sindical', 'Union committee opinion'),
-        description: l('O processo é enviado ao comité sindical, que dá o seu parecer.', 'The file is sent to the union committee for its opinion.'),
+        description: l(
+          'O processo é enviado ao comité sindical (ou, se não existir, ao sindicato do ramo), que dá o seu parecer em dias úteis.',
+          'The file is sent to the union committee (or, if none, the sector union), which gives its opinion within working days.',
+        ),
         date: (s, legal) => ({ date: parecerAte(s, legal), kind: 'by' }),
         legalRef: 'procedimentoDisciplinar',
       },
@@ -110,7 +113,10 @@ export const PROCESSES: ProcessDef[] = [
         id: 'decisao',
         templateId: 'decisao-disciplinar',
         title: l('Decisão disciplinar', 'Disciplinary decision'),
-        description: l('Decisão escrita e fundamentada, com os factos provados, comunicada ao trabalhador e ao órgão sindical.', 'Written, reasoned decision listing the facts proven, sent to the employee and the union.'),
+        description: l(
+          'Decisão escrita e fundamentada, com as provas e os factos provados, comunicada ao trabalhador e ao órgão sindical. O prazo conta do fim do prazo do parecer: se não houve diligências de prova, pode terminar mais cedo.',
+          'Written, reasoned decision listing the evidence and facts proven, sent to the employee and the union. The deadline runs from the end of the opinion period: without evidence-gathering it may end earlier.',
+        ),
         date: (s, legal) => ({ date: addDays(parecerAte(s, legal), legal.value<{ decisaoDias: number }>('decisaoDisciplinarPrazo').decisaoDias), kind: 'by' }),
         prefill: (s) => ({ dataNotaCulpa: s }),
         legalRef: 'decisaoDisciplinarPrazo',

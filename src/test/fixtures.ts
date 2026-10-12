@@ -101,6 +101,14 @@ export function companyProfile(layout: LetterheadLayout, variant: 'plain' | 'hug
     p.branding.stampAssetId = 'stamp';
     p.branding.font = 'moderno';
     p.branding.margins = 'estreito';
+    p.branding.tagline = 'Construção civil, obras públicas e manutenção de edifícios em todo o país';
+    p.branding.footerNote = 'Matriculada na Conservatória do Registo das Entidades Legais de Maputo sob o n.º 100234567';
+    p.branding.logoScale = 1.8;
+    p.branding.signatureScale = 2;
+    p.branding.stampScale = 1.6;
+    p.branding.textSize = 'grande';
+    p.branding.lineSpacing = 'amplo';
+    p.branding.pageBorder = true;
   }
   if (variant === 'hugeLogo') {
     // tall logo too

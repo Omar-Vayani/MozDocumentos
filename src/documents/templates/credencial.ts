@@ -167,7 +167,7 @@ export default defineTemplate({
     const rep = employerRep(ctx);
     const issuerSig: SignatureColumn = empresa
       ? { role: rep.cargo || 'Pela empresa', name: rep.nome || undefined, image: 'both' }
-      : { role: 'O Emitente', name: ctx.profile?.nome || undefined, image: 'both' };
+      : { role: g(ctx.profile?.genero, 'O Emitente', 'A Emitente'), name: ctx.profile?.nome || undefined, image: 'both' };
     const columns: SignatureColumn[] = [issuerSig];
     if (v.assinaturaCredenciado) {
       columns.push({ role: g(ge, 'O Credenciado', 'A Credenciada'), name: v.credenciadoNome || undefined });

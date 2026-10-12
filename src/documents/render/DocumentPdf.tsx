@@ -1,5 +1,5 @@
 import { Document, Image, Page, Text, View } from '@react-pdf/renderer';
-import { profileDisplayName } from '@/lib/storage/types';
+import { profileDisplayName, type Presentation } from '@/lib/storage/types';
 import { renderBlocks, type BlockEnv } from '../blocks';
 import { estimateLines, FaixaBand, footerLines, Letterhead, type LetterheadEnv } from '../layouts';
 import type { Block } from '../model';
@@ -8,12 +8,21 @@ import type { FontFamilies } from './fonts';
 import { A4, MM, makeTheme } from './theme';
 import type { RenderInput } from './types';
 
-type Props = { input: RenderInput; template: FullTemplate; blocks: Block[]; refNumber?: string; families?: FontFamilies };
+type Props = {
+  input: RenderInput;
+  template: FullTemplate;
+  blocks: Block[];
+  refNumber?: string;
+  families?: FontFamilies;
+  /** Return only the <Page> (for combining several documents in one PDF). */
+  pageOnly?: boolean;
+};
 
-export function DocumentPdf({ input, template, blocks, refNumber, families }: Props) {
+export function DocumentPdf({ input, template, blocks, refNumber, families, pageOnly }: Props) {
   const { profile, assets } = input;
   const branding = profile?.branding;
-  const theme = makeTheme(branding, families);
+  const presentation = (input.values.__presentation ?? {}) as Presentation;
+  const theme = makeTheme(branding, families, presentation);
   const isCompany = profile?.kind === 'empresa';
   const showLetterhead = isCompany && template.letterhead !== false;
   const layout = branding?.layout ?? 'classico';
@@ -27,16 +36,16 @@ export function DocumentPdf({ input, template, blocks, refNumber, families }: Pr
   const blockEnv: BlockEnv = {
     theme,
     bilingual: input.bilingual,
-    signature: asset(branding?.signatureAssetId),
-    stamp: asset(branding?.stampAssetId),
+    signature: presentation.showSignature === false ? undefined : asset(branding?.signatureAssetId),
+    stamp: presentation.showStamp === false ? undefined : asset(branding?.stampAssetId),
   };
 
   // Footer: fixed on every page; its height is reserved in the bottom padding.
   const fLines = showLetterhead ? footerLines(profile, layout) : [];
   const footerImg = showLetterhead ? asset(branding?.footerAssetId) : undefined;
   const footerImgH = footerImg ? Math.min((A4.width * footerImg.height) / Math.max(1, footerImg.width), 30 * MM) : 0;
-  const pageNumbers = branding?.pageNumbers ?? true;
-  const lineCount = fLines.reduce((n, l) => n + Math.min(2, estimateLines(l, theme.contentWidth - 60)), 0);
+  const pageNumbers = !pageOnly && (branding?.pageNumbers ?? true);
+  const lineCount = fLines.reduce((n, l) => n + Math.min(2, estimateLines(l, theme.contentWidth - (pageNumbers ? 95 : 5))), 0);
   const footerTextH = lineCount * 10 + (pageNumbers || lineCount ? 10 : 0);
   const footerBottom = footerImgH + 8 * MM;
   const paddingBottom = Math.max(theme.margin.bottom, footerBottom + footerTextH + 5 * MM);
@@ -50,18 +59,15 @@ export function DocumentPdf({ input, template, blocks, refNumber, families }: Pr
     wmW = watermark ? (wmH * watermark.width) / Math.max(1, watermark.height) : 0;
   }
 
+  // Diagonal text such as CÓPIA or CONFIDENCIAL, sized to fit across the page.
+  const wmText = (presentation.watermarkText ?? '').trim().toLocaleUpperCase('pt').slice(0, 24);
+  const wmTextSize = wmText ? Math.min(96, (A4.width * 0.78) / (wmText.length * 0.62)) : 0;
+
   const runningLeft = [refNumber ? `N/Ref.ª ${refNumber}` : '', showLetterhead ? profileDisplayName(profile) : '']
     .filter(Boolean)
     .join(' · ');
 
-  return (
-    <Document
-      title={template.formalTitle}
-      author={profileDisplayName(profile) || undefined}
-      creator="Documentos MZ"
-      producer="Documentos MZ"
-      language="pt-MZ"
-    >
+  const page = (
       <Page
         size="A4"
         style={{
@@ -89,6 +95,40 @@ export function DocumentPdf({ input, template, blocks, refNumber, families }: Pr
                 </View>
               )
             }
+          />
+        ) : null}
+
+        {wmText ? (
+          <View
+            fixed
+            style={{ position: 'absolute', top: 0, left: 0, width: A4.width, height: A4.height, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Text
+              style={{
+                fontSize: wmTextSize,
+                fontWeight: 700,
+                color: theme.accent,
+                opacity: 0.09,
+                transform: 'rotate(-32deg)',
+              }}
+            >
+              {wmText}
+            </Text>
+          </View>
+        ) : null}
+
+        {branding?.pageBorder ? (
+          <View
+            fixed
+            style={{
+              position: 'absolute',
+              top: 6 * MM,
+              left: 6 * MM,
+              width: A4.width - 12 * MM,
+              height: A4.height - 12 * MM,
+              borderWidth: 0.6,
+              borderColor: theme.accent,
+            }}
           />
         ) : null}
 
@@ -194,6 +234,17 @@ export function DocumentPdf({ input, template, blocks, refNumber, families }: Pr
           />
         ) : null}
       </Page>
+  );
+  if (pageOnly) return page;
+  return (
+    <Document
+      title={template.formalTitle}
+      author={profileDisplayName(profile) || undefined}
+      creator="Documentos MZ — Omar Vayani"
+      producer="Documentos MZ"
+      language="pt-MZ"
+    >
+      {page}
     </Document>
   );
 }

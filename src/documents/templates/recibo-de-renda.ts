@@ -178,6 +178,25 @@ export default defineTemplate({
       placeholder: l('Ex.: n.º da transacção ou do cheque', 'E.g. transaction or cheque number'),
       showIf: (v) => v.formaPagamento !== 'numerário',
     },
+    {
+      name: 'retencao',
+      type: 'toggle',
+      section: 'pagamento',
+      label: l('O inquilino reteve imposto na fonte', 'The tenant withheld tax at source'),
+      help: l(
+        'Algumas empresas inquilinas retêm imposto (IRPS ou IRPC) sobre a renda e entregam-no à Autoridade Tributária. Indique o valor retido para o recibo mostrar o valor ilíquido e o líquido.',
+        'Some company tenants withhold tax (IRPS or IRPC) on the rent and pay it to the Tax Authority. Enter the amount withheld so the receipt shows gross and net amounts.',
+      ),
+      showIf: (v) => isEmpresa(v, 'inquilino'),
+    },
+    {
+      name: 'valorRetido',
+      type: 'money',
+      section: 'pagamento',
+      width: 'half',
+      label: l('Imposto retido na fonte', 'Tax withheld'),
+      showIf: (v) => isEmpresa(v, 'inquilino') && Boolean(v.retencao),
+    },
   ],
 
   computed: (v) => {
@@ -185,12 +204,16 @@ export default defineTemplate({
     const n = Math.max(1, Math.floor(Number(v.numeroMeses) || 1));
     const totalCalc = renda != null ? roundMoney(renda * n) : null;
     const total = money(v.valor) ?? totalCalc;
+    const retido = isEmpresa(v, 'inquilino') && v.retencao ? money(v.valorRetido) : null;
+    const liquido = total != null && retido != null && retido > 0 ? roundMoney(total - retido) : null;
     const mes = typeof v.mesReferencia === 'string' && v.mesReferencia ? `${v.mesReferencia.slice(0, 7)}-01` : '';
     return {
       n,
       renda,
       totalCalc,
       total,
+      retido: liquido != null ? retido : null,
+      liquido,
       de: mes ? formatMonthYear(mes) : '',
       ate: mes && n > 1 ? formatMonthYear(addMonths(mes, n - 1)) : '',
     };
@@ -206,6 +229,21 @@ export default defineTemplate({
         message: l(
           `O valor recebido é diferente de renda × meses (${formatMoney(c.totalCalc)}). Confirme se é um pagamento parcial.`,
           `The amount received differs from rent × months (${formatMoney(c.totalCalc)}). Check whether it is a partial payment.`,
+        ),
+      });
+    }
+    if (isEmpresa(v, 'inquilino') && v.retencao && money(v.valorRetido) == null) {
+      w.push({ level: 'warning', field: 'valorRetido', message: l('Indique o valor do imposto retido.', 'Enter the amount of tax withheld.') });
+    }
+    if (c.liquido != null && c.liquido < 0) {
+      w.push({ level: 'error', field: 'valorRetido', message: l('O imposto retido é superior à renda.', 'The tax withheld exceeds the rent.') });
+    }
+    if (isEmpresa(v, 'senhorio')) {
+      w.push({
+        level: 'info',
+        message: l(
+          'Uma empresa senhoria deve também emitir a factura ou factura-recibo exigida pelo Código do IVA, em impresso de tipografia autorizada ou programa certificado. Este recibo não a substitui.',
+          'A company landlord must also issue the invoice or invoice-receipt required by the VAT Code, on authorised printed forms or certified software. This receipt does not replace it.',
         ),
       });
     }
@@ -267,13 +305,17 @@ export default defineTemplate({
     const blocks: Block[] = [
       { type: 'title', text: `Recibo de renda n.º ${str(v.ref) || BLANK}`, subtitle: `Referente a ${periodoCurto}` },
     ];
-    if (total != null && total > 0) blocks.push({ type: 'amount', label: 'Valor recebido', value: total });
+    if (c.liquido != null && c.liquido >= 0) blocks.push({ type: 'amount', label: 'Valor líquido recebido', value: c.liquido });
+    else if (total != null && total > 0) blocks.push({ type: 'amount', label: 'Valor recebido', value: total });
     blocks.push(
       {
         type: 'paragraph',
         id: 'declaracao',
-        text: `${senhorio.filter(Boolean).join(', ')}, na qualidade de ${papelS} do imóvel sito em ${str(v.imovelMorada).replace(/[.;,:]+$/, '') || BLANK}, declara ter recebido de ${inquilino.filter(Boolean).join(', ')} a quantia de ${valorTexto(total)}, referente à renda ${periodo}${contrato}, paga ${modo}${refPag}, em ${dateLong(v.data)}.`,
-        en: `The landlord named above confirms receipt from the tenant named above of ${total != null ? formatMoney(total) : '—'} as rent for ${periodoCurto}, paid by ${forma} on ${v.data || '—'}.`,
+        text:
+          c.liquido != null
+            ? `${senhorio.filter(Boolean).join(', ')}, na qualidade de ${papelS} do imóvel sito em ${str(v.imovelMorada).replace(/[.;,:]+$/, '') || BLANK}, declara ter recebido de ${inquilino.filter(Boolean).join(', ')} a renda ${periodo}${contrato}, no valor ilíquido de ${valorTexto(total)}, deduzida do imposto retido na fonte de ${formatMoney(c.retido)}, correspondendo o valor líquido recebido a ${valorTexto(c.liquido)}, pago ${modo}${refPag}, em ${dateLong(v.data)}.`
+            : `${senhorio.filter(Boolean).join(', ')}, na qualidade de ${papelS} do imóvel sito em ${str(v.imovelMorada).replace(/[.;,:]+$/, '') || BLANK}, declara ter recebido de ${inquilino.filter(Boolean).join(', ')} a quantia de ${valorTexto(total)}, referente à renda ${periodo}${contrato}, paga ${modo}${refPag}, em ${dateLong(v.data)}.`,
+        en: `The landlord named above confirms receipt from the tenant named above of ${total != null ? formatMoney(total) : '—'} as rent for ${periodoCurto}${c.liquido != null ? `, less ${formatMoney(c.retido)} withheld at source (net ${formatMoney(c.liquido)})` : ''}, paid by ${forma} on ${v.data || '—'}.`,
       },
       {
         type: 'paragraph',

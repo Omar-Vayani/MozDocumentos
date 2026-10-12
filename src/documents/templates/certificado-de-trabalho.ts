@@ -50,8 +50,9 @@ export default defineTemplate({
       type: 'text',
       section: 'trabalhador',
       required: true,
-      label: l('Nível de qualificação alcançado', 'Qualification level reached'),
-      legal: l('A lei exige a indicação do nível de qualificação alcançado.', 'The law requires the qualification level reached.'),
+      label: l('Nível de capacidade profissional adquirido', 'Professional level reached'),
+      legal: l('A lei exige a indicação do nível de capacidade profissional adquirido.', 'The law requires the professional level reached.'),
+      help: l('Normalmente a categoria profissional ou o nível de qualificação no fim do contrato.', 'Usually the job grade or qualification level at the end of the contract.'),
       placeholder: l('Ex.: Técnico médio de contabilidade, nível 3', 'E.g. Mid-level accounting technician, level 3'),
       personKey: 'categoria',
     },
@@ -99,7 +100,7 @@ export default defineTemplate({
       w.push({ level: 'error', field: 'dataFimContrato', message: l('A data de cessação é anterior à admissão.', 'The end date is before the start date.') });
     }
     if (!String(v.nivelQualificacao ?? '').trim()) {
-      w.push({ level: 'warning', field: 'nivelQualificacao', message: l('Indique o nível de qualificação: a lei exige-o.', 'State the qualification level: the law requires it.') });
+      w.push({ level: 'warning', field: 'nivelQualificacao', message: l('Indique o nível de capacidade profissional adquirido: a lei exige-o.', 'State the professional level reached: the law requires it.') });
     }
     if (!lineItems(v.cargos).some((r) => String(r.cargo ?? '').trim())) {
       w.push({ level: 'warning', field: 'cargos', message: l('Indique pelo menos um cargo exercido.', 'Add at least one position held.') });
@@ -134,13 +135,13 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'certifica',
-        text: `Certifica-se, para os devidos efeitos, que **${v.trabalhadorNome || BLANK}**${doc}, prestou trabalho ${isCompany ? 'à' : 'a'} **${empresa}** no período de ${dateLong(v.trabalhadorDataAdmissao)} a ${dateLong(v.dataFimContrato)}, tendo alcançado o nível de qualificação de **${v.nivelQualificacao || BLANK}**.`,
-        en: `This is to certify that ${v.trabalhadorNome || '___'} worked for ${empresa} from ${v.trabalhadorDataAdmissao || '___'} to ${v.dataFimContrato || '___'}, reaching the qualification level of ${v.nivelQualificacao || '___'}.`,
+        text: `Certifica-se, para os devidos efeitos, que **${v.trabalhadorNome || BLANK}**${doc ? `${doc},` : ''} esteve ao serviço ${isCompany ? 'da' : 'de'} **${empresa}** no período de ${dateLong(v.trabalhadorDataAdmissao)} a ${dateLong(v.dataFimContrato)}, tendo adquirido o nível de capacidade profissional correspondente a **${v.nivelQualificacao || BLANK}**.`,
+        en: `This is to certify that ${v.trabalhadorNome || '___'} worked for ${empresa} from ${v.trabalhadorDataAdmissao || '___'} to ${v.dataFimContrato || '___'}, reaching the professional level of ${v.nivelQualificacao || '___'}.`,
       },
       {
         type: 'paragraph',
         id: 'cargos',
-        text: `Durante esse período, ${g(ge, 'o trabalhador', 'a trabalhadora')} exerceu ${cargos.length === 1 ? 'o seguinte cargo' : 'os seguintes cargos'}:`,
+        text: `Durante esse período, ${g(ge, 'o trabalhador', 'a trabalhadora')} desempenhou ${cargos.length === 1 ? 'o seguinte cargo' : 'os seguintes cargos'}:`,
         en: 'During that period the employee held the following position(s):',
       },
       {

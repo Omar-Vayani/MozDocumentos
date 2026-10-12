@@ -29,24 +29,28 @@ const MOTIVOS = [
   {
     value: 'falecimentoProximo',
     label: l(
-      'Falecimento de familiar próximo (cônjuge, pais, filhos, irmãos, avós, netos, sogros, genros, noras)',
-      'Death of a close relative (spouse, parents, children, siblings, grandparents, grandchildren, in-laws)',
+      'Falecimento de familiar próximo (cônjuge ou companheiro(a), pais, padrasto, madrasta, filhos, enteados, irmãos, avós, netos, sogros, genros, noras)',
+      'Death of a close relative (spouse or partner, parents, step-parents, children, stepchildren, siblings, grandparents, grandchildren, in-laws)',
     ),
   },
   {
     value: 'falecimentoOutro',
     label: l('Falecimento de outro familiar (tios, primos, sobrinhos, cunhados)', 'Death of another relative (uncles, cousins, nephews, siblings-in-law)'),
   },
-  { value: 'assistencia', label: l('Assistência inadiável a familiar', 'Urgent care of a family member') },
+  { value: 'assistencia', label: l('Assistência a familiar doente ou acidentado', 'Care of a sick or injured family member') },
+  { value: 'internamento', label: l('Acompanhamento de filho ou menor internado', 'Staying with a hospitalised child') },
   { value: 'consulta', label: l('Consulta médica ou exame', 'Medical appointment or test') },
   { value: 'outro', label: l('Outro motivo', 'Other reason') },
 ];
 
 const isFalecimento = (v: Values) => v.motivo === 'falecimentoProximo' || v.motivo === 'falecimentoOutro';
+/** Reasons that name a family member. */
+const temFamiliar = (v: Values) => isFalecimento(v) || v.motivo === 'assistencia' || v.motivo === 'internamento';
 /** Absences the worker can foresee and must announce in advance. */
 const isPrevisivel = (v: Values) => v.motivo === 'casamento' || v.motivo === 'consulta';
 /** Reasons expressly listed as justified absences in the Labour Law. */
-const isLegal = (v: Values) => ['doenca', 'acidente', 'casamento', 'falecimentoProximo', 'falecimentoOutro', 'assistencia'].includes(v.motivo);
+const isLegal = (v: Values) =>
+  ['doenca', 'acidente', 'casamento', 'falecimentoProximo', 'falecimentoOutro', 'assistencia', 'internamento'].includes(v.motivo);
 
 function motivoTexto(v: Values): { pt: string; en: string } {
   switch (v.motivo) {
@@ -66,7 +70,14 @@ function motivoTexto(v: Values): { pt: string; en: string } {
       };
     }
     case 'assistencia':
-      return { pt: 'por necessidade de prestar assistência inadiável a membro do meu agregado familiar', en: 'to provide urgent care to a member of my household' };
+    case 'internamento': {
+      const nome = String(v.familiarNome ?? '').trim();
+      const par = String(v.parentesco ?? '').trim();
+      const quem = nome ? `**${nome}**${par ? ` (${par})` : ''}` : par || 'membro da minha família';
+      return v.motivo === 'assistencia'
+        ? { pt: `para prestar assistência a ${quem}, em situação de doença ou acidente`, en: `to care for ${nome || par || 'a family member'}, who was ill or injured` }
+        : { pt: `para acompanhar ${quem}, internad${v.parentescoGenero === 'F' ? 'a' : 'o'} em estabelecimento hospitalar`, en: `to stay with ${nome || par || 'my child'} in hospital` };
+    }
     case 'consulta':
       return { pt: 'por motivo de consulta médica', en: 'due to a medical appointment' };
     default: {
@@ -123,8 +134,8 @@ export default defineTemplate({
       type: 'text',
       section: 'falta',
       width: 'half',
-      label: l('Nome do familiar falecido', 'Name of the deceased'),
-      showIf: isFalecimento,
+      label: l('Nome do familiar', 'Name of the relative'),
+      showIf: temFamiliar,
     },
     {
       name: 'parentesco',
@@ -133,7 +144,20 @@ export default defineTemplate({
       width: 'half',
       label: l('Parentesco', 'Relationship'),
       placeholder: l('Ex.: pai, sogra, tio', 'E.g. father, mother-in-law, uncle'),
-      showIf: isFalecimento,
+      showIf: temFamiliar,
+    },
+    {
+      name: 'parentescoGenero',
+      type: 'radio',
+      section: 'falta',
+      width: 'half',
+      label: l('O familiar é', 'The relative is'),
+      options: [
+        { value: 'M', label: l('Masculino', 'Male') },
+        { value: 'F', label: l('Feminino', 'Female') },
+      ],
+      default: 'M',
+      showIf: (v) => v.motivo === 'internamento',
     },
     {
       name: 'descricao',
@@ -201,6 +225,9 @@ export default defineTemplate({
     }
     if ((v.motivo === 'doenca' || v.motivo === 'acidente') && c.anexos.length === 0) {
       w.push({ level: 'warning', field: 'anexos', message: l('Junte o atestado médico ou outro comprovativo.', 'Attach the medical certificate or other proof.') });
+    }
+    if ((v.motivo === 'assistencia' || v.motivo === 'internamento') && c.anexos.length === 0) {
+      w.push({ level: 'info', field: 'anexos', message: l('Junte a declaração da unidade sanitária.', 'Attach the statement from the health facility.') });
     }
     if (v.motivo === 'consulta' && c.anexos.length === 0) {
       w.push({ level: 'info', field: 'anexos', message: l('Junte a declaração de presença passada pela unidade sanitária.', 'Attach the attendance note from the clinic.') });

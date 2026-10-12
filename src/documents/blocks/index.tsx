@@ -14,6 +14,7 @@ import type { Theme } from '../render/theme';
 export type BlockEnv = {
   theme: Theme;
   bilingual: boolean;
+  /** Undefined when the profile has none or the user hid it for this document. */
   signature?: RenderAsset;
   stamp?: RenderAsset;
 };
@@ -106,51 +107,69 @@ function canKeep(theme: Theme, heightPt: number): boolean {
   return heightPt < 250 && theme.contentWidth > 0;
 }
 
+type SignatureColumn = Extract<Block, { type: 'signatures' }>['columns'][number];
+
+/** Space above the signature line; grows with the chosen sizes so a larger signature never covers the role caption. */
+function signatureArea(col: SignatureColumn, env: BlockEnv): number {
+  const { theme } = env;
+  const showSig = (col.image === 'signature' || col.image === 'both') && env.signature;
+  const showStamp = (col.image === 'stamp' || col.image === 'both') && env.stamp;
+  return Math.max(46, showSig ? 40 * theme.signatureScale + 6 : 0, showStamp ? 58 * theme.stampScale * 0.75 : 0);
+}
+
 function SignatureColumnView({
   col,
   env,
   width,
+  area,
+  roleHeight,
 }: {
-  col: Extract<Block, { type: 'signatures' }>['columns'][number];
+  col: SignatureColumn;
   env: BlockEnv;
   width: string;
+  /** Shared by all columns so the signature lines line up. */
+  area: number;
+  roleHeight: number;
 }) {
   const { theme } = env;
   const showSig = (col.image === 'signature' || col.image === 'both') && env.signature;
   const showStamp = (col.image === 'stamp' || col.image === 'both') && env.stamp;
-  const area = 46; // pt reserved above the signature line
+  const sigH = 40 * theme.signatureScale;
+  const stampH = 58 * theme.stampScale;
   return (
     <View style={{ width, paddingHorizontal: 8, alignItems: 'center' }}>
-      <Text style={{ fontSize: theme.bodySize - 0.5, marginBottom: 4, textAlign: 'center' }}>{col.role}</Text>
+      <View style={{ minHeight: roleHeight, marginBottom: 4, width: '100%', justifyContent: 'flex-end' }}>
+        <Text style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center' }}>{col.role}</Text>
+      </View>
       <View style={{ height: area, width: '100%', position: 'relative' }}>
         {showStamp && env.stamp ? (
           <Image
             src={env.stamp.dataUrl}
             style={{
               position: 'absolute',
-              right: 4,
-              top: -6,
-              height: 58,
-              width: (58 * env.stamp.width) / Math.max(1, env.stamp.height),
-              maxWidth: '60%',
+              right: 0,
+              bottom: -stampH * 0.2,
+              height: stampH,
+              width: (stampH * env.stamp.width) / Math.max(1, env.stamp.height),
+              maxWidth: '75%',
               objectFit: 'contain',
               opacity: 0.92,
             }}
           />
         ) : null}
         {showSig && env.signature ? (
-          <Image
-            src={env.signature.dataUrl}
-            style={{
-              position: 'absolute',
-              left: '20%',
-              bottom: 0,
-              height: area - 4,
-              width: ((area - 4) * env.signature.width) / Math.max(1, env.signature.height),
-              maxWidth: '60%',
-              objectFit: 'contain',
-            }}
-          />
+          // Centred over the line, as a hand signature would be; a stamp overlaps it on the right.
+          <View style={{ position: 'absolute', left: 0, right: 0, bottom: -2, alignItems: 'center' }}>
+            <Image
+              src={env.signature.dataUrl}
+              style={{
+                height: sigH,
+                width: (sigH * env.signature.width) / Math.max(1, env.signature.height),
+                maxWidth: '85%',
+                objectFit: 'contain',
+              }}
+            />
+          </View>
         ) : null}
       </View>
       <View style={{ borderTopWidth: 0.75, borderTopColor: theme.text, width: '100%', marginBottom: 3 }} />
@@ -169,20 +188,22 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
   switch (block.type) {
     case 'title':
       return (
-        <View key={key} style={{ marginTop: 4, marginBottom: theme.gap + 4 }} minPresenceAhead={60}>
+        <View key={key} style={{ marginTop: 4, marginBottom: theme.gap + 6, alignItems: 'center' }} minPresenceAhead={60}>
           <Text
             style={{
-              fontSize: theme.bodySize + 2.5,
+              fontSize: theme.bodySize + 3,
               fontWeight: 700,
               textAlign: 'center',
               lineHeight: 1.25,
+              color: theme.heading,
             }}
           >
             {/* Uppercased before layout: react-pdf measures lines before textTransform/letterSpacing. */}
             {block.text.toLocaleUpperCase('pt')}
           </Text>
+          <View style={{ width: 34, height: 1.6, backgroundColor: theme.accent, marginTop: 5 }} />
           {block.subtitle ? (
-            <Text style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center', color: theme.muted, marginTop: 3 }}>
+            <Text style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center', color: theme.muted, marginTop: 5 }}>
               {block.subtitle}
             </Text>
           ) : null}
@@ -207,7 +228,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           {block.ref ? (
             <Text style={{ fontSize: theme.bodySize - 0.5, marginRight: 12 }}>
               <Text style={{ color: theme.muted }}>N/Ref.ª </Text>
-              {block.ref}
+              <Text style={{ fontWeight: 700 }}>{block.ref}</Text>
             </Text>
           ) : null}
           {right ? <Text style={{ fontSize: theme.bodySize - 0.5 }}>{right}</Text> : null}
@@ -234,7 +255,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       return (
         <View key={key} style={{ marginBottom: theme.gap + 2 }} minPresenceAhead={40}>
           <Text style={{ fontSize: theme.bodySize, fontWeight: 700, lineHeight: 1.3 }}>
-            {`${block.label ?? 'Assunto'}: `}
+            <Text style={{ color: theme.heading }}>{`${block.label ?? 'Assunto'}: `}</Text>
             {oneLine(block.text)}
           </Text>
         </View>
@@ -266,7 +287,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       return (
         <Text
           key={key}
-          style={{ fontSize: theme.bodySize, fontWeight: 700, marginTop: 6, marginBottom: 4, color: theme.text }}
+          style={{ fontSize: theme.bodySize, fontWeight: 700, marginTop: 6, marginBottom: 4, color: theme.heading }}
           minPresenceAhead={50}
         >
           {block.text}
@@ -288,10 +309,10 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
             const groupFirst = first.length > 0 && canKeep(theme, textLines(theme, first) * theme.bodySize * theme.lineHeight + 40);
             const heading =
               block.style === 'numeric' ? (
-                <Text style={{ ...para(env), fontWeight: 700, marginBottom: 2 }}>{clauseHeading('numeric', i, item)}</Text>
+                <Text style={{ ...para(env), fontWeight: 700, marginBottom: 2, color: theme.heading }}>{clauseHeading('numeric', i, item)}</Text>
               ) : (
                 <View style={{ marginBottom: 3 }}>
-                  <Text style={{ fontSize: theme.bodySize, fontWeight: 700, textAlign: 'center' }}>{clauseHeading(block.style, i, item)}</Text>
+                  <Text style={{ fontSize: theme.bodySize, fontWeight: 700, textAlign: 'center', color: theme.heading }}>{clauseHeading(block.style, i, item)}</Text>
                   {item.heading ? <Text style={{ fontSize: theme.bodySize, textAlign: 'center' }}>({item.heading})</Text> : null}
                 </View>
               );
@@ -304,8 +325,15 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
                 </View>
                 {groupFirst ? (rest ? <RichText text={rest} style={para(env)} /> : null) : item.text ? <RichText text={item.text} style={para(env)} /> : null}
                 {item.items?.map((sub, j) => (
-                  <View key={j} style={{ flexDirection: 'row', marginTop: 2, paddingLeft: 12 }}>
-                    <Text style={{ width: 16, fontSize: theme.bodySize }}>{ALPHA[j]})</Text>
+                  <View
+                    key={j}
+                    style={{ flexDirection: 'row', marginTop: 2, paddingLeft: 12 }}
+                    wrap={!canKeep(theme, textLines(theme, sub, 0.92) * theme.bodySize * theme.lineHeight)}
+                  >
+                    {/* minPresenceAhead keeps the label on the same page as its text. */}
+                    <Text style={{ width: 16, fontSize: theme.bodySize }} minPresenceAhead={theme.bodySize * theme.lineHeight * 2}>
+                      {ALPHA[j]})
+                    </Text>
                     <View style={{ flex: 1 }}>
                       <RichText text={sub} style={para(env)} />
                     </View>
@@ -332,7 +360,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
             fontSize: header ? theme.smallSize + 1 : theme.bodySize - 1,
             fontWeight: bold || header ? 700 : 400,
             textAlign: block.columns[i]?.align ?? 'left',
-            color: header ? theme.accent : theme.text,
+            color: header ? theme.heading : theme.text,
           }}
         >
           {oneLine(txt)}
@@ -360,7 +388,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
             <View
               key={ri}
               wrap={!canKeep(theme, Math.max(...r.map((c, ci) => textLines(theme, c, widths[ci] / total, theme.bodySize - 1))) * (theme.bodySize - 1) * 1.4 + 8)}
-              style={{ flexDirection: 'row', borderBottomWidth: 0.4, borderBottomColor: '#d0d4d8' }}
+              style={{ flexDirection: 'row', borderBottomWidth: 0.4, borderBottomColor: '#d6dad7', backgroundColor: ri % 2 === 1 ? theme.wash : undefined }}
             >
               {r.map((c, i) => cell(c, i))}
             </View>
@@ -424,7 +452,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
                 style={{
                   fontSize: theme.smallSize + 1,
                   fontWeight: 700,
-                  color: theme.accent,
+                  color: theme.heading,
                   borderBottomWidth: 0.75,
                   borderBottomColor: theme.accent,
                   paddingBottom: 2,
@@ -452,16 +480,17 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           key={key}
           wrap={false}
           style={{
-            borderWidth: 0.75,
-            borderColor: theme.accent,
-            paddingVertical: 6,
-            paddingHorizontal: 8,
+            borderLeftWidth: 3,
+            borderLeftColor: theme.accent,
+            backgroundColor: theme.wash,
+            paddingVertical: 7,
+            paddingHorizontal: 10,
             marginBottom: theme.gap + 2,
           }}
         >
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Text style={{ fontSize: theme.bodySize, color: theme.muted }}>{block.label}</Text>
-            <Text style={{ fontSize: theme.bodySize + 1, fontWeight: 700 }}>{formatMoney(block.value)}</Text>
+            <Text style={{ fontSize: theme.bodySize + 1.5, fontWeight: 700, color: theme.heading }}>{formatMoney(block.value)}</Text>
           </View>
           {ext ? <Text style={{ fontSize: theme.bodySize - 1, fontStyle: 'italic', marginTop: 2 }}>{ext}</Text> : null}
         </View>
@@ -471,6 +500,10 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
     case 'signatures': {
       const n = block.columns.length;
       const width = n === 1 ? '50%' : n === 2 ? '50%' : '33.33%';
+      const area = Math.max(...block.columns.map((c) => signatureArea(c, env)));
+      const frac = n === 3 ? 0.31 : 0.47;
+      const roleHeight =
+        Math.max(...block.columns.map((c) => textLines(theme, c.role, frac, theme.bodySize - 0.5))) * (theme.bodySize - 0.5) * 1.2;
       return (
         <View key={key} wrap={false} style={{ marginTop: 10, marginBottom: theme.gap + 4 }}>
           {block.placeDate ? (
@@ -478,7 +511,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           ) : null}
           <View style={{ flexDirection: 'row', justifyContent: n === 1 ? 'flex-start' : 'space-between' }}>
             {block.columns.map((c, i) => (
-              <SignatureColumnView key={i} col={c} env={env} width={width} />
+              <SignatureColumnView key={i} col={c} env={env} width={width} area={area} roleHeight={roleHeight} />
             ))}
           </View>
         </View>
@@ -492,12 +525,14 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           wrap={false}
           style={{
             marginTop: 12,
-            borderTopWidth: 0.6,
-            borderTopColor: theme.rule,
+            borderWidth: 0.6,
+            borderColor: theme.rule,
             borderStyle: 'dashed',
-            paddingTop: 8,
+            paddingVertical: 8,
+            paddingHorizontal: 10,
           }}
         >
+          <Text style={{ fontSize: theme.smallSize, color: theme.muted, marginBottom: 3, letterSpacing: 0.3 }}>RECEPÇÃO</Text>
           <Text style={{ fontSize: theme.bodySize - 1 }}>{block.text ?? 'Recebi o original em ___/___/______'}</Text>
           <Text style={{ fontSize: theme.bodySize - 1, marginTop: 14 }}>
             {`${block.signer ?? 'O Trabalhador'}: ________________________________________`}
@@ -523,7 +558,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
         <View key={key} style={{ marginBottom: theme.gap }}>
           {block.items.map((it, i) => (
             <View key={i} style={{ flexDirection: 'row', marginBottom: 2, paddingLeft: 8 }} wrap={!canKeep(theme, textLines(theme, it, 0.92) * theme.bodySize * theme.lineHeight)}>
-              <Text style={{ width: 18, fontSize: theme.bodySize }}>
+              <Text style={{ width: 18, fontSize: theme.bodySize }} minPresenceAhead={theme.bodySize * theme.lineHeight * 2}>
                 {block.style === 'alpha' ? `${ALPHA[i]})` : block.style === 'numeric' ? `${i + 1}.` : '•'}
               </Text>
               <View style={{ flex: 1 }}>
@@ -622,7 +657,8 @@ export function estimateHeight(b: Block, theme: Theme): number {
     case 'amount':
       return 50;
     case 'signatures':
-      return 130;
+      // Worst case: images present at the chosen sizes.
+      return Math.max(130, 84 + Math.max(46, 40 * theme.signatureScale + 6, 58 * theme.stampScale * 0.75));
     case 'acknowledgement':
       return 60;
     case 'spacer':

@@ -3,7 +3,7 @@ import type { Profile } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type ClauseItem, type DefaultsContext, type FieldDef, type SignatureColumn, type Values, type Warning } from '../model';
 import {
-  BLANK, dateField, dateLong, employerParty, employerSignature, FORMA_PAGAMENTO_OPTIONS, formatMoney, g, l, localField,
+  BLANK, cite, dateField, dateLong, employerParty, employerSignature, FORMA_PAGAMENTO_OPTIONS, formatMoney, g, l, localField,
   money, moneyText, placeDate, splitLines, workerFields, workerParty, workerSignature,
 } from './_shared';
 
@@ -188,6 +188,13 @@ export default defineTemplate({
     if (v.dataOrigem && v.data && v.dataOrigem > v.data) {
       w.push({ level: 'warning', field: 'dataOrigem', message: l('A data de origem da dívida é posterior à data do documento.', 'The debt’s origin date is after the document date.') });
     }
+    w.push({
+      level: 'info',
+      message: l(
+        `A declaração vale como reconhecimento de dívida (${cite('codigoCivilReconhecimentoDivida')}). Para que possa ser cobrada judicialmente com mais facilidade, reconheça a assinatura do devedor no notário (de preferência, reconhecimento presencial).`,
+        'To make the declaration easier to enforce in court, have the debtor’s signature certified by a notary (preferably in person).',
+      ),
+    });
     if (c.desigual) {
       w.push({
         level: 'info',
@@ -267,7 +274,7 @@ export default defineTemplate({
       clauses.push({
         id: 'incumprimento',
         heading: 'Falta de pagamento',
-        text: `A falta de pagamento de qualquer prestação na data do respectivo vencimento implica o vencimento imediato de todas as prestações em falta, podendo ${o(cred)} exigir de imediato o pagamento da totalidade do valor em dívida.`,
+        text: `A falta de pagamento de qualquer prestação na data do respectivo vencimento implica o vencimento imediato de todas as prestações em falta, nos termos do ${cite('codigoCivilPrestacoes')}, podendo ${o(cred)} exigir de imediato o pagamento da totalidade do valor em dívida.`,
         en: 'Failure to pay any instalment when due makes all remaining instalments immediately due, and the Creditor may demand the full outstanding amount at once.',
       });
     } else {

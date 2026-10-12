@@ -1,4 +1,4 @@
-import { addWorkingDays, diffDays, parseISODate, yearsBetween } from '@/lib/format';
+import { addDays, addWorkingDays, diffDays, parseISODate, yearsBetween } from '@/lib/format';
 import { defineTemplate, type Block, type SignatureColumn, type TemplateContext, type Warning } from '../model';
 import {
   BLANK, cite, dateField, dateLong, employerSignature, exmo, g, l, localField, refField, workerFields,
@@ -14,6 +14,33 @@ const daysEn = (n: number | null) => (n == null ? '____ days' : `${n} ${n === 1 
 const clean = (s: unknown) => String(s ?? '').trim().replace(/[.;]+$/, '');
 
 type FeriasValue = { primeiroAno: number; anosSeguintes: number; blocoMinimo: number };
+
+/** Public holidays (art. 105.º) between two ISO dates, inclusive. A holiday on a Sunday moves to the Monday. */
+function feriadosNoPeriodo(ini: string, fim: string, mmdd: string[]): string[] {
+  const a = parseISODate(ini);
+  const b = parseISODate(fim);
+  if (!a || !b) return [];
+  const out: string[] = [];
+  for (let y = a.getFullYear(); y <= b.getFullYear(); y++) {
+    for (const md of mmdd) {
+      let iso = `${y}-${md}`;
+      if (parseISODate(iso)?.getDay() === 0) iso = addDays(iso, 1);
+      if (diffDays(ini, iso) >= 0 && diffDays(iso, fim) >= 0) out.push(iso);
+    }
+  }
+  return out.sort();
+}
+
+/** " (excluindo o feriado de 25 de Junho de 2026)" */
+const exclFeriados = (f: string[]) =>
+  f.length === 0 ? '' : ` (excluindo ${f.length === 1 ? 'o feriado de' : 'os feriados de'} ${f.map((d) => dateLong(d)).join(', ').replace(/, ([^,]*)$/, ' e $1')})`;
+
+/** Next working day after `iso`, skipping weekends and public holidays. */
+function diaUtilSeguinte(iso: string, mmdd: string[]): string {
+  let r = addWorkingDays(iso, 1);
+  for (let i = 0; i < 10 && feriadosNoPeriodo(r, r, mmdd).length; i++) r = addWorkingDays(r, 1);
+  return r;
+}
 
 /** Employer signature; an individual employer signs in their own name. */
 function signer(ctx: TemplateContext): SignatureColumn {
@@ -64,6 +91,20 @@ export default defineTemplate({
       label: l('Dias já gozados este ano (opcional)', 'Days already taken this year (optional)'),
     },
     {
+      name: 'conformePlano',
+      type: 'toggle',
+      section: 'opcoes',
+      label: l('O período consta do plano de férias', 'The period is in the leave plan'),
+      help: l('O empregador elabora o plano de férias em coordenação com o órgão sindical.', 'The employer draws up the leave plan together with the union.'),
+    },
+    {
+      name: 'avisoDoenca',
+      type: 'toggle',
+      section: 'opcoes',
+      label: l('Lembrar o que fazer em caso de doença durante as férias', 'Remind what to do if ill during leave'),
+      help: l('Os dias de doença certificada não contam como férias se a empresa for informada a tempo.', 'Certified sick days do not count as leave if the employer is told in time.'),
+    },
+    {
       name: 'indicarSaldo',
       type: 'toggle',
       section: 'opcoes',
@@ -89,8 +130,12 @@ export default defineTemplate({
   computed: (v, { legal }) => {
     const fer = legal.value<FeriasValue>('feriasDireito');
     const ok = v.dataInicio && v.dataFim && Number.isFinite(diffDays(v.dataInicio, v.dataFim));
-    const dias = ok ? diffDays(v.dataInicio, v.dataFim) + 1 : null;
-    const regressoCalc = dias != null && dias > 0 ? addWorkingDays(v.dataFim, 1) : '';
+    const mmdd = legal.value<string[]>('feriadosNacionais');
+    const feriados = ok ? feriadosNoPeriodo(v.dataInicio, v.dataFim, mmdd) : [];
+    const corridos = ok ? diffDays(v.dataInicio, v.dataFim) + 1 : null;
+    // Leave counts in calendar days, but public holidays in the period are not leave days (art. 111.º, n.º 1).
+    const dias = corridos != null ? corridos - feriados.length : null;
+    const regressoCalc = corridos != null && corridos > 0 ? diaUtilSeguinte(v.dataFim, mmdd) : '';
     const anos = v.trabalhadorDataAdmissao && v.dataInicio ? yearsBetween(v.trabalhadorDataAdmissao, v.dataInicio) : null;
     const direito = anos == null ? null : anos < 1 ? fer.primeiroAno : fer.anosSeguintes;
     const gozados = Math.max(0, Number(v.diasGozados) || 0);
@@ -102,6 +147,9 @@ export default defineTemplate({
       gozados,
       saldo: direito != null && dias != null && dias > 0 ? direito - gozados - dias : null,
       blocoMinimo: fer.blocoMinimo,
+      feriados: corridos != null && corridos > 0 ? feriados : [],
+      corridos,
+      doencaAvisoDias: legal.value<{ doencaAvisoDias: number }>('feriasGozo').doencaAvisoDias,
     };
   },
 
@@ -110,7 +158,7 @@ export default defineTemplate({
     if (!v.dataInicio || !v.dataFim) {
       w.push({ level: 'warning', field: !v.dataInicio ? 'dataInicio' : 'dataFim', message: l('Indique o primeiro e o último dia de férias.', 'Enter the first and last day of leave.') });
     }
-    if (c.dias != null && c.dias < 1) {
+    if (c.corridos != null && c.corridos < 1) {
       w.push({ level: 'error', field: 'dataFim', message: l('O último dia é anterior ao primeiro.', 'The last day is before the first.') });
       return w;
     }
@@ -168,7 +216,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'autorizacao',
-        text: `${v.dataPedido ? `Em resposta ao pedido apresentado por V. Ex.ª em ${dateLong(v.dataPedido)}, comunicamos` : 'Comunicamos'} que foi autorizado o gozo de **${diasTxt(dias)}** de férias, no período de **${dateLong(v.dataInicio)}** a **${dateLong(v.dataFim)}**, inclusive.`,
+        text: `${v.dataPedido ? `Em resposta ao pedido apresentado por V. Ex.ª em ${dateLong(v.dataPedido)}, comunicamos` : 'Comunicamos'} que foi autorizado o gozo de **${diasTxt(dias)}** de férias, no período de **${dateLong(v.dataInicio)}** a **${dateLong(v.dataFim)}**, inclusive${exclFeriados(c.feriados)}${v.conformePlano ? ', de acordo com o plano de férias' : ''}.`,
         en: `${v.dataPedido ? `In reply to your request of ${dateEn(v.dataPedido)}, we` : 'We'} confirm that ${daysEn(dias)} of annual leave have been approved, from ${dateEn(v.dataInicio)} to ${dateEn(v.dataFim)} inclusive.`,
       },
       {
@@ -184,6 +232,14 @@ export default defineTemplate({
         en: 'During the leave you keep the right to the pay you would receive if you were at work.',
       },
     ];
+    if (v.avisoDoenca) {
+      blocks.push({
+        type: 'paragraph',
+        id: 'doenca',
+        text: `Se adoecer durante as férias, V. Ex.ª deve informar a ${ctx.profile?.kind === 'pessoa' ? 'entidade empregadora' : 'empresa'} no prazo máximo de ${c.doencaAvisoDias} dias, com o respectivo atestado médico, para que os dias de doença não sejam contados como férias (${cite('feriasGozo')}).`,
+        en: `If you fall ill during the leave, inform the employer within ${c.doencaAvisoDias} days with a medical certificate so that the sick days are not counted as leave.`,
+      });
+    }
     if (v.indicarSaldo && c.saldo != null && c.saldo >= 0) {
       blocks.push({
         type: 'paragraph',

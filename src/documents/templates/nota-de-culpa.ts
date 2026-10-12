@@ -4,6 +4,7 @@ import {
   BLANK, cite, dateField, dateLong, employerName, employerSignature, exmo, g, l, localField, refField,
   splitLines, workerFields,
 } from './_shared';
+import { nExt } from './_contrato-trabalho';
 
 export default defineTemplate({
   id: 'nota-de-culpa',
@@ -33,7 +34,10 @@ export default defineTemplate({
       width: 'half',
       required: true,
       label: l('Data em que a empresa soube dos factos', 'Date the company learned of the facts'),
-      legal: l('A nota de culpa deve ser enviada dentro do prazo legal contado a partir desta data.', 'The charge must be sent within the legal deadline counted from this date.'),
+      legal: l(
+        'A nota de culpa deve ser enviada dentro do prazo legal contado a partir desta data (se o trabalhador estiver de licença de maternidade, paternidade, férias ou doença, o prazo só conta depois do regresso).',
+        'The charge must be sent within the legal deadline counted from this date (if the employee is on maternity, paternity, annual or sick leave, it only runs after their return).',
+      ),
     },
     {
       name: 'dataInfraccao',
@@ -88,7 +92,10 @@ export default defineTemplate({
       type: 'text',
       section: 'opcoes',
       label: l('Comité sindical (cópia)', 'Union committee (copy)'),
-      legal: l('A nota de culpa é entregue ao trabalhador e ao comité sindical.', 'The charge is delivered to the employee and to the union committee.'),
+      legal: l(
+        'A nota de culpa é remetida ao trabalhador e ao comité sindical da empresa ou, se não existir, ao sindicato do ramo.',
+        'The charge goes to the employee and to the company union committee or, if there is none, to the sector union.',
+      ),
       default: 'Comité Sindical',
     },
     {
@@ -97,6 +104,10 @@ export default defineTemplate({
       section: 'opcoes',
       default: true,
       label: l('Incluir espaço para testemunhas (se recusar receber)', 'Include witness lines (if receipt is refused)'),
+      help: l(
+        'Se o trabalhador recusar receber, a recusa é confirmada na própria nota de culpa por dois trabalhadores, de preferência um deles membro do órgão sindical.',
+        'If the employee refuses to receive it, two co-workers (preferably one union member) confirm the refusal on the charge itself.',
+      ),
     },
   ],
 
@@ -153,6 +164,8 @@ export default defineTemplate({
     const empresa = employerName(ctx);
     const factos = splitLines(v.factos);
     const acusado = g(ge, 'acusado', 'acusada');
+    const pessoa = ctx.profile?.kind === 'pessoa';
+    const emp = pessoa ? 'da entidade empregadora' : 'da empresa';
 
     const blocks: Block[] = [
       { type: 'reference', ref: v.ref || undefined, place: ctx.place, date: dateLong(v.data) },
@@ -166,7 +179,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'abertura',
-        text: `Nos termos do ${cite('notaCulpaPrazoResposta')} (Lei do Trabalho), ${ctx.profile?.kind === 'pessoa' ? '' : 'a '}**${empresa}** comunica a V. Ex.ª que lhe foi instaurado o processo disciplinar acima referido e que é ${acusado} dos factos seguintes:`,
+        text: `Nos termos do ${cite('notaCulpaPrazoEmissao')} (Lei do Trabalho), ${pessoa ? '' : 'a '}**${empresa}** comunica a V. Ex.ª que lhe foi instaurado o processo disciplinar acima referido e que é ${acusado} dos factos seguintes:`,
         en: `Under the Labour Law, ${empresa} informs you that the above disciplinary case has been opened against you and that you are charged with the following facts:`,
       },
       {
@@ -188,22 +201,22 @@ export default defineTemplate({
       id: 'deveres',
       text: v.deveres
         ? `Tais factos, a provarem-se, constituem infracção disciplinar por violação dos seguintes deveres: ${String(v.deveres).trim().replace(/\.$/, '')}.`
-        : 'Tais factos, a provarem-se, constituem infracção disciplinar por violação dos deveres do trabalhador previstos na Lei do Trabalho e no regulamento interno da empresa.',
+        : `Tais factos, a provarem-se, constituem infracção disciplinar por violação dos deveres ${g(ge, 'do trabalhador', 'da trabalhadora')} previstos na Lei do Trabalho${pessoa ? '' : ' e no regulamento interno da empresa'}.`,
       en: 'If proven, these facts constitute a disciplinary offence for breach of the employee’s duties.',
     });
     if (v.intencaoDespedimento) {
       blocks.push({
         type: 'paragraph',
         id: 'intencao',
-        text: 'Pela gravidade dos factos descritos, que tornam impossível a manutenção da relação de trabalho, comunica-se a intenção da empresa de aplicar a sanção de **despedimento com justa causa**.',
+        text: `Pela gravidade dos factos descritos e das suas consequências, que tornam imediata e praticamente impossível a subsistência da relação de trabalho, comunica-se a intenção ${emp} de aplicar a sanção de **despedimento**.`,
         en: 'Given the seriousness of the facts, which make continuing the employment relationship impossible, the company states its intention to apply dismissal with just cause.',
       });
     }
     blocks.push({
       type: 'paragraph',
       id: 'defesa',
-      text: `V. Ex.ª dispõe do prazo de **${ctx.computed.prazoResposta} dias**, a contar da data de recepção desta nota de culpa, para responder por escrito, juntar documentos, indicar testemunhas, requerer as diligências de prova que entender e pedir para ser ${g(ge, 'ouvido', 'ouvida')} em audição. O processo pode ser consultado nas instalações da empresa, em horário normal de expediente.`,
-      en: `You have ${ctx.computed.prazoResposta} days from receipt of this charge to reply in writing, attach documents, name witnesses, request evidence and ask to be heard. The case file may be consulted at the company’s premises during office hours.`,
+      text: `V. Ex.ª dispõe do prazo de **${nExt(ctx.computed.prazoResposta)} dias** de calendário, a contar da data de recepção desta nota de culpa, para responder por escrito, juntar documentos, indicar testemunhas, requerer as diligências de prova que entender e pedir para ser ${g(ge, 'ouvido', 'ouvida')} em audição. O processo pode ser consultado nas instalações ${emp}, em horário normal de expediente. A falta de resposta no prazo indicado não impede o prosseguimento do processo.`,
+      en: `You have ${ctx.computed.prazoResposta} calendar days from receipt of this charge to reply in writing, attach documents, name witnesses, request evidence and ask to be heard. The case file may be consulted at the employer’s premises during office hours. Failure to reply in time does not stop the procedure.`,
     });
     if (v.suspensao) {
       blocks.push({
@@ -227,10 +240,11 @@ export default defineTemplate({
       blocks.push(
         {
           type: 'note',
-          text: `Em caso de recusa de recepção, ${g(ge, 'o trabalhador', 'a trabalhadora')} foi notificado(a) na presença das testemunhas abaixo, em ___/___/______.`,
+          text: `Em caso de recusa: ${g(ge, 'o trabalhador', 'a trabalhadora')} recusou receber a presente nota de culpa em ___/___/______, às ____:____ horas, o que os trabalhadores abaixo assinados confirmam, nos termos do ${cite('notaCulpaPrazoEmissao')}.`,
+          en: 'If refused: the employee refused to receive this charge on the date stated, as confirmed by the co-workers signing below.',
           keepWithNext: true,
         },
-        { type: 'signatures', columns: [{ role: 'Testemunha' }, { role: 'Testemunha' }] },
+        { type: 'signatures', columns: [{ role: 'Testemunha' }, { role: 'Testemunha (órgão sindical)' }] },
       );
     }
     return blocks;

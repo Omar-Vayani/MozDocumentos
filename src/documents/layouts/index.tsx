@@ -1,4 +1,4 @@
-// The four letterhead presets plus the shared footer and running header.
+// The letterhead presets plus the shared footer and running header.
 // Logos are always sized by height with their aspect ratio kept (never stretched).
 
 import { Image, Text, View } from '@react-pdf/renderer';
@@ -18,13 +18,32 @@ export type LetterheadEnv = {
   header?: RenderAsset;
 };
 
-/** Logo box: fits within maxW × maxH keeping aspect ratio. */
-function Logo({ asset, maxW, maxH }: { asset: RenderAsset; maxW: number; maxH: number }) {
+/** Logo box: fits within maxW × maxH (times the profile's logo size) keeping aspect ratio. */
+/**
+ * The logo at the chosen size. `capW`/`capH` are hard limits that the size
+ * slider cannot exceed, so an enlarged logo never spills out of its column.
+ */
+function Logo({
+  asset,
+  maxW,
+  maxH,
+  scale = 1,
+  capW = 120 * MM,
+  capH = 60 * MM,
+}: {
+  asset: RenderAsset;
+  maxW: number;
+  maxH: number;
+  scale?: number;
+  capW?: number;
+  capH?: number;
+}) {
   const ratio = asset.width / Math.max(1, asset.height);
-  let h = maxH;
+  let h = Math.min(maxH * scale, capH);
   let w = h * ratio;
-  if (w > maxW) {
-    w = maxW;
+  const limitW = Math.min(maxW * scale, capW);
+  if (w > limitW) {
+    w = limitW;
     h = w / ratio;
   }
   return <Image src={asset.dataUrl} style={{ width: w, height: h, objectFit: 'contain' }} />;
@@ -36,7 +55,7 @@ function Name({ p, theme, align, size }: { p: Profile; theme: Theme; align: 'lef
   return (
     <Text
       style={{
-        fontSize: size ?? (long ? 12 : 14),
+        fontSize: size ?? (long ? 12 : 14.5),
         fontWeight: 700,
         color: theme.accent,
         textAlign: align,
@@ -48,16 +67,25 @@ function Name({ p, theme, align, size }: { p: Profile; theme: Theme; align: 'lef
   );
 }
 
-function Details({ p, theme, align }: { p: Profile; theme: Theme; align: 'left' | 'center' | 'right' }) {
-  const lines = [
+function Tagline({ p, theme, align }: { p: Profile; theme: Theme; align: 'left' | 'center' | 'right' }) {
+  const t = p.branding.tagline?.trim();
+  if (!t) return null;
+  return <Text style={{ fontSize: 8.5, fontStyle: 'italic', color: theme.muted, textAlign: align, marginTop: 1.5, lineHeight: 1.3 }}>{t}</Text>;
+}
+
+function detailLines(p: Profile): string[] {
+  return [
     p.nomeComercial && p.nomeComercial !== p.firma ? p.nomeComercial : '',
     addressLine(p),
     contactsLine(p),
     p.nuit ? `NUIT ${p.nuit}` : '',
   ].filter(Boolean);
+}
+
+function Details({ p, theme, align }: { p: Profile; theme: Theme; align: 'left' | 'center' | 'right' }) {
   return (
     <>
-      {lines.map((l, i) => (
+      {detailLines(p).map((l, i) => (
         <Text key={i} style={{ fontSize: 8, color: theme.muted, textAlign: align, lineHeight: 1.35 }}>
           {l}
         </Text>
@@ -107,7 +135,7 @@ export function FaixaBand({ env }: { env: LetterheadEnv }): ReactNode {
     >
       {logo ? (
         <View style={{ marginRight: 12, backgroundColor: '#ffffff', padding: 4 }}>
-          <Logo asset={logo} maxW={40 * MM} maxH={16 * MM} />
+          <Logo asset={logo} maxW={40 * MM} maxH={16 * MM} scale={theme.logoScale} capW={theme.contentWidth * 0.4} capH={faixaHeight(env) - 10 * MM} />
         </View>
       ) : null}
       <View style={{ flex: 1 }}>
@@ -121,16 +149,18 @@ export function FaixaBand({ env }: { env: LetterheadEnv }): ReactNode {
 /** In-flow letterhead at the top of the first page. */
 export function Letterhead({ env, layout }: { env: LetterheadEnv; layout: Profile['branding']['layout'] }): ReactNode {
   const { theme, profile, logo } = env;
+  const ls = theme.logoScale;
   switch (layout) {
     case 'lateral':
       return (
         <View style={{ marginBottom: 16 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <View style={{ width: '40%' }}>
-              {logo ? <Logo asset={logo} maxW={60 * MM} maxH={22 * MM} /> : <Name p={profile} theme={theme} align="left" />}
+              {logo ? <Logo asset={logo} maxW={60 * MM} maxH={22 * MM} scale={ls} capW={theme.contentWidth * 0.4} /> : <Name p={profile} theme={theme} align="left" />}
             </View>
             <View style={{ width: '58%' }}>
               {logo ? <Name p={profile} theme={theme} align="right" size={12} /> : null}
+              <Tagline p={profile} theme={theme} align="right" />
               <Details p={profile} theme={theme} align="right" />
             </View>
           </View>
@@ -145,8 +175,56 @@ export function Letterhead({ env, layout }: { env: LetterheadEnv; layout: Profil
     case 'minimo':
       return (
         <View style={{ marginBottom: 18 }}>
-          <Name p={profile} theme={theme} align="left" size={13} />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {logo ? (
+              <View style={{ marginRight: 10 }}>
+                <Logo asset={logo} maxW={30 * MM} maxH={11 * MM} scale={ls} capW={theme.contentWidth * 0.35} />
+              </View>
+            ) : null}
+            <View style={{ flex: 1 }}>
+              <Name p={profile} theme={theme} align="left" size={13} />
+              <Tagline p={profile} theme={theme} align="left" />
+            </View>
+          </View>
           <View style={{ borderBottomWidth: 0.5, borderBottomColor: theme.rule, marginTop: 6, width: 40 * MM }} />
+        </View>
+      );
+    case 'moderno':
+      // Accent bar beside the name, logo on the right, details on one line below.
+      return (
+        <View style={{ marginBottom: 18 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ flexDirection: 'row', flex: 1, paddingRight: 12 }}>
+              <View style={{ width: 4, backgroundColor: theme.accent, marginRight: 9 }} />
+              <View style={{ flex: 1, paddingVertical: 1 }}>
+                <Name p={profile} theme={theme} align="left" />
+                <Tagline p={profile} theme={theme} align="left" />
+              </View>
+            </View>
+            {logo ? <Logo asset={logo} maxW={50 * MM} maxH={18 * MM} scale={ls} capW={theme.contentWidth * 0.45} /> : null}
+          </View>
+          <Text style={{ width: '100%', fontSize: 7.8, color: theme.muted, marginTop: 7, lineHeight: 1.35 }}>{detailLines(profile).join('  ·  ')}</Text>
+          <View style={{ width: '100%', height: 0.5, backgroundColor: theme.rule, marginTop: 6 }} />
+        </View>
+      );
+    case 'elegante':
+      // Centred, with a double rule: a quiet, formal look for notaries and offices.
+      return (
+        <View style={{ marginBottom: 18, alignItems: 'center' }}>
+          {logo ? (
+            <View style={{ marginBottom: 6 }}>
+              <Logo asset={logo} maxW={50 * MM} maxH={16 * MM} scale={ls} />
+            </View>
+          ) : null}
+          <Text style={{ fontSize: 13, fontWeight: 700, color: theme.text, textAlign: 'center', lineHeight: 1.2 }}>
+            {profileDisplayName(profile).toLocaleUpperCase('pt')}
+          </Text>
+          <Tagline p={profile} theme={theme} align="center" />
+          <View style={{ width: '100%', height: 1.2, backgroundColor: theme.accent, marginTop: 7 }} />
+          <View style={{ width: '100%', height: 0.5, backgroundColor: theme.accent, marginTop: 1.6 }} />
+          <Text style={{ width: '100%', fontSize: 7.8, color: theme.muted, marginTop: 5, textAlign: 'center', lineHeight: 1.35 }}>
+            {detailLines(profile).join('  ·  ')}
+          </Text>
         </View>
       );
     case 'classico':
@@ -155,10 +233,11 @@ export function Letterhead({ env, layout }: { env: LetterheadEnv; layout: Profil
         <View style={{ marginBottom: 16, alignItems: 'center' }}>
           {logo ? (
             <View style={{ marginBottom: 6 }}>
-              <Logo asset={logo} maxW={70 * MM} maxH={20 * MM} />
+              <Logo asset={logo} maxW={70 * MM} maxH={20 * MM} scale={ls} />
             </View>
           ) : null}
           <Name p={profile} theme={theme} align="center" />
+          <Tagline p={profile} theme={theme} align="center" />
           <Details p={profile} theme={theme} align="center" />
           <View style={{ width: '100%' }}>
             <Rule theme={theme} />
@@ -178,6 +257,7 @@ export function footerLines(p: Profile | null, layout: Profile['branding']['layo
     f.legal || forceAll ? legalLine(p) : '',
     f.address || forceAll ? addressLine(p) : '',
     f.contacts || forceAll ? contactsLine(p) : '',
+    p.branding.footerNote?.trim() ?? '',
   ].filter(Boolean);
 }
 

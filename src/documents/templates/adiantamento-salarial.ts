@@ -1,5 +1,6 @@
 import { addMonths, formatMonthYear, MAX_EXTENSO, numeroPorExtenso, parseISODate, roundMoney } from '@/lib/format';
 import { defineTemplate, type Block, type SignatureColumn, type TemplateContext, type Warning } from '../model';
+import { doCite } from './_contrato-trabalho';
 import {
   blank, dateField, employerSignature, formatMoney, g, isF, l, localField, money, placeDate, refField,
   splitLines, workerFields, workerSignature,
@@ -213,7 +214,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'consentimento',
-        text: 'Autorizo a entidade empregadora a descontar o valor adiantado na minha remuneração, nos termos fixados na autorização abaixo, e, em caso de cessação do contrato de trabalho antes do reembolso integral, a descontar o saldo em dívida nas quantias que me forem devidas.',
+        text: `Para os efeitos ${doCite('descontosRemuneracao')}, autorizo a entidade empregadora a descontar o valor adiantado na minha remuneração, nos termos fixados na decisão abaixo, e, em caso de cessação do contrato de trabalho antes do reembolso integral, a descontar o saldo em dívida nas quantias que me forem devidas.`,
         en: 'I authorise the employer to deduct the advance from my pay as set out in the approval below and, if the employment contract ends before full repayment, to deduct the outstanding balance from any amounts owed to me.',
         keepWithNext: true,
       },

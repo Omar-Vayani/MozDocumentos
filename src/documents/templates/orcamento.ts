@@ -1,3 +1,4 @@
+import { resolveLegalValue } from '@/legal/mz-legal';
 import { addDays, formatNumber, formatPercent, roundMoney } from '@/lib/format';
 import { profileDisplayName } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
@@ -105,7 +106,8 @@ export default defineTemplate({
       min: 0,
       max: 100,
       label: l('Taxa de IVA (%)', 'VAT rate (%)'),
-      help: l('Indique a taxa aplicável. Confirme a taxa em vigor junto da Autoridade Tributária.', 'Enter the applicable rate. Confirm the current rate with the Tax Authority.'),
+      help: l('Por defeito, a taxa normal em vigor. Altere-a se o bem ou serviço tiver taxa reduzida.', 'Defaults to the current standard rate. Change it if a reduced rate applies.'),
+      default: () => Math.round(Number(resolveLegalValue('ivaTaxaNormal')) * 10000) / 100,
       showIf: (v) => Boolean(v.iva),
     },
     {
@@ -305,12 +307,17 @@ export default defineTemplate({
     const emitente: SignatureColumn =
       p?.kind === 'empresa'
         ? { role: rep.cargo || profileDisplayName(p) || 'Pela empresa', name: rep.nome || undefined, image: 'both' }
-        : { role: 'O Emitente', name: p?.nome || undefined, image: 'both' };
+        : { role: p?.genero === 'F' ? 'A Emitente' : 'O Emitente', name: p?.nome || undefined, image: 'both' };
     const columns: SignatureColumn[] = [emitente];
     if (v.aceitacao) columns.push({ role: 'Aceito, o Cliente', name: v.clienteNome || undefined, detail: 'Data: ___/___/______' });
 
     blocks.push(
-      { type: 'note', text: '**Este documento não é uma factura.**', en: 'This document is not an invoice.', keepWithNext: true },
+      {
+        type: 'note',
+        text: '**Este documento não é uma factura** nem serve de comprovativo de pagamento. A factura é emitida após a adjudicação.',
+        en: 'This document is not an invoice or proof of payment. The invoice is issued once the order is placed.',
+        keepWithNext: true,
+      },
       { type: 'signatures', columns },
     );
     return blocks;

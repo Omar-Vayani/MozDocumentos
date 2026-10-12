@@ -13,7 +13,7 @@ import { AVAILABLE_TEMPLATE_IDS, loadTemplate } from '../registry';
 const DIR = join(process.cwd(), 'src/documents/templates');
 const sourceFiles = readdirSync(DIR).filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'));
 
-/** Filler and AI-sounding phrases that must never appear in a document. */
+/** Filler phrases that must never appear in a document. */
 export const BANNED_PHRASES = [
   'espero que esta carta o encontre bem',
   'espero que esta o encontre bem',

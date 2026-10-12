@@ -62,6 +62,19 @@ export async function renderDocument(input: RenderInput): Promise<ArrayBuffer> {
   }
 }
 
+export async function renderBatch(inputs: RenderInput[], title: string): Promise<ArrayBuffer> {
+  const w = getWorker();
+  if (!w) {
+    const { renderBatchPdf } = await import('@/documents/render/renderPdf');
+    return (await renderBatchPdf(inputs, title)).pdf;
+  }
+  const id = ++seq;
+  return new Promise<ArrayBuffer>((resolve, reject) => {
+    pending.set(id, { resolve, reject });
+    w.postMessage({ id, input: inputs[0], batch: inputs, title });
+  });
+}
+
 // ---------------------------------------------------------------- Output actions
 
 export function pdfFileName(kind: string, person: string | undefined, dateIso: string | undefined): string {

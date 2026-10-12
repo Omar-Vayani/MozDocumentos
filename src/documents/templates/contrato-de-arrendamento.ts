@@ -553,7 +553,7 @@ export default defineTemplate({
     };
   },
 
-  warnings: (v, { computed: c }) => {
+  warnings: (v, { computed: c, legal }) => {
     const w: Warning[] = [];
     for (const [p, pt, en] of [['senhorio', 'senhorio', 'landlord'], ['inquilino', 'inquilino', 'tenant']] as const) {
       if (isEmpresa(v, p)) {
@@ -583,13 +583,33 @@ export default defineTemplate({
     if (v.mobilado && c.inventario.length === 0) {
       w.push({ level: 'info', field: 'inventario', message: l('Recomenda-se listar a mobília e o equipamento no inventário.', 'It is advisable to list the furniture and equipment in the inventory.') });
     }
-    if (v.fim === 'habitacao' && v.renovacao) {
+    if (v.renovacao) {
       w.push({
         level: 'info',
         field: 'renovacao',
         message: l(
-          'No arrendamento para habitação, a lei pode limitar a oposição do senhorio à renovação. Em caso de dúvida, consulte um jurista.',
-          'In residential leases, the law may limit the landlord’s right to refuse renewal. If in doubt, consult a lawyer.',
+          'Nos arrendamentos urbanos, a lei limita a denúncia e a oposição à renovação pelo senhorio a casos específicos (por exemplo, necessidade do imóvel para habitação própria). Em caso de dúvida, consulte um jurista.',
+          'In urban leases the law limits the landlord’s right to terminate or refuse renewal to specific cases (e.g. needing the property as their own home). If in doubt, consult a lawyer.',
+        ),
+      });
+    }
+    if (v.fim !== 'habitacao') {
+      w.push({
+        level: 'info',
+        field: 'fim',
+        message: l(
+          'Arrendamento não habitacional: basta a forma escrita, mas há decisões judiciais que ainda exigem escritura pública para comércio ou indústria. Recomenda-se o reconhecimento presencial das assinaturas no notário.',
+          'Non-residential lease: written form is enough, but some court decisions still require a notarial deed for commerce or industry. Having the signatures certified in person by a notary is recommended.',
+        ),
+      });
+    }
+    if (c.renda != null && c.renda > 0) {
+      const selo = roundMoney(c.renda * legal.value<number>('impostoSeloArrendamento'));
+      w.push({
+        level: 'info',
+        message: l(
+          `Imposto do selo sobre o contrato: ${formatMoney(selo)} (sobre uma renda mensal), pago pelo senhorio na Direcção de Área Fiscal.`,
+          `Stamp duty on the lease: ${formatMoney(selo)} (on one month’s rent), paid by the landlord at the tax office.`,
         ),
       });
     }
@@ -605,8 +625,8 @@ export default defineTemplate({
     w.push({
       level: 'info',
       message: l(
-        'As rendas são rendimentos sujeitos a imposto (IRPS ou IRPC). Confirme as obrigações fiscais junto da Autoridade Tributária.',
-        'Rent is taxable income (IRPS or IRPC). Check the tax obligations with the Tax Authority.',
+        'As rendas são rendimentos sujeitos a imposto (IRPS ou IRPC). Se o inquilino for uma empresa, pode ter de reter imposto na fonte sobre cada renda. Confirme as obrigações fiscais junto da Autoridade Tributária.',
+        'Rent is taxable income (IRPS or IRPC). If the tenant is a company, it may have to withhold tax on each payment. Check the tax obligations with the Tax Authority.',
       ),
     });
     return w;
@@ -746,14 +766,14 @@ export default defineTemplate({
       const parts = [
         doI.length ? `São da responsabilidade ${I.de} as despesas de ${juntar(doI.map((d) => d.pt))} relativas ao imóvel durante a vigência do contrato.` : '',
         doS.length ? `São da responsabilidade ${S.de} as despesas de ${juntar(doS.map((d) => d.pt))}.` : '',
-        `O imposto predial autárquico e os demais encargos fiscais relativos ao imóvel são da responsabilidade ${S.de}.`,
+        `O imposto predial autárquico e os demais encargos fiscais relativos ao imóvel, incluindo o imposto do selo devido pelo presente contrato, nos termos da ${cite('impostoSeloArrendamento')}, são da responsabilidade ${S.de}.`,
         ...splitLines(v.despesasOutras).map((s) => `${semPonto(s)}.`),
       ].filter(Boolean);
       clauses.push({
         id: 'despesas',
         heading: 'Despesas e encargos',
         text: numerar(parts),
-        en: `Tenant pays: ${doI.map((d) => d.en).join(', ') || '—'}. Landlord pays: ${doS.map((d) => d.en).join(', ') || '—'}, and property taxes.`,
+        en: `Tenant pays: ${doI.map((d) => d.en).join(', ') || '—'}. Landlord pays: ${doS.map((d) => d.en).join(', ') || '—'}, property taxes and the stamp duty on this lease.`,
       });
     }
     clauses.push({
@@ -818,7 +838,7 @@ export default defineTemplate({
       id: 'lei',
       heading: 'Lei aplicável e foro',
       text: numerar([
-        `Em tudo o que não estiver expressamente previsto no presente contrato, aplica-se a legislação moçambicana sobre arrendamento (${cite('codigoCivilArrendamento')}).`,
+        `Em tudo o que não estiver expressamente previsto no presente contrato, aplicam-se as normas sobre arrendamento (${cite('codigoCivilArrendamento')}) e a demais legislação moçambicana aplicável.`,
         `Para dirimir quaisquer litígios emergentes do presente contrato que não sejam resolvidos por acordo, as partes elegem o foro do ${semPonto(v.foro) || 'tribunal competente da área de situação do imóvel'}, com expressa renúncia a qualquer outro.`,
       ]),
       en: 'Matters not covered are governed by Mozambican lease law (Civil Code). Disputes not settled amicably go to the court named.',

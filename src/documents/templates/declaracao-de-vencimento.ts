@@ -28,7 +28,8 @@ function workerIdent(v: Values): { pt: string; en: string } {
     pt.push(`NUIT ${v.trabalhadorNuit}`);
     en.push(`NUIT ${v.trabalhadorNuit}`);
   }
-  return { pt: pt.join(', '), en: en.join(', ') };
+  // Commas around the identification only when it follows the name ("que **X**, portador…, é").
+  return { pt: pt.length > 1 ? `${pt.join(', ')},` : pt[0], en: en.length > 1 ? `${en.join(', ')},` : en[0] };
 }
 
 function employerRef(ctx: TemplateContext): { pt: string; en: string } {
@@ -288,8 +289,8 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'identificacao',
-        text: `Declara-se, ${fin.pt}, que ${who.pt}, é ${trab} ${emp.pt} desde ${dateLong(v.trabalhadorDataAdmissao)}, exercendo actualmente as funções de **${blank(v.trabalhadorCargo)}**, com contrato de trabalho ${ct.pt}.`,
-        en: `This is to certify, ${fin.en}, that ${who.en}, has been an employee ${emp.en} since ${dateEn(v.trabalhadorDataAdmissao)}, currently holding the position of ${blank(v.trabalhadorCargo)}, under ${ct.en}.`,
+        text: `${fin.pt.charAt(0).toUpperCase()}${fin.pt.slice(1)}, declara-se que ${who.pt} é ${trab} ${emp.pt} desde ${dateLong(v.trabalhadorDataAdmissao)}, exercendo actualmente as funções de **${blank(v.trabalhadorCargo)}**, com contrato de trabalho ${ct.pt}.`,
+        en: `This is to certify, ${fin.en}, that ${who.en} has been an employee ${emp.en} since ${dateEn(v.trabalhadorDataAdmissao)}, currently holding the position of ${blank(v.trabalhadorCargo)}, under ${ct.en}.`,
       },
     );
 
@@ -358,7 +359,7 @@ export default defineTemplate({
         type: 'paragraph',
         id: 'fecho',
         text: empresa
-          ? 'Por ser verdade e me ter sido solicitada, passa-se a presente declaração, que vai assinada e autenticada com o carimbo em uso nesta empresa.'
+          ? 'Por ser verdade e me ter sido solicitada, passa-se a presente declaração, que vai por mim assinada e autenticada com o carimbo em uso nesta empresa.'
           : 'Por ser verdade e me ter sido solicitada, passa-se a presente declaração, que vai por mim assinada.',
         en: empresa
           ? 'This declaration is issued at the request of the person concerned, signed and authenticated with the company stamp.'

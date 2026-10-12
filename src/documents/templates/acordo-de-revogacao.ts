@@ -161,12 +161,12 @@ export default defineTemplate({
       {
         id: 'efeitos',
         heading: 'Produção de efeitos',
-        text: `A cessação do contrato de trabalho produz efeitos em **${dateLong(v.dataFimContrato)}**, mantendo-se até essa data os direitos e deveres das partes.${
+        text: `O presente acordo é celebrado em **${dateLong(v.data)}** e a cessação do contrato de trabalho produz efeitos em **${dateLong(v.dataFimContrato)}**, mantendo-se até essa data os direitos e deveres das partes.${
           v.dispensaTrabalho
             ? ` ${TCap} fica ${g(ge, 'dispensado', 'dispensada')} de prestar trabalho a partir de ${dateLong(v.dataDispensa)}, mantendo o direito à remuneração até à data da cessação.`
             : ''
         }`,
-        en: `The termination takes effect on ${v.dataFimContrato || '___'}; until then the parties’ rights and duties remain.${v.dispensaTrabalho ? ' The employee is released from work from the date stated, with pay until termination.' : ''}`,
+        en: `This agreement is signed on ${v.data || '___'} and the termination takes effect on ${v.dataFimContrato || '___'}; until then the parties’ rights and duties remain.${v.dispensaTrabalho ? ' The employee is released from work from the date stated, with pay until termination.' : ''}`,
       },
     ];
     if (comp != null) {
@@ -222,8 +222,8 @@ export default defineTemplate({
       {
         id: 'revogacao',
         heading: `Direito de revogação ${doT}`,
-        text: `Nos termos ${doCite('revogacaoAcordo')}, ${T} pode revogar o presente acordo no prazo de ${revogacaoDias} dias a contar da data da sua assinatura, mediante comunicação escrita à Empregadora, devolvendo as importâncias que tenha recebido por força do mesmo.`,
-        en: `The employee may revoke this agreement within ${revogacaoDias} days of signing, by written notice to the employer, returning any amounts received under it.`,
+        text: `Nos termos ${doCite('revogacaoAcordo')}, ${T} pode fazer cessar os efeitos do presente acordo mediante comunicação escrita à Empregadora, no prazo não superior a ${revogacaoDias} dias a contar da sua celebração, devolvendo na íntegra e de imediato o valor que tiver recebido a título de compensação. ${TCap} pode ainda enviar cópia do presente acordo ao órgão sindical da empresa e ao órgão da administração do trabalho, para efeitos de apreciação.`,
+        en: `The employee may cancel this agreement by written notice to the employer within ${revogacaoDias} days of signing, returning in full and at once any compensation received. The employee may also send a copy to the company union and the labour administration for review.`,
       },
       {
         id: 'certificado',

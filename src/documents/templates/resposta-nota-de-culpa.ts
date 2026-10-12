@@ -134,6 +134,16 @@ export default defineTemplate({
       default: true,
       label: l('Pedir para ser ouvido em audição', 'Ask to be heard at a hearing'),
     },
+    {
+      name: 'pedidoSubsidiario',
+      type: 'toggle',
+      section: 'defesa',
+      label: l('Pedir, em alternativa, uma sanção mais leve', 'Alternatively ask for a lighter sanction'),
+      help: l(
+        'Acrescenta ao pedido de arquivamento: "ou, caso assim não se entenda, a aplicação de uma sanção menos grave".',
+        'Adds to the request to close the case: "or, failing that, a less severe sanction".',
+      ),
+    },
   ],
 
   computed: (v, { legal }) => {
@@ -291,8 +301,8 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'conclusao',
-        text: `Termos em que, pelos fundamentos expostos, requer o arquivamento do processo disciplinar, por não se verificar qualquer infracção disciplinar que possa ser imputada ${g(ge, 'ao trabalhador', 'à trabalhadora')}.`,
-        en: 'For these reasons, the employee requests that the disciplinary case be closed, as no disciplinary offence can be attributed to them.',
+        text: `Termos em que, pelos fundamentos expostos, requer o arquivamento do processo disciplinar, por não se verificar qualquer infracção disciplinar que possa ser imputada ${g(ge, 'ao trabalhador', 'à trabalhadora')}${v.pedidoSubsidiario ? ', ou, caso assim não se entenda, a aplicação de uma sanção menos grave, atendendo às circunstâncias expostas e ao seu comportamento profissional anterior' : ''}.`,
+        en: `For these reasons, the employee requests that the disciplinary case be closed, as no disciplinary offence can be attributed to them${v.pedidoSubsidiario ? ', or, failing that, that a less severe sanction be applied' : ''}.`,
       },
       { type: 'paragraph', id: 'fecho', text: 'Pede deferimento.', align: 'left', keepWithNext: true },
       {

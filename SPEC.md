@@ -1,16 +1,16 @@
-# Build prompt — "Documentos MZ" (working name)
+# Documentos MZ — product specification
 
-> Paste this whole file into your coding agent as the project spec. Keep it in the repo as `SPEC.md`.
+> Product specification. Kept in the repo as `SPEC.md`.
 
 ---
 
-## 1. Role and mission
+## 1. Mission
 
-You are a senior front-end engineer and document designer building a **client-side web app that generates professional business and personal documents for Mozambique**, following the procedures set out in Mozambican law.
+The goal is a **client-side web app that generates professional business and personal documents for Mozambique**, following the procedures set out in Mozambican law.
 
-The people using it are small business owners, HR clerks, accountants and individuals — often on a mid-range Android phone with an unreliable connection, often without legal training. Your job is to let them produce a document that looks like it came from a careful professional office, with the legally required content, in a few minutes, without having to understand legal jargon.
+The people using it are small business owners, HR clerks, accountants and individuals — often on a mid-range Android phone with an unreliable connection, often without legal training. The app must let them produce a document that looks like it came from a careful professional office, with the legally required content, in a few minutes, without having to understand legal jargon.
 
-Quality bar: every document must look like it was typeset by a professional who cares. The app UI must look like a calm, competent public-service website — not like an AI-generated template.
+Quality bar: every document must look like it was typeset by a professional who cares. The app UI must look like a calm, competent public-service website — not like a generic template.
 
 ---
 
@@ -240,7 +240,7 @@ Live preview updates while editing (debounced ~300 ms).
 - Money: `15.000,00 MT` plus extenso "(quinze mil meticais)" where legally meaningful. Implement and unit-test `numeroPorExtenso` for meticais and centavos up to 999 999 999,99.
 - Dates in the body: "Maputo, 12 de Outubro de 2026" (capitalised months, as in the Boletim da República).
 - Spelling: Mozambican official usage as in the Boletim da República (e.g. "Director", "efectivo", "infracção", "colectivo").
-- Formal register used in Mozambique: "Exmo. Senhor / Exma. Senhora", "Com os melhores cumprimentos". **Banned in documents:** filler and AI-sounding phrases ("Espero que esta carta o encontre bem", "É com grande prazer", "Não hesite em contactar").
+- Formal register used in Mozambique: "Exmo. Senhor / Exma. Senhora", "Com os melhores cumprimentos". **Banned in documents:** filler phrases ("Espero que esta carta o encontre bem", "É com grande prazer", "Não hesite em contactar").
 - Test every template with fixtures: no logo, huge logo, very long company name, three-line address, long worker name, content that spills to page 2 and 3. Snapshot each page to PNG in Playwright and diff.
 
 ---

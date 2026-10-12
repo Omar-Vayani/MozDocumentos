@@ -8,7 +8,7 @@ async function noHorizontalScroll(page: Page) {
 
 test.describe('layout at 320 px', () => {
   test.use({ viewport: { width: 320, height: 640 } });
-  for (const path of ['/', '/documentos', '/assistente', '/meus-documentos', '/perfis', '/pessoas', '/definicoes', '/sobre', '/processos/despedimento-justa-causa', '/documentos/recibo-de-salario', '/perfis/novo?tipo=empresa']) {
+  for (const path of ['/', '/documentos', '/assistente', '/meus-documentos', '/perfis', '/pessoas', '/definicoes', '/sobre', '/termos', '/privacidade', '/ferramentas', '/ferramentas/recibos-em-lote', '/processos/despedimento-justa-causa', '/documentos/recibo-de-salario', '/perfis/novo?tipo=empresa']) {
     test(`no horizontal scroll on ${path}`, async ({ page }) => {
       await page.goto(path);
       await page.waitForLoadState('networkidle');
@@ -113,9 +113,9 @@ test('language switch translates the interface', async ({ page }, info) => {
   test.skip(info.project.name === 'mobile', 'desktop header');
   await page.goto('/');
   await page.getByRole('button', { name: 'Mudar para inglês' }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Create professional documents in minutes');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Professional documents, ready in minutes');
   await page.reload();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Create professional documents in minutes');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Professional documents, ready in minutes');
 });
 
 test('process: data flows from the nota de culpa to the next documents', async ({ page }, info) => {
@@ -137,4 +137,63 @@ test('process: data flows from the nota de culpa to the next documents', async (
   await page.getByRole('link', { name: /Criar documento: Convocatória para audição/ }).click();
   await expect(page.getByLabel('Nome completo')).toHaveValue('Carlos Manuel Sitoe');
   await expect(page.getByLabel('N.º do processo disciplinar')).toHaveValue('PD/2026/007');
+});
+
+test('mobile menu closes after choosing an action in the profile picker', async ({ page }, info) => {
+  test.skip(info.project.name !== 'mobile', 'mobile only');
+  await page.goto('/');
+  await page.getByRole('button', { name: /Menu/ }).click();
+  await page.getByRole('button', { name: /Perfil activo/ }).click();
+  await page.getByRole('button', { name: 'Criar perfil pessoal' }).click();
+  await expect(page).toHaveURL(/perfis\/novo\?tipo=pessoa/);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Criar perfil pessoal');
+});
+
+test('a profile cannot be saved without a name', async ({ page }) => {
+  await page.goto('/perfis/novo?tipo=empresa');
+  await page.getByRole('button', { name: 'Guardar' }).click();
+  await expect(page.getByText('Indique o nome da empresa')).toBeVisible();
+  await expect(page).toHaveURL(/perfis\/novo/);
+});
+
+test('batch payslips: one PDF for the selected employees', async ({ page }, info) => {
+  test.skip(info.project.name === 'mobile', 'desktop only');
+  await page.goto('/perfis/novo?tipo=empresa');
+  await page.getByLabel('Firma (nome legal)').fill('Lote Lda');
+  await page.getByRole('button', { name: 'Guardar' }).click();
+  await expect(page).toHaveURL(/\/perfis\/[0-9a-f-]+$/);
+  for (const [nome, salario] of [['Ana Cossa', '20000'], ['Rui Mondlane', '35000']]) {
+    await page.goto('/pessoas');
+    await page.getByRole('button', { name: 'Adicionar pessoa' }).click();
+    await page.getByLabel('Nome completo').fill(nome);
+    await page.getByLabel('Salário base (MT)').fill(salario);
+    await page.getByRole('button', { name: 'Guardar' }).click();
+    await expect(page.getByText(nome)).toBeVisible();
+  }
+  await page.goto('/ferramentas/recibos-em-lote');
+  await expect(page.getByText('Ana Cossa')).toBeVisible();
+  const [download] = await Promise.all([page.waitForEvent('download', { timeout: 60_000 }), page.getByRole('button', { name: 'Gerar 2 recibos' }).click()]);
+  expect(download.suggestedFilename()).toMatch(/^recibos-de-vencimento-\d{4}-\d{2}\.pdf$/);
+  await page.goto('/meus-documentos?tab=finals');
+  await expect(page.getByText('Rui Mondlane').first()).toBeVisible();
+});
+
+test('calculators respond to input', async ({ page }) => {
+  await page.goto('/ferramentas');
+  const base = page.locator('#salario').getByLabel('Salário base mensal');
+  await base.fill('10000');
+  // 10 000 − 3% INSS = 9 700 (IRPS table off by default)
+  await expect(page.locator('#salario').getByText('9.700,00 MT')).toBeVisible();
+});
+
+test('editor: background text and download with blanks', async ({ page }, info) => {
+  test.skip(info.project.name === 'mobile', 'desktop only');
+  await page.goto('/documentos/declaracao-de-trabalho');
+  await page.getByText('Apresentação deste documento').click();
+  await page.getByLabel('Texto de fundo').selectOption('CÓPIA');
+  await expect(page.locator('aside canvas').first()).toBeVisible();
+  await page.getByRole('button', { name: 'Descarregar PDF' }).click();
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Descarregar mesmo assim' }).click()]);
+  expect(download.suggestedFilename()).toMatch(/\.pdf$/);
 });

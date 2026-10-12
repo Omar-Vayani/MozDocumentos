@@ -15,6 +15,10 @@ const ProfileEditPage = lazy(() => import('@/features/profiles/ProfileEditPage')
 const PeoplePage = lazy(() => import('@/features/profiles/PeoplePage').then((m) => ({ default: m.PeoplePage })));
 const SettingsPage = lazy(() => import('@/features/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const AboutPage = lazy(() => import('@/features/settings/AboutPage').then((m) => ({ default: m.AboutPage })));
+const ToolsPage = lazy(() => import('@/features/tools/ToolsPage').then((m) => ({ default: m.ToolsPage })));
+const BatchPayslipsPage = lazy(() => import('@/features/tools/BatchPayslipsPage').then((m) => ({ default: m.BatchPayslipsPage })));
+const TermsPage = lazy(() => import('@/features/settings/LegalPages').then((m) => ({ default: m.TermsPage })));
+const PrivacyPage = lazy(() => import('@/features/settings/LegalPages').then((m) => ({ default: m.PrivacyPage })));
 
 function Page({ children }: { children: ReactNode }) {
   return (
@@ -72,6 +76,10 @@ export const router = createBrowserRouter([
       { path: '/pessoas', element: <Page><PeoplePage /></Page> },
       { path: '/definicoes', element: <Page><SettingsPage /></Page> },
       { path: '/sobre', element: <Page><AboutPage /></Page> },
+      { path: '/ferramentas', element: <Page><ToolsPage /></Page> },
+      { path: '/ferramentas/recibos-em-lote', element: <Page><BatchPayslipsPage /></Page> },
+      { path: '/termos', element: <Page><TermsPage /></Page> },
+      { path: '/privacidade', element: <Page><PrivacyPage /></Page> },
       { path: '*', element: <NotFound /> },
     ],
   },

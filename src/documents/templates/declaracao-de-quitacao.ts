@@ -3,7 +3,7 @@ import { profileDisplayName, type Profile } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type FieldDef, type Values, type Warning } from '../model';
 import {
-  BLANK, dateField, dateLong, FORMA_PAGAMENTO_OPTIONS, formatMoney, isF, l, lineItems, localField, money,
+  BLANK, cite, dateField, dateLong, FORMA_PAGAMENTO_OPTIONS, formatMoney, isF, l, lineItems, localField, money,
   placeDate, workerFields, workerSignature,
 } from './_shared';
 
@@ -31,10 +31,12 @@ function identificacao(v: Values): string {
 
 const MOTIVOS = [
   { value: '', label: l('Não indicar', 'Do not state') },
-  { value: 'rescisão por iniciativa do trabalhador', label: l('Rescisão pelo trabalhador', 'Resignation') },
-  { value: 'revogação por acordo', label: l('Revogação por acordo', 'Mutual agreement') },
+  { value: 'denúncia com aviso prévio, por iniciativa do trabalhador', label: l('Saída do trabalhador com aviso prévio (denúncia)', 'Resignation with notice') },
+  { value: 'rescisão com justa causa, por iniciativa do trabalhador', label: l('Rescisão com justa causa pelo trabalhador', 'Resignation with just cause') },
+  { value: 'acordo revogatório', label: l('Acordo entre as partes (acordo revogatório)', 'Mutual agreement') },
   { value: 'caducidade', label: l('Caducidade (fim do prazo)', 'Expiry of term') },
-  { value: 'despedimento', label: l('Despedimento', 'Dismissal') },
+  { value: 'despedimento', label: l('Despedimento disciplinar', 'Disciplinary dismissal') },
+  { value: 'rescisão por iniciativa do empregador, com aviso prévio', label: l('Rescisão pelo empregador por motivos económicos', 'Termination by the employer for economic reasons') },
 ];
 
 const [fNome, fGenero, fEstadoCivil, fNacionalidade, fDocTipo, fDocNumero, fDocEmissao, fDocLocal, fNuit, fMorada, fCargo, fDataAdmissao] =
@@ -140,8 +142,16 @@ export default defineTemplate({
     return { linhas, total, preenchido };
   },
 
-  warnings: (v, { computed: c }) => {
+  warnings: (v, { computed: c, legal }) => {
     const w: Warning[] = [];
+    const prescricao = legal.value<{ meses: number }>('prescricaoCreditosLaborais').meses;
+    w.push({
+      level: 'info',
+      message: l(
+        `Assine só depois de receber os valores. Os créditos resultantes do contrato e da sua cessação prescrevem ${prescricao} meses após a cessação (${cite('prescricaoCreditosLaborais')}).`,
+        `Sign only after receiving the amounts. Claims arising from the contract and its termination lapse ${prescricao} months after it ends.`,
+      ),
+    });
     if (!c.total) {
       w.push({ level: 'warning', field: 'valores', message: l('Indique os valores recebidos.', 'Enter the amounts received.') });
     }

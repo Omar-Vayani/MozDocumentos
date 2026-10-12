@@ -1,7 +1,7 @@
 import { diffDays } from '@/lib/format';
 import { defineTemplate, type Block, type ClauseItem, type FieldDef, type TemplateContext, type Values, type Warning } from '../model';
 import {
-  BLANK, dateField, dateLong, employerParty, employerSignature, FORMA_PAGAMENTO_OPTIONS, formatMoney, isF, l, localField, money,
+  BLANK, cite, dateField, dateLong, employerParty, employerSignature, FORMA_PAGAMENTO_OPTIONS, formatMoney, isF, l, localField, money,
   placeDate, refField, splitLines, workerFields, workerParty,
 } from './_shared';
 import { doCite, enumerate, lc, moneyExt, num, qty } from './_contrato-trabalho';
@@ -263,13 +263,14 @@ export default defineTemplate({
         message: l('Falta o NUIT do prestador. É necessário para a factura ou recibo e para as retenções na fonte.', 'The provider’s NUIT is missing. It is needed for invoicing and withholding.'),
       });
     }
-    if (v.periodicidade === 'mensal' && isSingular(v)) {
+    if (isSingular(v)) {
+      const mensal = v.periodicidade === 'mensal';
       w.push({
-        level: 'info',
+        level: mensal ? 'warning' : 'info',
         field: 'periodicidade',
         message: l(
-          'Atenção: pagamento mensal fixo, horário definido e ordens directas são indícios de contrato de trabalho. Se o prestador trabalhar nessas condições, use um contrato de trabalho.',
-          'Note: a fixed monthly payment, set hours and direct orders indicate an employment contract. If the provider works like that, use an employment contract.',
+          `${mensal ? 'Atenção: pagamento mensal fixo, horário definido e ordens directas são indícios de contrato de trabalho. ' : ''}A lei presume a existência de contrato de trabalho quando o prestador depende economicamente do contratante, e converte em contrato de trabalho a prestação de serviços para funções que correspondam a vagas do quadro de pessoal (${cite('presuncaoContratoTrabalho')}). Nesses casos, use um contrato de trabalho.`,
+          `${mensal ? 'Note: a fixed monthly payment, set hours and direct orders indicate an employment contract. ' : ''}The law presumes an employment contract when the provider depends economically on the client, and converts service contracts for posts on the staff establishment into employment contracts. In those cases, use an employment contract.`,
         ),
       });
     }
@@ -361,7 +362,9 @@ export default defineTemplate({
 
     // Independência
     const indep = [
-      `1. O presente contrato é celebrado como contrato de prestação de serviços, nos termos ${doCite('codigoCivilPrestacaoServicos')}, e não constitui nem pode ser interpretado como contrato de trabalho.`,
+      `1. O presente contrato é celebrado como contrato de prestação de serviços, nos termos ${doCite('codigoCivilPrestacaoServicos')}, e não constitui nem pode ser interpretado como contrato de trabalho${
+        ctx.profile?.kind === 'pessoa' ? '' : `, não se destinando os serviços ao preenchimento de vaga do quadro de pessoal ${C.do}`
+      }.`,
       `2. ${P.O} não está ${P.a('sujeito', 'sujeita')} à autoridade, à direcção nem ao poder disciplinar ${C.do}, não tem horário de trabalho fixado por esta e organiza livremente o seu tempo, sem prejuízo dos prazos e das reuniões acordados.`,
       `3. ${P.O} pode prestar serviços a terceiros, desde que tal não prejudique o cumprimento do presente contrato${v.confidencialidade ? ' nem a obrigação de confidencialidade' : ''}.`,
       `4. É da exclusiva responsabilidade ${P.do} o cumprimento das suas obrigações fiscais e, quando aplicável, de segurança social${
@@ -406,7 +409,7 @@ export default defineTemplate({
         id: 'independencia',
         heading: 'Inexistência de relação de trabalho',
         text: indep.join('\n'),
-        en: 'This is a contract for services under the Civil Code, not an employment contract. The Provider is not subject to the Client’s authority, direction or disciplinary power, has no set working hours and may work for others. The Provider is solely responsible for its own tax and social security obligations (and, for a company, for its staff). The fees are the only consideration due.',
+        en: 'This is a contract for services under the Civil Code, not an employment contract and does not fill a post on the Client’s staff establishment. The Provider is not subject to the Client’s authority, direction or disciplinary power, has no set working hours and may work for others. The Provider is solely responsible for its own tax and social security obligations (and, for a company, for its staff). The fees are the only consideration due.',
       },
       {
         id: 'obrigacoesContratante',

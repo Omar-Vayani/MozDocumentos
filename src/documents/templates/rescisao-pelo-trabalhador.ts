@@ -58,7 +58,8 @@ export default defineTemplate({
       default: 'indeterminado',
       options: [
         { value: 'indeterminado', label: l('Sem data de fim (por tempo indeterminado)', 'Permanent') },
-        { value: 'prazo', label: l('Com data de fim (a prazo)', 'Fixed term') },
+        { value: 'prazo', label: l('Com data de fim (a prazo certo)', 'Fixed term') },
+        { value: 'incerto', label: l('Até terminar uma obra, projecto ou substituição (a prazo incerto)', 'Until a project or replacement ends (open-ended term)') },
       ],
     },
     { ...fDataAdmissao, section: 'documento', required: true, legal: l('O aviso prévio depende da antiguidade.', 'The notice period depends on length of service.') },
@@ -124,7 +125,12 @@ export default defineTemplate({
     const admissao = v.trabalhadorDataAdmissao || '';
     const mais3 = Boolean(admissao && ref && diffDays(addMonths(admissao, a.limiarMeses), ref) > 0);
     const menos6Meses = Boolean(admissao && ref && diffDays(addMonths(admissao, a.minimoMeses), ref) <= 0);
-    const aviso = v.tipoContrato === 'prazo' ? a.prazo : mais3 ? a.mais3Anos : a.ate3Anos;
+    // Open-ended fixed term: the employee gives the notice of art. 46.º, n.º 3 (n.º 6).
+    const inc = legal.value<{ ate3Anos: number; mais3Anos: number }>('caducidadePrazoIncertoAviso');
+    const aviso =
+      v.tipoContrato === 'prazo' ? a.prazo
+      : v.tipoContrato === 'incerto' ? (mais3 ? inc.mais3Anos : inc.ate3Anos)
+      : mais3 ? a.mais3Anos : a.ate3Anos;
     const dado = v.data && v.dataFimContrato ? diffDays(v.data, v.dataFimContrato) : null;
     return {
       aviso,
@@ -169,7 +175,8 @@ export default defineTemplate({
     const { values: v, computed: c } = ctx;
     const empresa = v.empresaNome || BLANK;
     const funcao = [v.trabalhadorCargo, v.trabalhadorDepartamento].filter(Boolean).join(', ');
-    const contrato = v.tipoContrato === 'prazo' ? 'a prazo' : 'por tempo indeterminado';
+    const contrato = v.tipoContrato === 'prazo' ? 'a prazo certo' : v.tipoContrato === 'incerto' ? 'a prazo incerto' : 'por tempo indeterminado';
+    const avisoRef: LegalRefId = v.tipoContrato === 'incerto' ? 'caducidadePrazoIncertoAviso' : 'avisoPrevioTrabalhador';
 
     const remetente = [
       `**${v.trabalhadorNome || BLANK}**`,
@@ -191,14 +198,14 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'comunicacao',
-        text: `Comunico a V. Ex.ªs a minha decisão de rescindir o contrato de trabalho ${contrato} que mantenho com a **${empresa}**, ao serviço da qual me encontro desde ${dateLong(v.trabalhadorDataAdmissao)}${v.trabalhadorCargo ? `, com a função de ${v.trabalhadorCargo}` : ''}.`,
-        en: `I hereby give notice of my decision to terminate my ${v.tipoContrato === 'prazo' ? 'fixed-term' : 'permanent'} employment contract with ${empresa}, where I have worked since ${v.trabalhadorDataAdmissao || '___'}.`,
+        text: `Comunico a V. Ex.ªs a minha decisão de pôr termo, por denúncia com aviso prévio, ao contrato de trabalho ${contrato} que mantenho com a **${empresa}**, ao serviço da qual me encontro desde ${dateLong(v.trabalhadorDataAdmissao)}${v.trabalhadorCargo ? `, com a função de ${v.trabalhadorCargo}` : ''}.`,
+        en: `I hereby give notice of my decision to terminate my ${v.tipoContrato === 'indeterminado' || !v.tipoContrato ? 'permanent' : 'fixed-term'} employment contract with ${empresa}, where I have worked since ${v.trabalhadorDataAdmissao || '___'}.`,
       },
       {
         type: 'paragraph',
         id: 'aviso',
         text: c.avisoCumprido
-          ? `Em cumprimento do aviso prévio de ${c.aviso} dias, nos termos ${doCite('avisoPrevioTrabalhador')} (Lei do Trabalho), o meu último dia de trabalho será **${dateLong(v.dataFimContrato)}**.`
+          ? `Em cumprimento do aviso prévio de ${c.aviso} dias, nos termos ${doCite(avisoRef)} (Lei do Trabalho), o meu último dia de trabalho será **${dateLong(v.dataFimContrato)}**.`
           : `O meu último dia de trabalho será **${dateLong(v.dataFimContrato)}**.`,
         en: c.avisoCumprido
           ? `In compliance with the ${c.aviso}-day notice period required by the Labour Law, my last working day will be ${v.dataFimContrato}.`

@@ -12,12 +12,12 @@ export function DocListItem({ m, headingLevel = 3 }: { m: TemplateMeta; headingL
   const available = isTemplateAvailable(m.id);
   const H = headingLevel === 2 ? 'h2' : 'h3';
   return (
-    <li className="border-b border-border">
-      <div className="py-4 flex gap-3 items-start">
+    <li className="relative border-b border-border last:border-b-0 hover:bg-surface transition-colors">
+      <div className="py-4 px-4 flex gap-3 items-start">
         <div className="flex-1 min-w-0">
           <H className="text-[1.12rem] font-bold leading-snug">
             {available ? (
-              <Link to={`/documentos/${m.id}`} className="after:absolute relative">
+              <Link to={`/documentos/${m.id}`} className="no-underline text-text hover:underline after:absolute after:inset-0">
                 {L(m.title)}
               </Link>
             ) : (

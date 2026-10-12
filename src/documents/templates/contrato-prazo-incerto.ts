@@ -158,7 +158,7 @@ export default defineTemplate({
 
   computed: (v, ctx) => {
     const inicio = (v.trabalhadorDataAdmissao as string) || undefined;
-    const pp = ctx.legal.value<{ ate6Meses: number }>('periodoProbatorioPrazo');
+    const pp = ctx.legal.value<{ ate6Meses: number; incertoMinDias: number }>('periodoProbatorioPrazo');
     const pd = ctx.legal.value<{ probatorio15Dias: number }>('denunciaPeriodoProbatorio');
     const probatorioMax = pp.ate6Meses;
     const probatorioDias = num(v.probatorioDias) ?? probatorioMax;
@@ -167,7 +167,8 @@ export default defineTemplate({
       inicio,
       prevista: num(v.duracaoPrevistaMeses),
       maxAnos: ctx.legal.value<{ duracaoMaxAnos: number }>('contratoPrazoIncerto').duracaoMaxAnos,
-      aviso: ctx.legal.value<{ ate3Anos: number; mais3Anos: number }>('caducidadePrazoIncertoAviso'),
+      aviso: ctx.legal.value<{ ate3Anos: number; mais3Anos: number; minimoMeses: number; limiarMeses: number }>('caducidadePrazoIncertoAviso'),
+      incertoMinDias: pp.incertoMinDias,
       probatorioMax,
       probatorioDias,
       probatorioFim: inicio && probatorioDias > 0 ? addDays(inicio, probatorioDias - 1) : null,
@@ -204,13 +205,20 @@ export default defineTemplate({
       });
     }
     if (v.periodoProbatorio) {
+      // Probation needs an expected length of at least incertoMinDias (about 30 days per month).
+      const curta = c.prevista != null && c.prevista * 30 < c.incertoMinDias;
       w.push({
-        level: 'info',
-        field: 'periodoProbatorio',
-        message: l(
-          `No contrato a prazo incerto, o período probatório só é admitido se a duração prevista atingir o mínimo legal (${cite('periodoProbatorioPrazo')}). Confirme antes de assinar.`,
-          'In an uncertain-term contract, probation is only allowed if the expected length reaches the legal minimum. Confirm before signing.',
-        ),
+        level: curta ? 'error' : 'warning',
+        field: curta ? 'periodoProbatorio' : 'duracaoPrevistaMeses',
+        message: curta
+          ? l(
+              `Com a duração prevista indicada não é admitido período probatório: exige-se uma duração prevista de pelo menos ${c.incertoMinDias} dias (${cite('periodoProbatorioPrazo')}).`,
+              `Probation is not allowed with this expected length: it must be at least ${c.incertoMinDias} days.`,
+            )
+          : l(
+              `No contrato a prazo incerto, o período probatório só é admitido se se previr uma duração igual ou superior a ${c.incertoMinDias} dias (${cite('periodoProbatorioPrazo')}).${c.prevista == null ? ' Indique a duração prevista.' : ''}`,
+              `In an uncertain-term contract, probation is only allowed if the expected length is ${c.incertoMinDias} days or more.${c.prevista == null ? ' Enter the expected length.' : ''}`,
+            ),
       });
       if (c.probatorioDias > c.probatorioMax) {
         w.push({
@@ -239,8 +247,8 @@ export default defineTemplate({
     const motivo: ClauseItem = {
       id: 'motivo',
       heading: 'Motivo justificativo',
-      text: `O presente contrato é celebrado a prazo incerto, nos termos ${doCite('contratoPrazoIncerto')}, para ${fin.pt}, necessidade temporária da Entidade Empregadora que as partes reconhecem e que fundamenta a sua celebração.`,
-      en: `This contract is for an uncertain term, for ${fin.en}, a temporary need of the Employer acknowledged by both parties.`,
+      text: `O presente contrato é celebrado a prazo incerto, nos termos ${doCite('contratoPrazoIncerto')}, para ${fin.pt}, necessidade temporária da Entidade Empregadora cuja duração não é possível prever com certeza e que fundamenta a sua celebração.`,
+      en: `This contract is for an uncertain term, for ${fin.en}, a temporary need of the Employer whose duration cannot be foreseen with certainty.`,
     };
 
     const duracaoLines = [
@@ -265,10 +273,11 @@ export default defineTemplate({
       id: 'caducidade',
       heading: 'Caducidade',
       text: [
-        `1. Verificado o facto que determina o termo do contrato, este caduca mediante comunicação escrita da Entidade Empregadora ${w.ao}, com a antecedência mínima de ${c.aviso.ate3Anos} ou ${c.aviso.mais3Anos} dias, consoante a duração do contrato, nos termos ${doCite('caducidadePrazoIncertoAviso')}.`,
-        `2. A comunicação indica o facto que determina a caducidade e a data em que o contrato cessa.`,
+        `1. Verificado o facto que determina o termo do contrato, este caduca mediante comunicação escrita da Entidade Empregadora ${w.ao}, com a antecedência mínima de ${qty(c.aviso.ate3Anos, 'dia', 'dias')}, se o tempo de trabalho for superior a ${qty(c.aviso.minimoMeses, 'mês', 'meses')} e não exceder ${qty(Math.round(c.aviso.limiarMeses / 12), 'ano', 'anos')}, ou de ${qty(c.aviso.mais3Anos, 'dia', 'dias')}, se for superior a ${qty(Math.round(c.aviso.limiarMeses / 12), 'ano', 'anos')}, nos termos ${doCite('caducidadePrazoIncertoAviso')}. A falta de aviso prévio obriga a Entidade Empregadora a pagar ${w.ao} a remuneração correspondente ao período de aviso em falta.`,
+        '2. A comunicação indica o facto que determina a caducidade e a data em que o contrato cessa.',
+        `3. Se ${w.o} permanecer ao serviço depois de produzidos os efeitos da caducidade, o contrato considera-se celebrado por tempo indeterminado.`,
       ].join('\n'),
-      en: `1. When the ending event occurs, the contract expires by written notice from the Employer given ${c.aviso.ate3Anos} or ${c.aviso.mais3Anos} days in advance, depending on the contract’s length. 2. The notice states the event and the end date.`,
+      en: `1. When the ending event occurs, the contract expires by written notice from the Employer: if the time worked exceeds ${c.aviso.minimoMeses} months, ${c.aviso.ate3Anos} days in advance, or ${c.aviso.mais3Anos} days if it exceeds ${Math.round(c.aviso.limiarMeses / 12)} years. Without notice, the Employer pays the missing notice period. 2. The notice states the event and the end date. 3. If the Employee keeps working after expiry, the contract becomes permanent.`,
     };
 
     const clauses: ClauseItem[] = [clObjecto(v, 'incerto'), motivo, clLocal(v), duracao];
@@ -280,10 +289,10 @@ export default defineTemplate({
           `1. O presente contrato fica sujeito a um período probatório de ${qty(c.probatorioDias, 'dia', 'dias')}, contado a partir do início da prestação de trabalho${
             c.probatorioFim ? ` e com termo em ${dateLong(c.probatorioFim)}` : ''
           }, nos termos ${doCite('periodoProbatorioPrazo')}.`,
-          `2. Durante o período probatório, qualquer das partes pode denunciar o contrato mediante aviso prévio escrito de ${qty(c.denunciaProbatorio, 'dia', 'dias')}, sem necessidade de invocação de justa causa, nos termos ${doCite('denunciaPeriodoProbatorio')}.`,
+          `2. Durante o período probatório, qualquer das partes pode denunciar o contrato mediante aviso prévio escrito de ${qty(c.denunciaProbatorio, 'dia', 'dias')}, sem necessidade de invocação de justa causa e sem direito a indemnização, nos termos ${doCite('denunciaPeriodoProbatorio')}.`,
           `3. O período probatório conta para efeitos de antiguidade ${w.do}.`,
         ].join('\n'),
-        en: `1. Probation of ${c.probatorioDias} days from the start of work. 2. During probation either party may end the contract with ${c.denunciaProbatorio} days’ written notice, without stating just cause. 3. Probation counts towards seniority.`,
+        en: `1. Probation of ${c.probatorioDias} days from the start of work. 2. During probation either party may end the contract with ${c.denunciaProbatorio} days’ written notice, without stating just cause and without compensation. 3. Probation counts towards seniority.`,
       });
     }
     clauses.push(
@@ -295,7 +304,7 @@ export default defineTemplate({
     );
     if (v.sigilo) clauses.push(clSigilo(v));
     if (v.exclusividade) clauses.push(clExclusividade(v));
-    clauses.push(caducidade, clCessacao(v, ctx, 'incerto'), clLegislacao(), clLitigios(), clFinais());
+    clauses.push(caducidade, clCessacao(v, ctx, 'incerto'), clLegislacao(v), clLitigios(), clFinais());
 
     return [
       contratoTitle(v, 'Contrato de trabalho a prazo incerto'),

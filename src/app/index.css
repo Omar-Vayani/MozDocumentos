@@ -2,55 +2,71 @@
 @import '@fontsource/public-sans/400.css';
 @import '@fontsource/public-sans/600.css';
 @import '@fontsource/public-sans/700.css';
+@import '@fontsource/public-sans/800.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Design tokens. Calm, plain, high-contrast — in the spirit of GOV.UK / USWDS. */
+/* Design tokens.
+   Layout concept: calm public-service clarity with a quiet Mozambican accent —
+   deep green as the working colour, yellow and red used only as small signals,
+   neutrals with a slight green bias. */
 :root {
   --bg: #ffffff;
-  --surface: #f3f4f2;
-  --surface-2: #e8eae6;
-  --text: #0b0c0c;
-  --muted: #4f5650;
-  --border: #b1b4b0;
-  --border-strong: #0b0c0c;
-  --primary: #14532d;
-  --primary-hover: #0f3f22;
+  --surface: #f3f6f3;
+  --surface-2: #e6ece7;
+  --text: #0c1410;
+  --muted: #4a5650;
+  --border: #c5cfc8;
+  --border-strong: #0c1410;
+  --primary: #0b5a40;
+  --primary-hover: #08452f;
   --primary-text: #ffffff;
-  --link: #1a4d8f;
+  --primary-soft: #e3f0e8;
+  --deep: #0a2f22;
+  --deep-text: #ffffff;
+  --sun: #f2b81c;
+  --flame: #c8102e;
+  --link: #145a96;
   --link-visited: #4c2c92;
-  --focus: #ffdd00;
-  --focus-text: #0b0c0c;
-  --error: #b3261e;
+  --focus: #ffd23f;
+  --focus-text: #0c1410;
+  --error: #b42318;
   --warning: #8a4b00;
-  --warning-bg: #fff4e0;
-  --info-bg: #eaf2fb;
-  --success-bg: #e6f2ea;
+  --warning-bg: #fff4dc;
+  --info-bg: #eaf2fa;
+  --success-bg: #e3f0e8;
   --paper: #ffffff;
+  --shadow: 0 1px 2px rgba(12, 20, 16, 0.06), 0 4px 14px rgba(12, 20, 16, 0.06);
   color-scheme: light;
 }
 
 .dark {
-  --bg: #101211;
-  --surface: #1a1d1b;
-  --surface-2: #252a27;
-  --text: #f1f2ef;
-  --muted: #b3b9b4;
-  --border: #4d554f;
-  --border-strong: #e8eae6;
-  --primary: #5fbf88;
-  --primary-hover: #7fd0a1;
-  --primary-text: #08140d;
-  --link: #9cc3ff;
+  --bg: #0d1310;
+  --surface: #141c17;
+  --surface-2: #1e2822;
+  --text: #edf2ee;
+  --muted: #a9b5ad;
+  --border: #36433b;
+  --border-strong: #e3ebe5;
+  --primary: #4fc28a;
+  --primary-hover: #74d3a4;
+  --primary-text: #062014;
+  --primary-soft: #14281d;
+  --deep: #0f2a1f;
+  --deep-text: #edf2ee;
+  --sun: #f2c34a;
+  --flame: #ff6b6b;
+  --link: #8cc0ff;
   --link-visited: #c9b1ff;
-  --focus: #ffdd00;
-  --focus-text: #0b0c0c;
+  --focus: #ffd23f;
+  --focus-text: #0c1410;
   --error: #ff8a80;
   --warning: #ffc266;
   --warning-bg: #2e2412;
-  --info-bg: #15212f;
-  --success-bg: #14261b;
+  --info-bg: #13202d;
+  --success-bg: #12261b;
   --paper: #ffffff;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.35);
   color-scheme: dark;
 }
 
@@ -74,9 +90,16 @@
   --color-info-bg: var(--info-bg);
   --color-success-bg: var(--success-bg);
   --color-paper: var(--paper);
-  --radius-sm: 2px;
-  --radius: 3px;
-  --radius-md: 4px;
+  --color-primary-soft: var(--primary-soft);
+  --color-deep: var(--deep);
+  --color-deep-text: var(--deep-text);
+  --color-sun: var(--sun);
+  --color-flame: var(--flame);
+  --shadow-card: var(--shadow);
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
 }
 
 @layer base {
@@ -104,6 +127,10 @@
     font-weight: 700;
     text-wrap: balance;
   }
+  h1 {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
   a {
     color: var(--link);
     text-decoration: underline;
@@ -118,6 +145,11 @@
     outline: 3px solid var(--focus);
     outline-offset: 0;
     box-shadow: 0 0 0 6px var(--border-strong);
+  }
+  /* Headings focused by script after navigation are not interactive: no ring. */
+  [tabindex='-1']:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
   a:focus-visible {
     background: var(--focus);
@@ -152,5 +184,44 @@
   }
   .prose-plain p + p {
     margin-top: 0.75rem;
+  }
+  /* A thin band in the national colours, used once under the header. */
+  .moz-band {
+    height: 4px;
+    background: linear-gradient(
+      90deg,
+      var(--primary) 0 76%,
+      var(--deep) 76% 84%,
+      var(--sun) 84% 93%,
+      var(--flame) 93% 100%
+    );
+  }
+  .card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+  }
+  .card-link {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .card-link:hover {
+    border-color: var(--primary);
+    box-shadow: var(--shadow);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .card-link:hover {
+      transform: translateY(-1px);
+    }
+  }
+  .eyebrow {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+  .hero-pattern {
+    background-image: radial-gradient(color-mix(in srgb, var(--deep-text) 14%, transparent) 1px, transparent 1.5px);
+    background-size: 18px 18px;
   }
 }

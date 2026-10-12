@@ -1,7 +1,7 @@
 import { profileDisplayName, type Profile } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type DefaultsContext, type FieldDef, type Values, type Warning } from '../model';
-import { BLANK, dateField, dateLong, employerRep, g, isF, l, lineItems, localField, placeDate, splitLines, workerFields } from './_shared';
+import { BLANK, cite, dateField, dateLong, employerRep, g, isF, l, lineItems, localField, placeDate, splitLines, workerFields } from './_shared';
 
 // ---------------------------------------------------------------- local helpers
 
@@ -211,6 +211,18 @@ export default defineTemplate({
       columns: [{ name: 'descricao', type: 'text', label: l('Documento', 'Document'), placeholder: l('Ex.: Cópia do Bilhete de Identidade', 'E.g. Copy of ID card') }],
       default: [],
     },
+    {
+      name: 'deferimento',
+      type: 'select',
+      section: 'documento',
+      width: 'half',
+      label: l('Fecho', 'Closing'),
+      options: [
+        { value: 'Pede deferimento.', label: l('Pede deferimento.', 'Requests approval.') },
+        { value: 'Espera deferimento.', label: l('Espera deferimento.', 'Awaits approval.') },
+      ],
+      default: 'Pede deferimento.',
+    },
     localField('documento'),
     dateField('data'),
   ],
@@ -238,6 +250,26 @@ export default defineTemplate({
     } else {
       if (!v.requerenteDocNumero) w.push({ level: 'warning', field: 'requerenteDocNumero', message: l('Falta o número do documento de identificação.', 'The ID number is missing.') });
       if (!v.requerenteMorada) w.push({ level: 'warning', field: 'requerenteMorada', message: l('Falta a morada do requerente.', 'The applicant’s address is missing.') });
+      if (!v.requerenteEstadoCivil || !v.requerenteProfissao) {
+        w.push({
+          level: 'info',
+          field: v.requerenteEstadoCivil ? 'requerenteProfissao' : 'requerenteEstadoCivil',
+          message: l(
+            `A lei pede que o requerente se identifique pelo nome, estado civil, profissão e residência (${cite('requerimentoConteudo')}).`,
+            'The law asks the applicant to give name, marital status, occupation and residence.',
+          ),
+        });
+      }
+    }
+    if (!splitLines(v.fundamentacao).length) {
+      w.push({
+        level: 'info',
+        field: 'fundamentacao',
+        message: l(
+          'O requerimento deve expor os factos em que se baseia o pedido. Indique os motivos.',
+          'The application should set out the facts on which the request is based. State your reasons.',
+        ),
+      });
     }
     return w;
   },
@@ -296,7 +328,14 @@ export default defineTemplate({
       ? { role: 'A Requerente', name: employerRep(ctx).nome || undefined, detail: employerRep(ctx).cargo || undefined, image: 'both' as const }
       : { role: g(v.requerenteGenero, 'O Requerente', 'A Requerente'), name: v.requerenteNome || undefined };
     blocks.push(
-      { type: 'paragraph', id: 'deferimento', text: 'Pede deferimento.', en: 'Requests approval.', align: 'center', keepWithNext: true },
+      {
+        type: 'paragraph',
+        id: 'deferimento',
+        text: v.deferimento === 'Espera deferimento.' ? 'Espera deferimento.' : 'Pede deferimento.',
+        en: v.deferimento === 'Espera deferimento.' ? 'Awaits approval.' : 'Requests approval.',
+        align: 'center',
+        keepWithNext: true,
+      },
       { type: 'signatures', placeDate: placeDate(ctx, v.data), columns: [signer] },
     );
     return blocks;

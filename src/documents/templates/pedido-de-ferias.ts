@@ -1,4 +1,4 @@
-import { addWorkingDays, diffDays, parseISODate, yearsBetween } from '@/lib/format';
+import { addDays, addWorkingDays, diffDays, parseISODate, yearsBetween } from '@/lib/format';
 import { defineTemplate, type Block, type DefaultsContext, type Warning } from '../model';
 import {
   blank, cite, dateField, dateLong, exmo, g, GENERO_OPTIONS, isF, l, localField, workerFields, workerSignature,
@@ -14,6 +14,33 @@ const daysEn = (n: number | null) => (n == null ? '____ days' : `${n} ${n === 1 
 const empresaDefault = (c: DefaultsContext) => (c.profile?.kind === 'empresa' ? c.profile.firma || c.profile.nomeComercial || '' : '');
 
 type FeriasValue = { primeiroAno: number; anosSeguintes: number; blocoMinimo: number };
+
+/** Public holidays (art. 105.º) between two ISO dates, inclusive. A holiday on a Sunday moves to the Monday. */
+function feriadosNoPeriodo(ini: string, fim: string, mmdd: string[]): string[] {
+  const a = parseISODate(ini);
+  const b = parseISODate(fim);
+  if (!a || !b) return [];
+  const out: string[] = [];
+  for (let y = a.getFullYear(); y <= b.getFullYear(); y++) {
+    for (const md of mmdd) {
+      let iso = `${y}-${md}`;
+      if (parseISODate(iso)?.getDay() === 0) iso = addDays(iso, 1);
+      if (diffDays(ini, iso) >= 0 && diffDays(iso, fim) >= 0) out.push(iso);
+    }
+  }
+  return out.sort();
+}
+
+/** " (excluindo o feriado de 25 de Junho de 2026)" */
+const exclFeriados = (f: string[]) =>
+  f.length === 0 ? '' : ` (excluindo ${f.length === 1 ? 'o feriado de' : 'os feriados de'} ${f.map((d) => dateLong(d)).join(', ').replace(/, ([^,]*)$/, ' e $1')})`;
+
+/** Next working day after `iso`, skipping weekends and public holidays. */
+function diaUtilSeguinte(iso: string, mmdd: string[]): string {
+  let r = addWorkingDays(iso, 1);
+  for (let i = 0; i < 10 && feriadosNoPeriodo(r, r, mmdd).length; i++) r = addWorkingDays(r, 1);
+  return r;
+}
 
 export default defineTemplate({
   id: 'pedido-de-ferias',
@@ -89,11 +116,17 @@ export default defineTemplate({
   computed: (v, { legal }) => {
     const fer = legal.value<FeriasValue>('feriasDireito');
     const ok = v.dataInicio && v.dataFim && Number.isFinite(diffDays(v.dataInicio, v.dataFim));
-    const dias = ok ? diffDays(v.dataInicio, v.dataFim) + 1 : null;
+    const mmdd = legal.value<string[]>('feriadosNacionais');
+    const feriados = ok ? feriadosNoPeriodo(v.dataInicio, v.dataFim, mmdd) : [];
+    const corridos = ok ? diffDays(v.dataInicio, v.dataFim) + 1 : null;
+    // Leave counts in calendar days, but public holidays in the period are not leave days (art. 111.º, n.º 1).
+    const dias = corridos != null ? corridos - feriados.length : null;
     const anos = v.trabalhadorDataAdmissao && v.dataInicio ? yearsBetween(v.trabalhadorDataAdmissao, v.dataInicio) : null;
     return {
       dias,
-      regresso: dias != null && dias > 0 ? addWorkingDays(v.dataFim, 1) : '',
+      regresso: corridos != null && corridos > 0 ? diaUtilSeguinte(v.dataFim, mmdd) : '',
+      feriados: corridos != null && corridos > 0 ? feriados : [],
+      corridos,
       anosServico: anos,
       direito: anos == null ? null : anos < 1 ? fer.primeiroAno : fer.anosSeguintes,
       blocoMinimo: fer.blocoMinimo,
@@ -106,7 +139,7 @@ export default defineTemplate({
     if (!v.dataInicio || !v.dataFim) {
       w.push({ level: 'warning', field: !v.dataInicio ? 'dataInicio' : 'dataFim', message: l('Indique o primeiro e o último dia de férias.', 'Enter the first and last day of leave.') });
     }
-    if (c.dias != null && c.dias < 1) {
+    if (c.corridos != null && c.corridos < 1) {
       w.push({ level: 'error', field: 'dataFim', message: l('O último dia é anterior ao primeiro.', 'The last day is before the first.') });
       return w;
     }
@@ -173,7 +206,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'pedido',
-        text: `Eu, **${blank(v.trabalhadorNome)}**, ${g(ge, 'trabalhador', 'trabalhadora')} desta empresa${funcao}, venho requerer a V. Ex.ª autorização para gozar **${diasTxt(dias)}** de férias, no período de **${dateLong(v.dataInicio)}** a **${dateLong(v.dataFim)}**, retomando o serviço no dia ${c.regresso ? dateLong(c.regresso) : dateLong('')}.`,
+        text: `Eu, **${blank(v.trabalhadorNome)}**, ${g(ge, 'trabalhador', 'trabalhadora')} desta empresa${funcao}, venho requerer a V. Ex.ª autorização para gozar **${diasTxt(dias)}** de férias, no período de **${dateLong(v.dataInicio)}** a **${dateLong(v.dataFim)}**${exclFeriados(c.feriados)}, retomando o serviço no dia ${c.regresso ? dateLong(c.regresso) : dateLong('')}.`,
         en: `I, ${blank(v.trabalhadorNome)}, an employee of this company${v.trabalhadorCargo ? ` (${v.trabalhadorCargo})` : ''}, request authorisation to take ${daysEn(dias)} of annual leave from ${dateEn(v.dataInicio)} to ${dateEn(v.dataFim)}, returning to work on ${dateEn(c.regresso)}.`,
       },
     ];

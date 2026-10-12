@@ -2,9 +2,25 @@ import { irpsWithholding, MINIMUM_WAGES_2026, type IrpsBand, type MinimumWage } 
 import { formatMonthYear, formatPercent, roundMoney } from '@/lib/format';
 import { defineTemplate, type Block, type Warning } from '../model';
 import {
-  dateLong, employerSignature, FORMA_PAGAMENTO_OPTIONS, formatMoney, l, lineItems, money, refField,
+  cite, dateLong, employerSignature, FORMA_PAGAMENTO_OPTIONS, formatMoney, l, lineItems, money, refField,
   localField, workerFields, workerSignature, isF,
 } from './_shared';
+
+/** "por transferência bancária", "em numerário", "através de M-Pesa"… */
+function formaPt(forma: unknown): string {
+  switch (forma) {
+    case 'numerário':
+      return 'em numerário';
+    case 'cheque':
+      return 'por cheque';
+    case 'M-Pesa':
+    case 'e-Mola':
+    case 'mKesh':
+      return `através de ${forma}`;
+    default:
+      return 'por transferência bancária';
+  }
+}
 
 const sum = (rows: Record<string, any>[]) => rows.reduce((t, r) => t + (money(r.valor) ?? 0), 0);
 
@@ -50,7 +66,10 @@ export default defineTemplate({
       width: 'half',
       personKey: 'salarioBase',
       label: l('Salário base', 'Base salary'),
-      legal: l('O recibo deve indicar a remuneração e os descontos efectuados.', 'The payslip must show pay and deductions made.'),
+      legal: l(
+        `No acto do pagamento, o empregador entrega um recibo com o nome de ambos, a categoria profissional, o período, a remuneração base e as prestações adicionais, os descontos e o valor líquido (${cite('reciboRemuneracao')}).`,
+        'On payment the employer must hand over a payslip with both names, the job grade, the period, base pay and additional payments, deductions and net pay.',
+      ),
     },
     {
       name: 'sector',
@@ -74,7 +93,7 @@ export default defineTemplate({
       ],
       default: [],
     },
-    { name: 'horasExtra', type: 'money', section: 'remuneracao', width: 'half', label: l('Horas extraordinárias', 'Overtime') },
+    { name: 'horasExtra', type: 'money', section: 'remuneracao', width: 'half', label: l('Trabalho extraordinário', 'Overtime') },
     {
       name: 'inssTrabalhador',
       type: 'money',
@@ -99,6 +118,10 @@ export default defineTemplate({
       section: 'descontos',
       label: l('Outros descontos', 'Other deductions'),
       addLabel: l('Adicionar desconto', 'Add deduction'),
+      help: l(
+        'Além do INSS e do IRPS, só pode descontar valores autorizados por escrito pelo trabalhador, ordenados por tribunal ou multas disciplinares.',
+        'Besides INSS and IRPS, you may only deduct amounts authorised in writing by the employee, ordered by a court, or disciplinary fines.',
+      ),
       columns: [
         { name: 'descricao', type: 'text', label: l('Descrição', 'Description'), placeholder: l('Ex.: Adiantamento', 'E.g. Advance') },
         { name: 'valor', type: 'money', label: l('Valor', 'Amount') },
@@ -126,6 +149,8 @@ export default defineTemplate({
     const irpsCalc = irpsWithholding(legal.table('irpsRetencao') as IrpsBand[], bruto, Number(v.dependentes) || 0);
     const irps = money(v.irps) ?? irpsCalc ?? 0;
     const outros = lineItems(v.outrosDescontos).filter((r) => money(r.valor));
+    // Salary advances requested by the employee do not count towards the deduction limit.
+    const outrosSemAdiantamentos = sum(outros.filter((r) => !/adiantamento/i.test(String(r.descricao ?? ''))));
     const totalDescontos = roundMoney(inss + irps + sum(outros));
     return {
       bruto,
@@ -140,6 +165,7 @@ export default defineTemplate({
       irpsTableActive: irpsCalc != null,
       inssEmpregador: roundMoney(bruto * taxaE),
       totalDescontos,
+      outrosSemAdiantamentos,
       liquido: roundMoney(bruto - totalDescontos),
     };
   },
@@ -173,6 +199,24 @@ export default defineTemplate({
     if (c.liquido < 0) {
       w.push({ level: 'error', message: l('Os descontos são superiores às remunerações.', 'Deductions exceed earnings.') });
     }
+    const lim = legal.value<{ fracaoMaxima: number }>('descontosRemuneracao').fracaoMaxima;
+    if (c.bruto > 0 && c.outrosSemAdiantamentos > c.bruto * lim) {
+      w.push({
+        level: 'warning',
+        field: 'outrosDescontos',
+        message: l(
+          `Os outros descontos excedem ${lim === 1 / 3 ? 'um terço' : formatPercent(lim)} da remuneração mensal, o limite legal (${cite('descontosRemuneracao')}). Os adiantamentos pedidos pelo trabalhador não contam para este limite.`,
+          `Other deductions exceed ${lim === 1 / 3 ? 'one third' : formatPercent(lim)} of monthly pay, the legal limit. Advances requested by the employee do not count towards it.`,
+        ),
+      });
+    }
+    if (!String(v.trabalhadorCategoria ?? '').trim()) {
+      w.push({
+        level: 'info',
+        field: 'trabalhadorCategoria',
+        message: l('O recibo deve indicar a categoria profissional.', 'The payslip must state the job grade.'),
+      });
+    }
     if (!v.trabalhadorInss) {
       w.push({ level: 'info', field: 'trabalhadorInss', message: l('Falta o número de beneficiário do INSS.', 'The INSS number is missing.') });
     }
@@ -191,7 +235,7 @@ export default defineTemplate({
     ];
     const rows: string[][] = [row('Salário base', money(v.salarioBase) ?? 0, null)];
     for (const s of c.subs) rows.push(row(s.descricao || 'Subsídio', money(s.valor), null));
-    if (money(v.horasExtra)) rows.push(row('Horas extraordinárias', money(v.horasExtra), null));
+    if (money(v.horasExtra)) rows.push(row('Trabalho extraordinário', money(v.horasExtra), null));
     rows.push(row(`INSS — trabalhador (${formatPercent(c.taxaT)})`, null, c.inssUsed));
     rows.push(row('IRPS — retenção na fonte', null, c.irpsUsed));
     for (const o of c.outros) rows.push(row(o.descricao || 'Desconto', null, money(o.valor)));
@@ -205,12 +249,12 @@ export default defineTemplate({
         title: f ? 'Dados da trabalhadora' : 'Dados do trabalhador',
         columns: 2,
         items: [
-          { label: 'Nome', value: v.trabalhadorNome },
-          { label: 'Cargo', value: v.trabalhadorCargo },
-          { label: 'Categoria', value: v.trabalhadorCategoria },
+          { label: 'Nome', value: v.trabalhadorNome || '' },
+          { label: 'Cargo', value: v.trabalhadorCargo || '' },
+          { label: 'Categoria profissional', value: v.trabalhadorCategoria || '' },
           { label: 'Data de admissão', value: v.trabalhadorDataAdmissao ? dateLong(v.trabalhadorDataAdmissao) : '' },
-          { label: 'NUIT', value: v.trabalhadorNuit },
-          { label: 'N.º INSS', value: v.trabalhadorInss },
+          { label: 'NUIT', value: v.trabalhadorNuit || '' },
+          { label: 'N.º INSS', value: v.trabalhadorInss || '' },
         ],
       },
       {
@@ -230,7 +274,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'pagamento',
-        text: `Pago por ${v.formaPagamento || 'transferência bancária'} em ${dateLong(v.data)}.`,
+        text: `Pago ${formaPt(v.formaPagamento)} em ${dateLong(v.data)}.`,
         en: `Paid by ${v.formaPagamento || 'bank transfer'} on ${v.data || '—'}.`,
         size: 'small',
       },
@@ -238,7 +282,7 @@ export default defineTemplate({
     if (v.mostrarEncargos) {
       blocks.push({
         type: 'note',
-        text: `Para informação: contribuição da entidade empregadora para o INSS (${formatPercent(c.taxaE)}): ${formatMoney(c.inssEmpregador)}. Este valor não é descontado ao trabalhador.`,
+        text: `Para informação: contribuição da entidade empregadora para o INSS (${formatPercent(c.taxaE)}): ${formatMoney(c.inssEmpregador)}. Este valor não é descontado ${f ? 'à trabalhadora' : 'ao trabalhador'}.`,
         en: `For information: employer INSS contribution (${formatPercent(c.taxaE)}): ${formatMoney(c.inssEmpregador)}. Not deducted from the employee.`,
       });
     }

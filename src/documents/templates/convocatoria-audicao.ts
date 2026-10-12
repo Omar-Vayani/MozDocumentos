@@ -118,7 +118,14 @@ export default defineTemplate({
 
   computed: (v, { legal }) => {
     const prazo = legal.value<number>('notaCulpaPrazoResposta');
-    return { prazoResposta: prazo, fimResposta: v.dataNotaCulpa ? addDays(v.dataNotaCulpa, prazo) : null };
+    const diligencias = legal.value<{ diligenciasDias: number }>('procedimentoDisciplinar').diligenciasDias;
+    const fimResposta = v.dataNotaCulpa ? addDays(v.dataNotaCulpa, prazo) : null;
+    return {
+      prazoResposta: prazo,
+      diligenciasDias: diligencias,
+      fimResposta,
+      fimDiligencias: fimResposta ? addDays(fimResposta, diligencias) : null,
+    };
   },
 
   warnings: (v, { computed: c }) => {
@@ -143,6 +150,16 @@ export default defineTemplate({
         message: l(
           `O prazo de resposta à nota de culpa (${c.prazoResposta} dias) só termina em ${dateLong(c.fimResposta)}. Marcar a audição antes pode limitar a defesa do trabalhador.`,
           `The reply period (${c.prazoResposta} days) only ends on ${c.fimResposta}. A hearing before then may limit the employee’s defence.`,
+        ),
+      });
+    }
+    if (c.fimDiligencias && v.dataAudicao && diffDays(c.fimDiligencias, v.dataAudicao) > 0) {
+      w.push({
+        level: 'warning',
+        field: 'dataAudicao',
+        message: l(
+          `A audição e as diligências de prova devem realizar-se nos ${c.diligenciasDias} dias seguidos após o fim do prazo de resposta, isto é, até ${dateLong(c.fimDiligencias)} (${cite('notaCulpaPrazoResposta')}). Se o trabalhador respondeu mais cedo, o prazo pode terminar antes.`,
+          `The hearing and evidence must take place within ${c.diligenciasDias} consecutive days after the reply period, i.e. by ${c.fimDiligencias}. If the employee replied earlier, the deadline may be earlier.`,
         ),
       });
     }

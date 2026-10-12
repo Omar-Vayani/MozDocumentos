@@ -2,18 +2,20 @@ import { inteiroPorExtenso, MESES, parseISODate } from '@/lib/format';
 import { profileDisplayName } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type ClauseItem, type SignatureColumn, type Values, type Warning } from '../model';
-import { BLANK, g, l, lineItems } from './_shared';
+import { BLANK, cite, g, l, lineItems } from './_shared';
 
 // ---------------------------------------------------------------- local helpers
 
 const TIPO_OPTIONS = [
-  { value: 'direccao', label: l('Reunião de Direcção', 'Board of directors meeting') },
+  { value: 'direccao', label: l('Reunião de Direcção (associações)', 'Board meeting (associations)') },
+  { value: 'conselhoAdministracao', label: l('Reunião do Conselho de Administração', 'Board of directors meeting') },
   { value: 'agOrdinaria', label: l('Assembleia Geral Ordinária', 'Ordinary general meeting') },
   { value: 'agExtraordinaria', label: l('Assembleia Geral Extraordinária', 'Extraordinary general meeting') },
   { value: 'socios', label: l('Reunião de Sócios', 'Shareholders’ meeting') },
 ];
 const TIPO_TITULO: Record<string, string> = {
   direccao: 'Reunião de Direcção',
+  conselhoAdministracao: 'Reunião do Conselho de Administração',
   agOrdinaria: 'Assembleia Geral Ordinária',
   agExtraordinaria: 'Assembleia Geral Extraordinária',
   socios: 'Reunião de Sócios',
@@ -157,6 +159,16 @@ export default defineTemplate({
       default: [],
     },
     {
+      name: 'listaPresencas',
+      type: 'toggle',
+      section: 'mesa',
+      label: l('Remeter para lista de presenças anexa', 'Refer to an attached attendance list'),
+      help: l(
+        'Em vez de listar os presentes na acta, indica que a lista de presenças, assinada pelos presentes, fica anexa. Útil em assembleias com muitos participantes.',
+        'Instead of listing attendees in the minutes, states that the signed attendance list is attached. Useful for large meetings.',
+      ),
+    },
+    {
       name: 'ausentes',
       type: 'textarea',
       section: 'mesa',
@@ -220,7 +232,14 @@ export default defineTemplate({
     if (!v.presidenteNome) w.push({ level: 'warning', field: 'presidenteNome', message: l('Indique quem presidiu.', 'State who chaired.') });
     if (!v.secretarioNome) w.push({ level: 'warning', field: 'secretarioNome', message: l('Indique quem secretariou.', 'State who took the minutes.') });
     const presentes = lineItems(v.presentes).filter((r) => String(r.nome ?? '').trim());
-    if (!presentes.length) w.push({ level: 'warning', field: 'presentes', message: l('Indique quem esteve presente.', 'List who attended.') });
+    if (!presentes.length && !v.listaPresencas) w.push({ level: 'warning', field: 'presentes', message: l('Indique quem esteve presente.', 'List who attended.') });
+    w.push({
+      level: 'info',
+      message: l(
+        `A acta deve ser lavrada no livro de actas (ou em folhas próprias) do órgão respectivo e assinada pela mesa (${cite('actaConteudo')}).`,
+        'The minutes must be entered in the minute book (or dedicated sheets) of the body concerned and signed by the chair and secretary.',
+      ),
+    });
     const ordem = lineItems(v.ordemTrabalhos).filter((r) => String(r.ponto ?? '').trim());
     const delib = lineItems(v.deliberacoes).filter((r) => String(r.deliberacao ?? '').trim());
     if (!ordem.length) w.push({ level: 'warning', field: 'ordemTrabalhos', message: l('Indique a ordem de trabalhos.', 'Enter the agenda.') });
@@ -246,11 +265,27 @@ export default defineTemplate({
     const ag = isAG(v);
     const entidadeTipo = v.entidadeTipo || 'sociedade';
     const firma = profileDisplayName(ctx.profile) || BLANK;
-    const da = `da ${entidadeTipo} **${firma}**`;
+    const p = ctx.profile?.kind === 'empresa' ? ctx.profile : null;
+    const ident = [
+      p?.nuel ? `matriculada sob o NUEL ${p.nuel}` : '',
+      p?.capitalSocial && entidadeTipo === 'sociedade' ? `com o capital social de ${String(p.capitalSocial).trim()}` : '',
+    ].filter(Boolean);
+    const da = `da ${entidadeTipo} **${firma}**${ident.length ? `, ${ident.join(', ')}` : ''}`;
     const presidente = ag ? 'Presidente da Mesa' : 'Presidente';
     const oPres = `${g(v.presidenteGenero, 'o', 'a')} ${presidente}`;
     const oSec = g(v.secretarioGenero, 'o Secretário', 'a Secretária');
-    const membros = v.tipo === 'direccao' ? 'membros da Direcção' : entidadeTipo === 'sociedade' ? 'sócios' : 'membros';
+    const membros =
+      v.tipo === 'direccao'
+        ? 'membros da Direcção'
+        : v.tipo === 'conselhoAdministracao'
+          ? 'administradores'
+          : entidadeTipo === 'sociedade'
+            ? 'sócios'
+            : entidadeTipo === 'associação'
+              ? 'associados'
+              : entidadeTipo === 'cooperativa'
+                ? 'cooperadores'
+                : 'membros';
 
     const presentes = lineItems(v.presentes)
       .map((r) => ({ nome: String(r.nome ?? '').trim(), qualidade: String(r.qualidade ?? '').trim() }))
@@ -267,6 +302,9 @@ export default defineTemplate({
       case 'direccao':
         reuniu = `reuniu-se ${v.localReuniao || BLANK} a Direcção ${da}`;
         break;
+      case 'conselhoAdministracao':
+        reuniu = `reuniu-se ${v.localReuniao || BLANK} o Conselho de Administração ${da}`;
+        break;
       case 'socios':
         reuniu = `reuniram-se ${v.localReuniao || BLANK} os ${membros} ${da}`;
         break;
@@ -282,7 +320,14 @@ export default defineTemplate({
         : v.convocacao === 'omitir'
           ? ''
           : ', regularmente convocada nos termos dos estatutos';
-    const convFix = v.tipo === 'socios' && v.convocacao === 'convocada' ? ', regularmente convocados nos termos dos estatutos' : convocacao;
+    const convFix =
+      v.convocacao !== 'convocada'
+        ? convocacao
+        : v.tipo === 'socios'
+          ? ', regularmente convocados nos termos dos estatutos'
+          : v.tipo === 'conselhoAdministracao'
+            ? ', regularmente convocado nos termos dos estatutos'
+            : convocacao;
 
     const blocks: Block[] = [
       { type: 'title', text: `Acta n.º ${v.numero || BLANK}`, subtitle: `${TIPO_TITULO[v.tipo] ?? TIPO_TITULO.agOrdinaria} — ${firma}` },
@@ -294,15 +339,24 @@ export default defineTemplate({
       },
     ];
 
-    blocks.push({ type: 'paragraph', id: 'presencas', text: `Estiveram presentes os seguintes ${membros}:`, en: 'The following were present:', keepWithNext: true });
-    blocks.push({
-      type: 'table',
-      columns: [
-        { label: 'Nome', width: 3 },
-        { label: 'Qualidade / quota', width: 3 },
-      ],
-      rows: presentes.length ? presentes.map((p) => [p.nome, p.qualidade]) : [[BLANK, ''], [BLANK, '']],
-    });
+    if (v.listaPresencas) {
+      blocks.push({
+        type: 'paragraph',
+        id: 'presencas',
+        text: `Os ${membros} presentes e representados constam da lista de presenças, assinada por cada um deles e rubricada pela mesa, que fica anexa à presente acta e dela faz parte integrante.`,
+        en: 'Those present and represented are listed in the attendance list, signed by each of them and initialled by the chair, which is attached to and forms part of these minutes.',
+      });
+    } else {
+      blocks.push({ type: 'paragraph', id: 'presencas', text: `Estiveram presentes os seguintes ${membros}:`, en: 'The following were present:', keepWithNext: true });
+      blocks.push({
+        type: 'table',
+        columns: [
+          { label: 'Nome', width: 3 },
+          { label: 'Qualidade / quota', width: 3 },
+        ],
+        rows: presentes.length ? presentes.map((p) => [p.nome, p.qualidade]) : [[BLANK, ''], [BLANK, '']],
+      });
+    }
     if (ausentes.length) {
       blocks.push({
         type: 'paragraph',

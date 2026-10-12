@@ -108,7 +108,16 @@ export default defineTemplate({
       type: 'text',
       section: 'bem',
       width: 'half',
-      label: l('Título de registo de propriedade (livrete) n.º', 'Registration certificate no.'),
+      label: l('Título de registo de propriedade n.º', 'Certificate of title no.'),
+      help: l('Emitido pela Conservatória do Registo Automóvel em nome do vendedor.', 'Issued by the Motor Vehicle Registry in the seller’s name.'),
+      showIf: isVeiculo,
+    },
+    {
+      name: 'livrete',
+      type: 'text',
+      section: 'bem',
+      width: 'half',
+      label: l('Livrete n.º (opcional)', 'Vehicle logbook no. (optional)'),
       showIf: isVeiculo,
     },
     {
@@ -217,8 +226,8 @@ export default defineTemplate({
       w.push({
         level: 'info',
         message: l(
-          'Para o registo da viatura, a Conservatória pode exigir o reconhecimento notarial das assinaturas. Confirme antes de assinar.',
-          'For vehicle registration the Registry may require notarised signatures. Check before signing.',
+          'O registo da propriedade a favor do comprador faz-se na Conservatória do Registo Automóvel, com o requerimento próprio, o título de registo de propriedade, o livrete e os documentos de identificação e NUIT de ambas as partes. A Conservatória pode exigir o reconhecimento presencial das assinaturas no notário. Confirme os documentos antes de assinar.',
+          'Ownership is registered in the buyer’s name at the Motor Vehicle Registry, with its application form, the certificate of title, the logbook and both parties’ ID and NUIT. The Registry may require the signatures to be certified in person by a notary. Check the documents before signing.',
         ),
       });
     }
@@ -263,7 +272,8 @@ export default defineTemplate({
           { label: 'N.º de motor', value: blank(v.motor) },
           { label: 'Cor', value: v.cor || '' },
           { label: 'Ano de fabrico', value: v.ano || '' },
-          { label: 'Título de registo n.º', value: v.tituloRegisto || '' },
+          { label: 'Título de registo de propriedade n.º', value: v.tituloRegisto || '' },
+          { label: 'Livrete n.º', value: v.livrete || '' },
         ].filter((it) => it.value)
       : [
           { label: 'Tipo', value: TIPO_LABEL[v.bemTipo] || TIPO_LABEL.outro },
@@ -295,7 +305,7 @@ export default defineTemplate({
       {
         id: 'entrega',
         heading: 'Entrega',
-        text: `O bem é entregue ${aoC} em ${dateLong(v.dataEntrega)}, ${veiculo ? 'juntamente com as respectivas chaves, o título de registo de propriedade e os demais documentos da viatura' : 'juntamente com os documentos e acessórios que o acompanham'}. A partir dessa data correm por conta ${doC} os riscos do bem e as responsabilidades decorrentes da sua utilização, incluindo multas, taxas e outros encargos; os anteriores à entrega são da responsabilidade ${art(vend) === 'a' ? 'da' : 'do'} ${vend}.`,
+        text: `O bem é entregue ${aoC} em ${dateLong(v.dataEntrega)}, ${veiculo ? 'juntamente com as respectivas chaves, o livrete, o título de registo de propriedade e os demais documentos da viatura' : 'juntamente com os documentos e acessórios que o acompanham'}. A partir dessa data correm por conta ${doC} os riscos do bem e as responsabilidades decorrentes da sua utilização, incluindo multas, taxas e outros encargos; os anteriores à entrega são da responsabilidade ${art(vend) === 'a' ? 'da' : 'do'} ${vend}.`,
         en: 'The item is handed over to the Buyer on the delivery date with its keys, documents and accessories. From then on the Buyer bears the risks and liabilities arising from its use, including fines and charges; those before delivery remain with the Seller.',
       },
       {
@@ -317,8 +327,8 @@ export default defineTemplate({
       clauses.push({
         id: 'registo',
         heading: 'Registo',
-        text: `${OV} obriga-se a assinar o requerimento de registo e os demais documentos necessários ao registo da propriedade a favor ${doC} na Conservatória do Registo Automóvel, sendo os respectivos emolumentos e despesas ${custos}.`,
-        en: 'The Seller undertakes to sign the registration application and any other documents needed to register ownership in the Buyer’s name at the Motor Vehicle Registry; the fees are paid as agreed.',
+        text: `${OV} obriga-se a assinar o requerimento de registo e os demais documentos necessários ao registo da propriedade a favor ${doC} na Conservatória do Registo Automóvel, sendo os respectivos emolumentos e despesas ${custos}. ${OC} obriga-se a requerer esse registo com a maior brevidade.`,
+        en: 'The Seller undertakes to sign the registration application and any other documents needed to register ownership in the Buyer’s name at the Motor Vehicle Registry; the fees are paid as agreed. The Buyer undertakes to apply for registration as soon as possible.',
       });
     }
 

@@ -31,7 +31,8 @@ function workerIdent(v: Values): { pt: string; en: string } {
     pt.push(`NUIT ${v.trabalhadorNuit}`);
     en.push(`NUIT ${v.trabalhadorNuit}`);
   }
-  return { pt: pt.join(', '), en: en.join(', ') };
+  // Commas around the identification only when it follows the name ("que **X**, portador…, é").
+  return { pt: pt.length > 1 ? `${pt.join(', ')},` : pt[0], en: en.length > 1 ? `${en.join(', ')},` : en[0] };
 }
 
 function employerRef(ctx: TemplateContext): { pt: string; en: string } {
@@ -217,8 +218,8 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'identificacao',
-        text: `Declara-se, ${fin.pt}, que ${who.pt}, é ${g(ge, 'trabalhador', 'trabalhadora')} ${emp.pt} desde ${dateLong(v.trabalhadorDataAdmissao)}, onde exerce as funções de ${funcoesPt}.`,
-        en: `This is to certify, ${fin.en}, that ${who.en}, has been an employee ${emp.en} since ${dateEn(v.trabalhadorDataAdmissao)}, holding the position of ${funcoesEn}.`,
+        text: `${fin.pt.charAt(0).toUpperCase()}${fin.pt.slice(1)}, declara-se que ${who.pt} é ${g(ge, 'trabalhador', 'trabalhadora')} ${emp.pt} desde ${dateLong(v.trabalhadorDataAdmissao)}, onde exerce as funções de ${funcoesPt}.`,
+        en: `This is to certify, ${fin.en}, that ${who.en} has been an employee ${emp.en} since ${dateEn(v.trabalhadorDataAdmissao)}, holding the position of ${funcoesEn}.`,
       },
       {
         type: 'paragraph',
@@ -232,7 +233,7 @@ export default defineTemplate({
       blocks.push({
         type: 'paragraph',
         id: 'salario',
-        text: `Mais se declara que aufere o salário base mensal ilíquido de **${formatMoney(s)}**${extenso(s)}.`,
+        text: `Mais se declara que ${g(ge, 'o referido trabalhador', 'a referida trabalhadora')} aufere o salário base mensal ilíquido de **${formatMoney(s)}**${extenso(s)}.`,
         en: `${f ? 'She' : 'He'} earns a gross monthly base salary of ${formatMoney(s)}.`,
       });
     }
@@ -249,7 +250,7 @@ export default defineTemplate({
         type: 'paragraph',
         id: 'fecho',
         text: empresa
-          ? 'Por ser verdade e me ter sido solicitada, passa-se a presente declaração, que vai assinada e autenticada com o carimbo em uso nesta empresa.'
+          ? 'Por ser verdade e me ter sido solicitada, passa-se a presente declaração, que vai por mim assinada e autenticada com o carimbo em uso nesta empresa.'
           : 'Por ser verdade e me ter sido solicitada, passa-se a presente declaração, que vai por mim assinada.',
         en: empresa
           ? 'This declaration is issued at the request of the person concerned, signed and authenticated with the company stamp.'

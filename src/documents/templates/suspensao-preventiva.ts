@@ -97,6 +97,15 @@ export default defineTemplate({
           'The law provides for preventive suspension with the charge, not before it. Deliver the charge first.',
         ),
       });
+    } else if (v.dataNotaCulpa && v.dataInicio && diffDays(v.dataNotaCulpa, v.dataInicio) > 0) {
+      w.push({
+        level: 'info',
+        field: 'dataInicio',
+        message: l(
+          `A lei prevê a suspensão preventiva com a notificação da nota de culpa (${cite('suspensaoPreventiva')}). Confirme por que razão começa mais tarde.`,
+          'The law provides for preventive suspension when the charge is served. Check why it starts later.',
+        ),
+      });
     }
     if (v.dataInicio && v.data && diffDays(v.data, v.dataInicio) < 0) {
       w.push({ level: 'warning', field: 'dataInicio', message: l('A suspensão começa antes da data desta comunicação.', 'The suspension starts before the date of this notice.') });

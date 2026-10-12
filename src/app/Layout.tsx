@@ -1,22 +1,32 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useActiveProfile, useProfiles } from '@/lib/storage/hooks';
 import { profileDisplayName, type Profile } from '@/lib/storage/types';
 import { Icon } from '@/ui/Icon';
 import { Sheet, Toaster } from '@/ui/misc';
+import { OWNER, copyrightLine } from './owner';
 import { usePrefs } from './store';
+
+export function BrandMark({ size = 32 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden>
+      <rect width="64" height="64" rx="14" fill="var(--primary)" />
+      <path d="M19 12h19l9 9v31H19z" fill="#ffffff" />
+      <path d="M38 12v9h9z" fill="var(--sun)" />
+      <path d="M24 31h17M24 37h17M24 43h11" stroke="var(--primary)" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 function Brand() {
   const { t } = useTranslation();
   return (
     <Link to="/" className="flex items-center gap-2 no-underline text-text font-bold text-[1.05rem] sm:text-[1.15rem] min-h-12 shrink-0">
-      <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden>
-        <rect width="64" height="64" rx="5" fill="var(--primary)" />
-        <path d="M20 14h17l9 9v27H20z" fill="var(--bg)" />
-        <path d="M25 32h16M25 38h16M25 44h10" stroke="var(--primary)" strokeWidth="3" />
-      </svg>
-      <span>{t('app.name')}</span>
+      <BrandMark size={32} />
+      <span className="tracking-tight">
+        {t('app.name')}
+      </span>
     </Link>
   );
 }
@@ -26,6 +36,7 @@ const NAV = [
   { to: '/assistente', key: 'nav.guide' },
   { to: '/meus-documentos', key: 'nav.history' },
   { to: '/perfis', key: 'nav.profiles' },
+  { to: '/ferramentas', key: 'nav.tools' },
 ] as const;
 
 function profileLabel(p: Profile, t: (k: string) => string) {
@@ -132,6 +143,10 @@ export function Layout() {
   const { t } = useTranslation();
   const [menu, setMenu] = useState(false);
   const loc = useLocation();
+  // Any navigation (including from the profile picker inside the menu) closes the menu.
+  useEffect(() => {
+    setMenu(false);
+  }, [loc.pathname, loc.search]);
   const inEditor = /^\/documentos\/[^/]+/.test(loc.pathname);
 
   return (
@@ -142,10 +157,10 @@ export function Layout() {
       >
         {t('app.skip')}
       </a>
-      <header className="border-b-[6px] border-primary bg-bg">
+      <header className="bg-bg">
         <div className="container-page flex items-center gap-2 sm:gap-3 py-2">
           <Brand />
-          <nav aria-label="Principal" className="hidden lg:flex items-stretch gap-1 ml-4">
+          <nav aria-label="Principal" className="hidden xl:flex items-stretch gap-0.5 ml-4 whitespace-nowrap">
             {NAV.map((n) => (
               <NavItem key={n.to} to={n.to}>
                 {t(n.key)}
@@ -161,7 +176,7 @@ export function Layout() {
             </div>
             <button
               type="button"
-              className="lg:hidden min-h-12 px-2 sm:px-3 inline-flex items-center gap-1.5 font-semibold hover:bg-surface rounded-[var(--radius)] cursor-pointer"
+              className="xl:hidden min-h-12 px-2 sm:px-3 inline-flex items-center gap-1.5 font-semibold hover:bg-surface rounded-[var(--radius)] cursor-pointer"
               onClick={() => setMenu(true)}
               aria-haspopup="dialog"
             >
@@ -170,6 +185,7 @@ export function Layout() {
             </button>
           </div>
         </div>
+        <div className="moz-band" aria-hidden />
       </header>
 
       <Sheet open={menu} onOpenChange={setMenu} title={t('nav.menu')}>
@@ -177,7 +193,7 @@ export function Layout() {
           <ProfileSwitcher />
         </div>
         <nav aria-label="Menu" className="grid">
-          {[{ to: '/', key: 'nav.home' }, ...NAV, { to: '/pessoas', key: 'nav.people' }, { to: '/definicoes', key: 'nav.settings' }, { to: '/sobre', key: 'nav.about' }].map(
+          {[{ to: '/', key: 'nav.home' }, ...NAV, { to: '/pessoas', key: 'nav.people' }, { to: '/definicoes', key: 'nav.settings' }, { to: '/sobre', key: 'nav.about' }, { to: '/termos', key: 'nav.terms' }].map(
             (n) => (
               <NavLink
                 key={n.to}
@@ -205,17 +221,38 @@ export function Layout() {
       </main>
 
       {!inEditor ? (
-        <footer className="border-t-2 border-primary bg-surface mt-16">
-          <div className="container-page py-8 grid gap-4 sm:grid-cols-[1fr_auto]">
+        <footer className="bg-deep text-deep-text mt-20">
+          <div className="moz-band" aria-hidden />
+          <div className="container-page py-10 grid gap-8 md:grid-cols-[1.4fr_1fr_1fr]">
             <div>
-              <p className="font-semibold">{t('app.disclaimer')}</p>
-              <p className="text-muted mt-1">{t('app.privacy')}</p>
+              <div className="flex items-center gap-2.5 font-bold text-[1.1rem]">
+                <BrandMark size={28} />
+                {t('app.name')}
+              </div>
+              <p className="mt-3 max-w-md opacity-90">{t('app.disclaimer')}</p>
+              <p className="mt-1 max-w-md opacity-75 text-[0.95rem]">{t('app.privacy')}</p>
             </div>
-            <nav aria-label="Rodapé" className="flex flex-wrap gap-x-5 gap-y-2 items-start">
-              <Link to="/sobre">{t('nav.about')}</Link>
-              <Link to="/pessoas">{t('nav.people')}</Link>
-              <Link to="/definicoes">{t('nav.settings')}</Link>
+            <nav aria-label={t('nav.footerApp')} className="grid gap-2 content-start">
+              <p className="font-semibold opacity-70 text-[0.85rem] uppercase tracking-wider">{t('nav.footerApp')}</p>
+              <Link className="text-deep-text" to="/documentos">{t('nav.documents')}</Link>
+              <Link className="text-deep-text" to="/ferramentas">{t('nav.tools')}</Link>
+              <Link className="text-deep-text" to="/pessoas">{t('nav.people')}</Link>
+              <Link className="text-deep-text" to="/definicoes">{t('nav.settings')}</Link>
             </nav>
+            <nav aria-label={t('nav.footerLegal')} className="grid gap-2 content-start">
+              <p className="font-semibold opacity-70 text-[0.85rem] uppercase tracking-wider">{t('nav.footerLegal')}</p>
+              <Link className="text-deep-text" to="/sobre">{t('nav.about')}</Link>
+              <Link className="text-deep-text" to="/termos">{t('nav.terms')}</Link>
+              <Link className="text-deep-text" to="/privacidade">{t('nav.privacy')}</Link>
+            </nav>
+          </div>
+          <div className="border-t border-white/15">
+            <div className="container-page py-4 flex flex-wrap gap-x-6 gap-y-1 text-[0.9rem] opacity-80">
+              <span>
+                {copyrightLine()}. {t('app.rights')}
+              </span>
+              <span>{t('app.builtBy', { name: OWNER.name })}</span>
+            </div>
           </div>
         </footer>
       ) : (

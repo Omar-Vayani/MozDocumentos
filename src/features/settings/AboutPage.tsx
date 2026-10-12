@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { BrandMark } from '@/app/Layout';
+import { OWNER, copyrightLine } from '@/app/owner';
 import { useL10n } from '@/app/store';
 import { LAWS, LAW_IN_FORCE_SINCE } from '@/legal/mz-legal';
 import { formatDateLong } from '@/lib/format';
@@ -12,6 +14,17 @@ export function AboutPage() {
   return (
     <div className="container-page py-8 sm:py-10 max-w-3xl prose-plain">
       <PageHeader title={t('about.title')} />
+      <div className="card p-5 mb-8 flex items-center gap-4 bg-primary-soft border-primary/30">
+        <span className="shrink-0"><BrandMark size={44} /></span>
+        <div>
+          <p className="font-bold text-[1.1rem]">{OWNER.product}</p>
+          <p>{pt ? `Criado e mantido por ${OWNER.name}.` : `Created and maintained by ${OWNER.name}.`}</p>
+          <p className="text-muted text-[0.92rem]">
+            {copyrightLine()}. {pt ? 'Todos os direitos reservados.' : 'All rights reserved.'}{' '}
+            <Link to="/termos">{pt ? 'Termos de utilização' : 'Terms of use'}</Link> · <Link to="/privacidade">{pt ? 'Privacidade' : 'Privacy'}</Link>
+          </p>
+        </div>
+      </div>
       {pt ? (
         <>
           <SectionTitle>O que é este serviço</SectionTitle>

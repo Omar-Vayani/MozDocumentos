@@ -220,7 +220,7 @@ export default defineTemplate({
       {
         level: 'info',
         message: l(
-          'Muitas entidades (bancos, conservatórias, notários, serviços públicos) só aceitam a procuração com a assinatura reconhecida por notário. Confirme antes de a entregar.',
+          'Muitas entidades (bancos, conservatórias, notários, serviços públicos) só aceitam a procuração com a assinatura reconhecida por notário. No reconhecimento, o notário cobra os emolumentos e o imposto do selo devidos. Confirme antes de a entregar.',
           'Many institutions (banks, registries, public services) only accept a power of attorney with the signature certified by a notary. Check before submitting it.',
         ),
       },
@@ -270,6 +270,26 @@ export default defineTemplate({
     if (v.finalidade === 'especificos' && c.especificos.length === 0) {
       w.push({ level: 'error', field: 'poderesEspecificos', message: l('Indique os poderes que confere ao procurador.', 'List the powers you are giving the attorney.') });
     }
+    if (v.finalidade === 'compraVenda') {
+      w.push({
+        level: 'warning',
+        field: 'finalidade',
+        message: l(
+          `Para comprar ou vender um imóvel, a procuração tem de ter a forma exigida para a escritura: lavrada no notário, autenticada ou com reconhecimento presencial da assinatura (${cite('procuracaoForma')}).`,
+          'To buy or sell real estate, the power of attorney must have the form required for the deed: drawn up, authenticated or with the signature certified in person by a notary.',
+        ),
+      });
+    }
+    if (v.finalidade === 'viatura') {
+      w.push({
+        level: 'info',
+        field: 'finalidade',
+        message: l(
+          'Para o registo da venda, a Conservatória do Registo Automóvel pode exigir o reconhecimento presencial da assinatura do outorgante.',
+          'For the sale to be registered, the Motor Vehicle Registry may require the grantor’s signature to be certified in person.',
+        ),
+      });
+    }
     if (v.finalidade === 'viatura' && !v.viaturaMatricula) {
       w.push({ level: 'warning', field: 'viaturaMatricula', message: l('Indique a matrícula da viatura.', 'Enter the vehicle registration plate.') });
     }
@@ -287,6 +307,7 @@ export default defineTemplate({
     const fP = isF(v.procuradorGenero);
     const oOut = g(v.outorganteGenero, 'o Outorgante', 'a Outorgante');
     const doOut = g(v.outorganteGenero, 'do Outorgante', 'da Outorgante');
+    const peloOut = g(v.outorganteGenero, 'pelo Outorgante', 'pela Outorgante');
     const oProc = fP ? 'a Procuradora' : 'o Procurador';
     const entidade = String(v.entidade ?? '').trim();
     const junto = entidade ? `junto ${deEntidade(entidade)}` : 'junto de quaisquer serviços públicos, entidades privadas ou instituições';
@@ -380,13 +401,13 @@ export default defineTemplate({
         id: 'validade',
         text: v.validade
           ? `A presente procuração é válida até ${dateLong(v.validade)}, caducando nessa data, salvo revogação anterior.`
-          : `A presente procuração mantém-se válida até ser revogada por ${oOut}.`,
+          : `A presente procuração mantém-se válida até ser revogada ${peloOut}.`,
         en: v.validade ? `This power of attorney is valid until ${v.validade}, unless revoked earlier.` : 'This power of attorney remains valid until revoked by the grantor.',
       },
       {
         type: 'paragraph',
         id: 'fecho',
-        text: `Por ser verdade e para produzir os devidos efeitos, vai a presente procuração ser assinada por ${oOut}.`,
+        text: `Por ser verdade e para produzir os devidos efeitos, vai a presente procuração ser assinada ${peloOut}.`,
         en: 'In witness whereof, this power of attorney is signed by the grantor.',
         keepWithNext: true,
       },

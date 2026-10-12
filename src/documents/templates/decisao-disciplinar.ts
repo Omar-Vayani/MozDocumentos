@@ -257,7 +257,7 @@ export default defineTemplate({
         level: 'warning',
         field: 'data',
         message: l(
-          `Pelas nossas contas, a decisão devia ser comunicada até ${dateLong(c.limiteDecisao)}. É uma estimativa: soma o prazo de resposta (${c.prazoResposta} dias), o das diligências de prova (${c.diligenciasDias} dias), o do parecer sindical (${c.parecerSindicalDiasUteis} dias úteis, sem contar feriados) e o da decisão (${c.decisaoDias} dias). Confirme as datas reais do processo.`,
+          `Pelas nossas contas, a decisão devia ser comunicada até ${dateLong(c.limiteDecisao)}. É uma estimativa: soma o prazo de resposta (${c.prazoResposta} dias), o das diligências de prova (${c.diligenciasDias} dias), o do parecer sindical (${c.parecerSindicalDiasUteis} dias úteis, sem contar feriados) e o da decisão (${c.decisaoDias} dias). Se não houve diligências de prova, o prazo pode terminar ${c.diligenciasDias} dias antes. Confirme as datas reais do processo.`,
           `By our count the decision had to be sent by ${c.limiteDecisao}. This is an estimate adding the reply period (${c.prazoResposta} days), evidence (${c.diligenciasDias} days), union opinion (${c.parecerSindicalDiasUteis} working days, holidays not counted) and decision (${c.decisaoDias} days). Check the actual dates of the case.`,
         ),
       });
@@ -269,6 +269,16 @@ export default defineTemplate({
         message: l(
           `O prazo de resposta à nota de culpa só termina em ${dateLong(c.fimResposta)}. Não decida antes disso.`,
           `The reply period only ends on ${c.fimResposta}. Do not decide before then.`,
+        ),
+      });
+    }
+    if (!v.parecerSindical && c.fimParecer && v.data && diffDays(v.data, c.fimParecer) > 0) {
+      w.push({
+        level: 'warning',
+        field: 'data',
+        message: l(
+          `O comité sindical pode emitir parecer até cerca de ${dateLong(c.fimParecer)}. Não decida antes de terminar esse prazo, salvo se o parecer já tiver sido emitido.`,
+          `The union committee may give its opinion until about ${c.fimParecer}. Do not decide before then unless the opinion has been given.`,
         ),
       });
     }
@@ -380,8 +390,8 @@ export default defineTemplate({
     tramites.push(v.audicaoRealizada ? `Audição de V. Ex.ª realizada em ${dateLong(v.dataAudicao)}.` : 'Não houve lugar a audição.');
     tramites.push(
       v.parecerSindical
-        ? `Parecer do comité sindical emitido em ${dateLong(v.dataParecer)}, que foi tido em conta.`
-        : 'O comité sindical não emitiu parecer no prazo legal.',
+        ? `Processo remetido ao comité sindical, que emitiu parecer em ${dateLong(v.dataParecer)}, tido em conta na presente decisão.`
+        : 'Processo remetido ao comité sindical para parecer, que não foi emitido no prazo legal.',
     );
 
     // ---- Sanction wording
@@ -482,7 +492,15 @@ export default defineTemplate({
     blocks.push({
       type: 'paragraph',
       id: 'ponderacao',
-      text: `Os factos provados constituem infracção disciplinar, por violação culposa dos deveres de V. Ex.ª enquanto ${g(ge, 'trabalhador', 'trabalhadora')}. Na determinação da sanção foram ponderados a gravidade da infracção e as suas consequências, o grau de culpa, os antecedentes disciplinares de V. Ex.ª e ${v.respostaApresentada || v.parecerSindical ? 'os argumentos apresentados na defesa e no parecer sindical' : 'as demais circunstâncias apuradas'}.`,
+      text: `Os factos provados constituem infracção disciplinar, por violação culposa dos deveres de V. Ex.ª enquanto ${g(ge, 'trabalhador', 'trabalhadora')}. Na determinação da sanção foram ponderados a gravidade da infracção e as suas consequências, o grau de culpa, o comportamento profissional anterior de V. Ex.ª, as circunstâncias em que os factos ocorreram${
+        v.respostaApresentada && v.parecerSindical
+          ? ' e os argumentos apresentados na defesa e no parecer sindical'
+          : v.respostaApresentada
+            ? ' e os argumentos apresentados na defesa'
+            : v.parecerSindical
+              ? ' e o parecer sindical'
+              : ''
+      }.`,
       en: 'The proven facts are a disciplinary offence through culpable breach of your duties. The seriousness and consequences of the offence, the degree of fault, your disciplinary record and the arguments in the defence and union opinion were weighed.',
     });
     if (despedimento) {
@@ -506,8 +524,8 @@ export default defineTemplate({
       blocks.push({
         type: 'paragraph',
         id: 'execucao',
-        text: `A sanção é executada no prazo de ${c.execucaoDias} dias a contar da presente comunicação.`,
-        en: `The sanction is carried out within ${c.execucaoDias} days of this notice.`,
+        text: `A sanção é executada nos ${c.execucaoDias} dias subsequentes à presente decisão.`,
+        en: `The sanction is carried out within ${c.execucaoDias} days of this decision.`,
       });
     }
     if (despedimento) {
@@ -525,6 +543,14 @@ export default defineTemplate({
           en: 'You must return all company property, equipment, documents and access cards in your possession by the effective date.',
         });
       }
+    }
+    if (!IMPUGNAVEIS.includes(sancao)) {
+      blocks.push({
+        type: 'paragraph',
+        id: 'reclamacao',
+        text: 'V. Ex.ª pode reclamar desta decisão junto de quem a proferiu ou dela recorrer para o superior hierárquico.',
+        en: 'You may lodge a complaint about this decision with whoever took it or appeal to the next level of management.',
+      });
     }
     if (IMPUGNAVEIS.includes(sancao)) {
       blocks.push({

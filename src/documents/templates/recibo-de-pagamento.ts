@@ -2,7 +2,7 @@ import { parseISODate } from '@/lib/format';
 import { profileDisplayName } from '@/lib/storage/types';
 import { defineTemplate, type Block, type SignatureColumn, type Values, type Warning } from '../model';
 import {
-  blank, dateField, dateLong, DOC_TIPO_OPTIONS, employerRep, FORMA_PAGAMENTO_OPTIONS, formatMoney, l, localField, money,
+  blank, dateField, dateLong, DOC_TIPO_OPTIONS, employerRep, FORMA_PAGAMENTO_OPTIONS, formatMoney, g, GENERO_OPTIONS, l, localField, money,
   placeDate, refField, splitLines,
 } from './_shared';
 
@@ -22,7 +22,7 @@ function formaTexto(forma: unknown): { pt: string; en: string } {
     case 'M-Pesa':
     case 'e-Mola':
     case 'mKesh':
-      return { pt: `via ${forma}`, en: `via ${forma}` };
+      return { pt: `através de ${forma}`, en: `via ${forma}` };
     case 'transferência bancária':
       return { pt: 'por transferência bancária', en: 'by bank transfer' };
     default:
@@ -71,6 +71,16 @@ export default defineTemplate({
       width: 'half',
       label: l('NUIT de quem recebe', 'Recipient NUIT'),
       default: (c) => c.profile?.nuit || '',
+    },
+    {
+      name: 'recebedorGenero',
+      type: 'radio',
+      section: 'recebedor',
+      width: 'half',
+      label: l('Tratamento', 'Form of address'),
+      options: GENERO_OPTIONS,
+      default: (c) => (c.profile?.kind === 'pessoa' && c.profile.genero) || 'M',
+      showIf: (v) => v.recebedorTipo === 'pessoa',
     },
     {
       name: 'recebedorDocTipo',
@@ -191,7 +201,7 @@ export default defineTemplate({
 
     const recebedorPt = [
       `**${blank(v.recebedorNome)}**`,
-      !empresa && v.recebedorDocNumero ? `portador(a) do ${v.recebedorDocTipo || 'BI'} n.º ${v.recebedorDocNumero}` : '',
+      !empresa && v.recebedorDocNumero ? `${g(v.recebedorGenero, 'portador', 'portadora')} do ${v.recebedorDocTipo || 'BI'} n.º ${v.recebedorDocNumero}` : '',
       v.recebedorNuit ? `NUIT ${v.recebedorNuit}` : '',
     ].filter(Boolean).join(', ');
     const pagadorPt = `**${blank(v.pagadorNome)}**${v.pagadorNuit ? `, NUIT ${v.pagadorNuit}` : ''}`;
@@ -232,7 +242,7 @@ export default defineTemplate({
     const rep = employerRep(ctx);
     const sig: SignatureColumn = empresa
       ? { role: 'Pelo Recebedor', name: rep.nome || undefined, detail: rep.cargo || undefined, image: 'both' }
-      : { role: 'O Recebedor', name: v.recebedorNome || undefined, image: 'signature' };
+      : { role: g(v.recebedorGenero, 'O Recebedor', 'A Recebedora'), name: v.recebedorNome || undefined, image: 'signature' };
     blocks.push({ type: 'signatures', placeDate: placeDate(ctx, v.data), columns: [sig] });
 
     if (empresa && v.notaFactura) {

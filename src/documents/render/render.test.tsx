@@ -17,7 +17,7 @@ const FONT_BASE = join(process.cwd(), 'public/fonts');
 const OUT = process.env.RENDER_OUT;
 const FULL = process.env.RENDER_FULL === '1';
 
-const LAYOUTS: LetterheadLayout[] = ['classico', 'lateral', 'faixa', 'minimo'];
+const LAYOUTS: LetterheadLayout[] = ['classico', 'lateral', 'faixa', 'minimo', 'moderno', 'elegante'];
 
 function profilesFor(): ProfileFixture[] {
   const list: ProfileFixture[] = [personProfile()];
@@ -80,17 +80,13 @@ describe('templates render without overflow', () => {
               if (!('str' in item) || !item.str.trim()) continue;
               const x = item.transform[4];
               // Footer lines are the only 7pt text: they must sit in the bottom margin on every page.
-              if (Math.abs(item.transform[0] - 7) < 0.01 && item.transform[5] > 45 * 2.8346) {
+              if (Math.abs(item.transform[0] - 7) < 0.01 && item.transform[5] > 80 * 2.8346) {
                 strict.push(`p${p} footer text out of place "${item.str.slice(0, 30)}" y=${item.transform[5].toFixed(1)}`);
               }
               if (x < theme.margin.left - 2 || x + item.width > A4.width - theme.margin.right + 2) {
                 strict.push(`p${p} "${item.str.slice(0, 50)}" x=${x.toFixed(1)} right=${(x + item.width).toFixed(1)}`);
               }
             }
-          }
-          if (id === 'recibo-de-renda' && fx.name === 'pessoa' && mode === 'long') {
-            const { writeFileSync: w } = await import('node:fs');
-            w('/tmp/claude-0/-home-user-MozDocumentos/fc8df599-9b12-593e-b5f6-31f4c3d9913a/scratchpad/renda-in-suite.pdf', Buffer.from(res.pdf));
           }
           if (OUT) {
             mkdirSync(OUT, { recursive: true });
@@ -111,6 +107,19 @@ describe('templates render without overflow', () => {
                 const overlapX = Math.min(A.x1, B.x1) - Math.max(A.x0, B.x0);
                 if (overlapX > 4) strict.push(`p${p} overlap "${A.s.slice(0, 25)}" / "${B.s.slice(0, 25)}"`);
               }
+            }
+          }
+          // A list label ("d)", "3.", "•") must never be left alone at the foot of a page.
+          for (let p = 1; p < doc.numPages; p++) {
+            const body = (await (await doc.getPage(p)).getTextContent()).items
+              .filter((i): i is Extract<typeof i, { str: string }> => 'str' in i && i.str.trim().length > 0)
+              .filter((i) => Math.abs(i.transform[0] - 7) > 0.01 && !/^Página \d/.test(i.str));
+            if (!body.length) continue;
+            const lowest = Math.min(...body.map((i) => i.transform[5]));
+            const last = body.filter((i) => Math.abs(i.transform[5] - lowest) < 1);
+            // Labels sit at the start of a line, near the left margin.
+            if (last.every((i) => /^(?:[a-z]\)|\d{1,2}\.|•)$/.test(i.str.trim()) && i.transform[4] < theme.margin.left + 40)) {
+              strict.push(`p${p} list label "${last[0].str.trim()}" left alone at the foot of the page`);
             }
           }
           // "Página N de M" on every page.

@@ -247,11 +247,20 @@ export default defineTemplate({
           : `I, ${blank(v.trabalhadorNome)}, an employee of this company, inform you that the expected birth date is ${dateEn(v.dataParto)}.`,
       },
     ];
+    if (mat && !ocorrido) {
+      const c2 = cite('protecaoMaternidade');
+      blocks.push({
+        type: 'paragraph',
+        id: 'gravidez',
+        text: `Para os efeitos ${c2.startsWith('arts.') ? 'dos' : 'do'} ${c2}, informo igualmente V. Ex.ª, por escrito, do meu estado de gravidez.`,
+        en: 'For legal purposes, I also inform you in writing of my pregnancy.',
+      });
+    }
     if (c.alargada) {
       blocks.push({
         type: 'paragraph',
         id: 'mae',
-        text: `Em virtude ${v.situacaoMae === 'morte' ? 'da morte' : 'da incapacidade'} da mãe da criança, a licença de paternidade tem a duração alargada prevista na lei.`,
+        text: `Em virtude ${v.situacaoMae === 'morte' ? 'da morte' : 'da incapacidade'} da mãe da criança${anexos.length ? `, comprovada ${anexos.length === 1 ? 'pelo documento' : 'pelos documentos'} em anexo` : ''}, a licença de paternidade tem a duração alargada prevista na lei.`,
         en: `Because of the ${v.situacaoMae === 'morte' ? 'death' : 'incapacity'} of the child's mother, paternity leave has the extended duration provided by law.`,
       });
     }

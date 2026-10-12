@@ -1,7 +1,7 @@
 import { profileDisplayName, type Profile } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type SignatureColumn, type Values, type Warning } from '../model';
-import { BLANK, dateField, dateLong, employerRep, g, l, lineItems, localField, money, moneyText, splitLines } from './_shared';
+import { BLANK, cite, dateField, dateLong, employerRep, g, l, lineItems, localField, money, moneyText, splitLines } from './_shared';
 
 // ---------------------------------------------------------------- local helpers
 
@@ -215,6 +215,17 @@ export default defineTemplate({
     if (v.autorTipo !== 'empresa' && !v.reclamanteTelefone && !v.reclamanteEmail) {
       w.push({ level: 'info', field: 'reclamanteTelefone', message: l('Indique um telefone ou email para a resposta.', 'Give a phone or email for the reply.') });
     }
+    if (v.autorTipo !== 'empresa' && ['reparacao', 'substituicao'].includes(v.pedido)) {
+      const d = ctx.legal.value<{ denunciaMovelDias: number }>('consumidorDefeito').denunciaMovelDias;
+      w.push({
+        level: 'info',
+        field: 'factos',
+        message: l(
+          `Num bem com defeito, a reclamação deve ser feita no prazo de ${d} dias (${cite('consumidorDefeito')}). Indique nos factos quando detectou o defeito.`,
+          `For defective goods, the complaint must be made within ${d} days under the Consumer Protection Law. State in the facts when you found the defect.`,
+        ),
+      });
+    }
     if (!v.prazoResposta) {
       w.push({ level: 'info', field: 'prazoResposta', message: l('Pode indicar um prazo para resposta.', 'You may set a reply deadline.') });
     }
@@ -303,11 +314,18 @@ export default defineTemplate({
         pedido = `a reparação do produto, sem encargos para ${verb('mim', 'nós')}, ou, não sendo possível, a sua substituição`;
         pedidoEn = 'repair of the product at no cost or, if not possible, its replacement';
     }
+    // A consumer (individual) relies on the statutory remedies for defective goods.
+    const consumidor = !empresa && ['reparacao', 'substituicao'].includes(v.pedido);
+    const sanar = ctx.legal.value<{ sanarDias: number }>('consumidorDefeito').sanarDias;
     blocks.push({
       type: 'paragraph',
       id: 'pedido',
-      text: `Face ao exposto, ${verb('solicito', 'solicitamos')} ${pedido}.`,
-      en: `${nos ? 'We' : 'I'} therefore request ${pedidoEn}.`,
+      text: consumidor
+        ? `Face ao exposto, e ao abrigo do ${cite('consumidorDefeito')} (Lei de Defesa do Consumidor), solicito ${pedido}.${v.pedido === 'reparacao' ? ` Não sendo o defeito sanado no prazo de ${sanar} dias, reservo-me o direito de exigir a substituição do produto ou a restituição imediata da quantia paga.` : ''}`
+        : `Face ao exposto, ${verb('solicito', 'solicitamos')} ${pedido}.`,
+      en: consumidor
+        ? `I therefore request, under the Consumer Protection Law, ${pedidoEn}.${v.pedido === 'reparacao' ? ` If the defect is not fixed within ${sanar} days, I reserve the right to demand replacement or an immediate refund.` : ''}`
+        : `${nos ? 'We' : 'I'} therefore request ${pedidoEn}.`,
     });
     blocks.push({
       type: 'paragraph',

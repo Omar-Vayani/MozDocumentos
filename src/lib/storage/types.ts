@@ -1,6 +1,6 @@
 // Persisted entities. Everything is stored on the device (IndexedDB via Dexie).
 
-export type LetterheadLayout = 'classico' | 'lateral' | 'faixa' | 'minimo';
+export type LetterheadLayout = 'classico' | 'lateral' | 'faixa' | 'minimo' | 'moderno' | 'elegante';
 export type FontPreset = 'classico' | 'institucional' | 'moderno';
 export type MarginPreset = 'normal' | 'estreito';
 
@@ -20,6 +20,38 @@ export type Branding = {
   margins: MarginPreset;
   pageNumbers: boolean;
   textAlign: 'justify' | 'left';
+
+  // Added in v1.1 — optional so profiles saved earlier keep working.
+  /** Size multipliers for images (1 = default size). */
+  logoScale?: number;
+  signatureScale?: number;
+  stampScale?: number;
+  /** Short line under the name in the letterhead (e.g. activity or slogan). */
+  tagline?: string;
+  /** Free text line at the bottom of every page (e.g. registration details). */
+  footerNote?: string;
+  /** Body text size and line spacing. */
+  textSize?: TextSize;
+  lineSpacing?: LineSpacing;
+  /** Use the accent colour for titles and headings (otherwise near-black). */
+  accentHeadings?: boolean;
+  /** Thin frame around every page. */
+  pageBorder?: boolean;
+};
+
+export type TextSize = 'pequeno' | 'normal' | 'grande';
+export type LineSpacing = 'compacto' | 'normal' | 'amplo';
+
+/** Per-document presentation choices (stored with the document in values.__presentation). */
+export type Presentation = {
+  showSignature?: boolean;
+  showStamp?: boolean;
+  signatureScale?: number;
+  stampScale?: number;
+  textSize?: TextSize;
+  lineSpacing?: LineSpacing;
+  /** Large diagonal text on every page, e.g. CÓPIA, RASCUNHO, CONFIDENCIAL. */
+  watermarkText?: string;
 };
 
 export type Numbering = {
@@ -164,6 +196,13 @@ export const DEFAULT_BRANDING: Branding = {
   margins: 'normal',
   pageNumbers: true,
   textAlign: 'justify',
+  logoScale: 1,
+  signatureScale: 1,
+  stampScale: 1,
+  textSize: 'normal',
+  lineSpacing: 'normal',
+  accentHeadings: true,
+  pageBorder: false,
 };
 
 export function newProfile(kind: ProfileKind, id: string): Profile {
