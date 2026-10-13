@@ -224,6 +224,14 @@ export default defineTemplate({
       ],
       default: 'Pede deferimento.',
     },
+    {
+      name: 'espacoDespacho',
+      type: 'toggle',
+      section: 'documento',
+      label: l('Quadro para o despacho no topo da página', 'Box for the decision at the top of the page'),
+      help: l('Espaço onde a entidade escreve a decisão (despacho), como no modelo tradicional.', 'Space where the authority writes its decision, as on the traditional form.'),
+      default: true,
+    },
     localField('documento'),
     dateField('data'),
   ],
@@ -295,7 +303,9 @@ export default defineTemplate({
 
     const blocks: Block[] = [
       // Space at the top for the decision (despacho), as on the traditional form.
-      { type: 'spacer', size: 'large' },
+      v.espacoDespacho === false
+        ? { type: 'spacer', size: 'large' }
+        : { type: 'box', label: 'Despacho', lines: 3, width: 'half', align: 'left' },
       {
         type: 'recipient',
         salutation: tratamento,

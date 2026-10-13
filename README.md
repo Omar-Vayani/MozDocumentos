@@ -9,6 +9,9 @@ A client-side web app that generates professional business and personal document
 - **One renderer.** Documents are vector PDFs made with `@react-pdf/renderer` in a web worker. The on-screen preview is the same PDF drawn with pdf.js, so preview, download and print are identical A4.
 - **Not an official service.** It does not replace legal advice.
 - **Tools.** Net-salary, leave, notice and compensation calculators, and payslips for the whole team in one PDF.
+- **For every kind of user.** Employers and workers, individuals and families, lawyers (court filings with the OAM card number), companies (articles of association, resolutions, share transfers) and public bodies (ofícios, informações, despachos, circulares with the "República de Moçambique" header and emblem).
+- **Document families.** Letters, contracts, declarations, court filings, official correspondence, minutes, tables and receipts each follow one page convention (see `docs/TEMPLATES.md`).
+- **Official documents print plain.** Anything filed with a court, notary, registry or public body carries no app branding or decoration; other documents carry a small "Documentos MZ" line and a document ID, also stored in the PDF metadata.
 - **Customisable.** Six letterhead layouts, image sizes for logo, signature and stamp, text size and spacing, background text (CÓPIA, CONFIDENCIAL…), footer note and tagline.
 
 The full product specification is in [`SPEC.md`](SPEC.md).

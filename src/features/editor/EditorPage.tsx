@@ -8,6 +8,7 @@ import { usePrefs, useL10n } from '@/app/store';
 import { buildBlocks, buildContext, defaultValues, editableTexts } from '@/documents/context';
 import type { Values, Warning } from '@/documents/model';
 import { isTemplateAvailable, loadTemplate, type FullTemplate } from '@/documents/registry';
+import { isPublicBody } from '@/lib/storage/types';
 import type { RenderInput } from '@/documents/render/types';
 import { getMeta, type TemplateMeta } from '@/features/catalog/catalog';
 import { processById, isSharedKey } from '@/features/guide/processes';
@@ -505,6 +506,9 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
       </summary>
       <div className="px-4 pb-5 grid gap-6">
         <p className="text-muted">{t('editor.presentationIntro')}</p>
+        {template.official || isPublicBody(profile) ? (
+          <p className="text-[0.95rem] border-l-4 border-primary pl-3">{t(`editor.official.${template.official ?? 'estado'}`)}</p>
+        ) : null}
         {hasSignature || hasStamp ? (
           <div className="grid gap-6 sm:grid-cols-2">
             {hasSignature ? (
@@ -589,6 +593,14 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
             </FieldWrap>
           ) : null}
         </div>
+        {template.family === 'contrato' ? (
+          <Checkbox
+            label={t('editor.rubricas')}
+            hint={t('editor.rubricasHelp')}
+            checked={presentation.rubricas !== false}
+            onChange={(v) => setP({ rubricas: v })}
+          />
+        ) : null}
       </div>
     </details>
   );
