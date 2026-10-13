@@ -10,7 +10,7 @@ import { SectionTitle } from '@/ui/misc';
 import { CATALOG, getMeta, popularDocuments } from './catalog';
 import { CATEGORIES } from './categories';
 import { SectorPicker } from './SectorPicker';
-import { isForSectors, sectorById } from './sectors';
+import { isForSectors, orderedCategories, sectorById } from './sectors';
 
 /** A small paper sheet drawn in CSS: the subject of the app, not decoration. */
 function PaperIllustration() {
@@ -63,12 +63,15 @@ export function HomePage() {
   const sectors = useSectors(profile?.sector);
   const asked = usePrefs((s) => s.sectorsAsked);
   const setAsked = usePrefs((s) => s.setSectorsAsked);
-  const inMine = (catId: string) => sectors.some((id) => sectorById(id)?.categories.includes(catId as never));
-  const myCats = sectors.length ? CATEGORIES.filter((c) => inMine(c.id)) : CATEGORIES;
-  const otherCats = sectors.length ? CATEGORIES.filter((c) => !inMine(c.id)) : [];
+  const order = orderedCategories(sectors);
+  const myCats = sectors.length ? order.map((id) => CATEGORIES.find((c) => c.id === id)!).filter(Boolean) : CATEGORIES;
+  const otherCats = sectors.length ? CATEGORIES.filter((c) => !order.includes(c.id)) : [];
   const mine = (m: (typeof CATALOG)[number]) => isForSectors(m, sectors);
-  const quick = sectors.length ? popularDocuments(200).filter(mine).slice(0, 5).map((m) => m.id) : QUICK;
-  const popular = popularDocuments(200).filter(mine).slice(0, 6);
+  // Quick links: the areas' own documents first (by popularity), then the rest of the user's documents.
+  const primary = new Set(sectors.map((id) => sectorById(id)?.categories[0]));
+  const ranked = popularDocuments(400).filter(mine);
+  const quick = sectors.length ? [...ranked.filter((m) => primary.has(m.category)), ...ranked.filter((m) => !primary.has(m.category))].slice(0, 5).map((m) => m.id) : QUICK;
+  const popular = popularDocuments(400).filter(mine).slice(0, 6);
   const showProcesses = !sectors.length || sectors.some((id) => sectorById(id)?.categories.includes('disciplina'));
   const firstArea = sectors[0] ? sectorById(sectors[0]) : undefined;
 

@@ -58,6 +58,8 @@ export type Presentation = {
   rubricas?: boolean;
   /** Small formats (A5, A6, cards): print several per A4 sheet with cutting marks. */
   imposed?: boolean;
+  /** Set by the renderer (1–2): tighter spacing so a short document fits one page. */
+  fit?: number;
 };
 
 export type Numbering = {

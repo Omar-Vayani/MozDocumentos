@@ -25,9 +25,28 @@ export async function renderPdf(input: RenderInput): Promise<RenderResult> {
     const blob = await pdf(many).toBlob();
     return { pdf: await blob.arrayBuffer(), title: template.formalTitle };
   }
-  const doc = <DocumentPdf input={input} template={template} blocks={blocks} refNumber={ref} families={families} />;
-  const blob = await pdf(doc).toBlob();
-  return { pdf: await blob.arrayBuffer(), title: template.formalTitle };
+  const once = async (inp: RenderInput) => {
+    const doc = <DocumentPdf input={inp} template={template} blocks={blocks} refNumber={ref} families={families} />;
+    return (await pdf(doc).toBlob()).arrayBuffer();
+  };
+  const first = await once(input);
+  // Fit to one page: a short document that just spills onto a second page is
+  // re-rendered with slightly tighter spacing, kept only if it then fits.
+  const pres = (input.values.__presentation ?? {}) as { fit?: number };
+  const fittable = template.family !== 'contrato' && template.family !== 'peca' && !template.repeat && pres.fit == null;
+  if (fittable && countPages(first) === 2) {
+    for (const fit of [1, 2]) {
+      const tight = await once({ ...input, values: { ...input.values, __presentation: { ...pres, fit } } });
+      if (countPages(tight) === 1) return { pdf: tight, title: template.formalTitle };
+    }
+  }
+  return { pdf: first, title: template.formalTitle };
+}
+
+/** Number of pages in a PDF produced by react-pdf (counts page objects). */
+export function countPages(pdfBytes: ArrayBuffer): number {
+  const text = new TextDecoder('latin1').decode(new Uint8Array(pdfBytes));
+  return (text.match(/\/Type\s*\/Page(?![s\w])/g) ?? []).length;
 }
 
 /** Several documents (e.g. a month of payslips) in one PDF, each starting on a new page. */

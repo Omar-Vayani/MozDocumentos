@@ -11,7 +11,7 @@ import { CATALOG, OUT_OF_SCOPE } from './catalog';
 import { CATEGORIES, type CategoryId } from './categories';
 import { DocListItem } from './DocCard';
 import { popularDocuments, searchCatalog } from './search';
-import { isForSectors, sectorById } from './sectors';
+import { isForSectors, orderedCategories } from './sectors';
 
 export function CatalogPage() {
   const { t } = useTranslation();
@@ -36,9 +36,9 @@ export function CatalogPage() {
 
   const profile = useActiveProfile();
   const sectors = useSectors(profile?.sector);
-  const inMine = (catId: CategoryId) => sectors.some((id) => sectorById(id)?.categories.includes(catId));
-  const myCats = sectors.length ? CATEGORIES.filter((c) => inMine(c.id)) : CATEGORIES;
-  const otherCats = sectors.length ? CATEGORIES.filter((c) => !inMine(c.id)) : [];
+  const order = orderedCategories(sectors);
+  const myCats = sectors.length ? order.map((id) => CATEGORIES.find((c) => c.id === id)!).filter(Boolean) : CATEGORIES;
+  const otherCats = sectors.length ? CATEGORIES.filter((c) => !order.includes(c.id)) : [];
 
   const results = useMemo(() => {
     const base = q.trim() ? searchCatalog(q) : CATALOG;

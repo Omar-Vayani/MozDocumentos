@@ -120,3 +120,15 @@ export function isForSectors(m: TemplateMeta, sectors: SectorId[]): boolean {
     return id === 'particular' && m.audience === 'pessoa';
   });
 }
+
+/**
+ * The user's categories in display order: each area's own category first
+ * (Saúde, Advocacia…), then the shared ones (contracts, HR…), without repeats.
+ */
+export function orderedCategories(sectors: SectorId[]): CategoryId[] {
+  const list = sectors.map((id) => sectorById(id)).filter((s): s is Sector => Boolean(s));
+  const out: CategoryId[] = [];
+  for (const s of list) if (!out.includes(s.categories[0])) out.push(s.categories[0]);
+  for (const s of list) for (const c of s.categories) if (!out.includes(c)) out.push(c);
+  return out;
+}

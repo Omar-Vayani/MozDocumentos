@@ -72,6 +72,8 @@ export function makeTheme(
   const family = opts.family ?? 'carta';
   const peca = family === 'peca';
   const plain = Boolean(opts.plain);
+  // Fit-to-one-page levels (set by the renderer) tighten spacing and margins a little.
+  const fit = Math.max(0, Math.min(2, presentation.fit ?? 0));
   const format = opts.format ?? 'A4';
   const fmt = FORMATS[format];
   const compact = family === 'recibo' || family === 'mapa' || format === 'A5' || format === 'A5-paisagem';
@@ -84,9 +86,9 @@ export function makeTheme(
       ? { top: fmt.margin * MM, right: fmt.margin * MM, bottom: fmt.margin * MM, left: fmt.margin * MM }
       : b.margins === 'estreito' && !peca
         ? { top: 18 * MM, right: 15 * MM, bottom: 18 * MM, left: 18 * MM }
-        : { top: 25 * MM, right: 20 * MM, bottom: 25 * MM, left: peca ? 30 * MM : 25 * MM };
+        : { top: (25 - fit * 3) * MM, right: 20 * MM, bottom: (25 - fit * 3) * MM, left: peca ? 30 * MM : 25 * MM };
   const page = { width: fmt.w * MM, height: fmt.h * MM };
-  const lineHeight = spacing === 'compacto' ? 1.3 : spacing === 'amplo' ? 1.55 : 1.42;
+  const lineHeight = (spacing === 'compacto' ? 1.3 : spacing === 'amplo' ? 1.55 : 1.42) - fit * 0.05;
   const serif = b.font === 'classico';
   return {
     font: families?.[b.font] ?? families?.classico ?? FONT_FAMILIES[b.font]?.family ?? FONT_FAMILIES.classico.family,
@@ -103,7 +105,7 @@ export function makeTheme(
     align: b.textAlign === 'left' && !peca ? 'left' : 'justify',
     margin,
     contentWidth: page.width - margin.left - margin.right,
-    gap: spacing === 'compacto' || compact ? 5 : spacing === 'amplo' ? 9 : 7,
+    gap: (spacing === 'compacto' || compact ? 5 : spacing === 'amplo' ? 9 : 7) - fit * 1.5,
     // Official documents and court filings are printed in black.
     heading: b.accentHeadings === false || plain || peca || family === 'oficio' ? '#111111' : accent,
     wash: tint(accent, 0.955),
