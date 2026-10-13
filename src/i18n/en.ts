@@ -60,7 +60,7 @@ const en: Messages = {
     toolsText: 'Work out net pay, leave, notice periods and severance.',
     title: 'Professional documents, ready in minutes',
     intro:
-      'Contracts, payslips, letters, declarations and disciplinary procedures, following Mozambican law. Everything happens on your device — no account, no data sent anywhere.',
+      'Contracts, payslips, court filings, official letters, articles of association and declarations — for businesses, individuals, lawyers and public bodies, following Mozambican law. Everything happens on your device — no account, no data sent anywhere.',
     searchLabel: 'What document do you need?',
     searchPlaceholder: 'E.g. payslip, dismiss, power of attorney',
     notSure: 'I don’t know which one I need',

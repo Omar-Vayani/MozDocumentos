@@ -127,11 +127,13 @@ export type Block =
   | (BlockBase & { type: 'subject'; text: string; label?: string })
   | (BlockBase & { type: 'salutation'; text: string })
   | ParagraphBlock
-  | (BlockBase & { type: 'heading'; text: string })
+  | (BlockBase & { type: 'heading'; text: string; align?: 'left' | 'center' })
   | (BlockBase & {
       type: 'numberedClauses';
       style: 'clausula' | 'numeric' | 'artigo';
       items: ClauseItem[];
+      /** First number (default 1): lets articles continue across chapters. */
+      start?: number;
     })
   | (BlockBase & {
       type: 'table';

@@ -58,7 +58,7 @@ const pt = {
     toolsText: 'Calcule salário líquido, férias, aviso prévio e indemnizações.',
     title: 'Documentos profissionais, prontos em minutos',
     intro:
-      'Contratos, recibos de salário, declarações, cartas e processos disciplinares, de acordo com a lei moçambicana. Tudo é feito no seu dispositivo — sem conta e sem enviar dados.',
+      'Contratos, recibos de salário, peças processuais, ofícios, estatutos e declarações — para empresas, particulares, advogados e entidades públicas, de acordo com a lei moçambicana. Tudo é feito no seu dispositivo — sem conta e sem enviar dados.',
     searchLabel: 'Que documento precisa?',
     searchPlaceholder: 'Ex.: recibo de salário, despedir, procuração',
     notSure: 'Não sei qual preciso',

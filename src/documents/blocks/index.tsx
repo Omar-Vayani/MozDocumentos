@@ -115,7 +115,8 @@ function signatureArea(col: SignatureColumn, env: BlockEnv): number {
   const { theme } = env;
   const showSig = (col.image === 'signature' || col.image === 'both') && env.signature;
   const showStamp = (col.image === 'stamp' || col.image === 'both') && env.stamp;
-  return Math.max(46, showSig ? 40 * theme.signatureScale + 6 : 0, showStamp ? 58 * theme.stampScale * 0.75 : 0);
+  // About 13 mm to sign by hand; more when a scanned signature or stamp is printed.
+  return Math.max(38, showSig ? 40 * theme.signatureScale + 6 : 0, showStamp ? 58 * theme.stampScale * 0.75 : 0);
 }
 
 function SignatureColumnView({
@@ -140,7 +141,11 @@ function SignatureColumnView({
   return (
     <View style={{ width, paddingHorizontal: 8, alignItems: 'center' }}>
       <View style={{ minHeight: roleHeight, marginBottom: 4, width: '100%', justifyContent: 'flex-end' }}>
-        <Text style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center' }}>{col.role}</Text>
+        {col.role.split(/\r?\n/).map((r, i) => (
+          <Text key={i} style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center' }}>
+            {r}
+          </Text>
+        ))}
       </View>
       <View style={{ height: area, width: '100%', position: 'relative' }}>
         {showStamp && env.stamp ? (
@@ -177,9 +182,13 @@ function SignatureColumnView({
       {col.name ? (
         <Text style={{ fontSize: theme.bodySize - 0.5, fontWeight: 700, textAlign: 'center' }}>{col.name}</Text>
       ) : null}
-      {col.detail ? (
-        <Text style={{ fontSize: theme.bodySize - 1.5, color: theme.muted, textAlign: 'center' }}>{col.detail}</Text>
-      ) : null}
+      {col.detail
+        ? col.detail.split(/\r?\n/).map((d, i) => (
+            <Text key={i} style={{ fontSize: theme.bodySize - 1.5, color: theme.muted, textAlign: 'center' }}>
+              {d}
+            </Text>
+          ))
+        : null}
     </View>
   );
 }
@@ -206,9 +215,13 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
             <View style={{ width: 34, height: 1.6, backgroundColor: theme.accent, marginTop: 5 }} />
           )}
           {block.subtitle ? (
-            <Text style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center', color: theme.muted, marginTop: 5 }}>
-              {block.subtitle}
-            </Text>
+            <View style={{ marginTop: 5 }}>
+              {block.subtitle.split(/\r?\n/).map((st, i) => (
+                <Text key={i} style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center', color: theme.muted }}>
+                  {st}
+                </Text>
+              ))}
+            </View>
           ) : null}
         </View>
       );
@@ -230,7 +243,8 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
         >
           {block.ref ? (
             <Text style={{ fontSize: theme.bodySize - 0.5, marginRight: 12 }}>
-              <Text style={{ color: theme.muted }}>N/Ref.ª </Text>
+              {/* "Ofício n.º 12/…" already names itself: no "N/Ref.ª" label. */}
+              {/\bn\.º/.test(block.ref) ? null : <Text style={{ color: theme.muted }}>N/Ref.ª </Text>}
               <Text style={{ fontWeight: 700 }}>{block.ref}</Text>
             </Text>
           ) : null}
@@ -248,7 +262,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           {block.salutation ? <Text style={{ fontSize: theme.bodySize }}>{block.salutation}</Text> : null}
           {block.lines.filter(Boolean).map((l, i) => (
             <Text key={i} style={{ fontSize: theme.bodySize, lineHeight: 1.3, fontWeight: i === 0 ? 700 : 400 }}>
-              {oneLine(l)}
+              {rich(oneLine(l))}
             </Text>
           ))}
         </View>
@@ -290,7 +304,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       return (
         <Text
           key={key}
-          style={{ fontSize: theme.bodySize, fontWeight: 700, marginTop: 6, marginBottom: 4, color: theme.heading }}
+          style={{ fontSize: theme.bodySize, fontWeight: 700, marginTop: 6, marginBottom: 4, color: theme.heading, textAlign: block.align ?? 'left' }}
           minPresenceAhead={50}
         >
           {block.text}
@@ -310,10 +324,10 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
             const ahead = theme.bodySize * theme.lineHeight * 3;
             const heading =
               block.style === 'numeric' ? (
-                <Text style={{ ...para(env), fontWeight: 700, marginBottom: 2, color: theme.heading }}>{clauseHeading('numeric', i, item)}</Text>
+                <Text style={{ ...para(env), fontWeight: 700, marginBottom: 2, color: theme.heading }}>{clauseHeading('numeric', i + (block.start ?? 1) - 1, item)}</Text>
               ) : (
                 <View style={{ marginBottom: 3 }}>
-                  <Text style={{ fontSize: theme.bodySize, fontWeight: 700, textAlign: 'center', color: theme.heading }}>{clauseHeading(block.style, i, item)}</Text>
+                  <Text style={{ fontSize: theme.bodySize, fontWeight: 700, textAlign: 'center', color: theme.heading }}>{clauseHeading(block.style, i + (block.start ?? 1) - 1, item)}</Text>
                   {item.heading ? <Text style={{ fontSize: theme.bodySize, textAlign: 'center' }}>({item.heading})</Text> : null}
                 </View>
               );
@@ -503,13 +517,13 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       const area = Math.max(...block.columns.map((c) => signatureArea(c, env)));
       const frac = n === 3 ? 0.31 : 0.47;
       const roleHeight =
-        Math.max(...block.columns.map((c) => textLines(theme, c.role, frac, theme.bodySize - 0.5))) * (theme.bodySize - 0.5) * 1.2;
+        Math.max(...block.columns.map((c) => textLines(theme, c.role, frac, theme.bodySize - 0.5))) * (theme.bodySize - 0.5) * 1.3;
       return (
-        <View key={key} wrap={false} style={{ marginTop: theme.compact ? 4 : 10, marginBottom: theme.gap + 4 }}>
+        <View key={key} wrap={false} style={{ marginTop: theme.compact ? 4 : 10, marginBottom: theme.gap }}>
           {block.placeDate ? (
             <Text style={{ fontSize: theme.bodySize, marginBottom: 14 }}>{block.placeDate}</Text>
           ) : null}
-          <View style={{ flexDirection: 'row', justifyContent: n === 1 ? 'flex-start' : 'space-between' }}>
+          <View style={{ flexDirection: 'row', justifyContent: n === 1 ? (theme.family === 'oficio' ? 'center' : 'flex-start') : 'space-between' }}>
             {block.columns.map((c, i) => (
               <SignatureColumnView key={i} col={c} env={env} width={width} area={area} roleHeight={roleHeight} />
             ))}
@@ -770,6 +784,8 @@ export function estimateHeight(b: Block, theme: Theme): number {
   }
 }
 
+const isHalfBox = (b: Block | undefined): b is Extract<Block, { type: 'box' }> => b?.type === 'box' && b.width === 'half' && !b.keepWithNext;
+
 /**
  * Renders blocks, grouping each run of `keepWithNext` blocks with the block
  * that follows into an unbreakable unit (e.g. closing paragraph + signatures).
@@ -778,9 +794,28 @@ export function estimateHeight(b: Block, theme: Theme): number {
  */
 export function renderBlocks(blocks: Block[], env: BlockEnv): ReactNode[] {
   const out: ReactNode[] = [];
+  let loneHalfBox = -1; // index in `out` of a half-width box waiting for a partner
   let group: Block[] = [];
   const pageBody = 297 * 2.8346 - env.theme.margin.top - env.theme.margin.bottom - 60;
   blocks.forEach((b, i) => {
+    // Two half-width boxes in a row sit side by side (e.g. Despacho | Parecer).
+    if (isHalfBox(b) && group.length === 0) {
+      if (loneHalfBox >= 0 && loneHalfBox === out.length - 1) {
+        out.pop();
+        const prev = blocks[i - 1] as Extract<Block, { type: 'box' }>;
+        out.push(
+          <View key={`pair${i}`} wrap={false} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            {renderBlock({ ...prev, align: 'left' }, i - 1, env)}
+            {renderBlock({ ...b, align: 'left' }, i, env)}
+          </View>,
+        );
+        loneHalfBox = -1;
+      } else {
+        out.push(renderBlock(b, i, env));
+        loneHalfBox = out.length - 1;
+      }
+      return;
+    }
     group.push(b);
     const next = blocks[i + 1];
     const autoKeep = b.type === 'heading' || b.type === 'subject';

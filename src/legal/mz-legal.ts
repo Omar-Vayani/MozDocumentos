@@ -625,7 +625,7 @@ const CORE_LEGAL = {
     value: { avisoDias: 30, ate7SM: 30, ate18SM: 15, mais18SM: 5, limite1: 7, limite2: 18 },
     sourceUrl: LEI,
     lastVerified: V,
-    confidence: 'confirm',
+    confidence: 'verified',
   },
   indemnizacaoDespedimentoIlicito: {
     title: { pt: 'Despedimento ilícito', en: 'Unlawful dismissal' },
@@ -689,7 +689,7 @@ const CORE_LEGAL = {
     law: 'codigoCivil',
     article: 'art. 262.º',
     lastVerified: V,
-    confidence: 'confirm',
+    confidence: 'verified',
   },
   codigoCivilArrendamento: {
     title: { pt: 'Arrendamento', en: 'Lease' },
@@ -700,7 +700,7 @@ const CORE_LEGAL = {
     law: 'codigoCivil',
     article: 'arts. 1022.º e seguintes',
     lastVerified: V,
-    confidence: 'confirm',
+    confidence: 'verified',
     note: {
       pt: 'O Código Civil aplica-se a par da legislação especial (Lei n.º 8/79, de 3 de Julho; Decreto n.º 43 525, de 7 de Março de 1961, cuja vigência a jurisprudência discute). Desde o Decreto n.º 24/2006, de 30 de Maio, o arrendamento para comércio reduzido a escrito é válido sem escritura pública (Tribunal Supremo, Proc. 103/11). A denúncia pelo senhorio é limitada a casos previstos na lei.',
       en: 'The Civil Code applies alongside special legislation (Law 8/79; Decree 43 525 of 1961, whose force is debated in case law). Since Decree 24/2006 a written commercial lease is valid without a notarial deed (Supreme Court, case 103/11). Landlord termination is limited to cases set by law.',
@@ -789,7 +789,7 @@ const CORE_LEGAL = {
     law: 'codigoCivil',
     article: 'arts. 804.º e 805.º',
     lastVerified: V,
-    confidence: 'confirm',
+    confidence: 'verified',
   },
   codigoCivilCompraVenda: {
     title: { pt: 'Compra e venda', en: 'Sale' },
@@ -800,7 +800,7 @@ const CORE_LEGAL = {
     law: 'codigoCivil',
     article: 'art. 874.º',
     lastVerified: V,
-    confidence: 'confirm',
+    confidence: 'verified',
   },
   codigoCivilReconhecimentoDivida: {
     title: { pt: 'Reconhecimento de dívida', en: 'Acknowledgement of debt' },
@@ -811,7 +811,7 @@ const CORE_LEGAL = {
     law: 'codigoCivil',
     article: 'art. 458.º',
     lastVerified: V,
-    confidence: 'confirm',
+    confidence: 'verified',
     note: {
       pt: 'Texto original do Código Civil de 1966. Para servir de título executivo, convém reconhecer a assinatura do devedor no notário.',
       en: 'Original 1966 Civil Code text. To be enforceable without a court judgment, have the debtor’s signature certified by a notary.',
@@ -826,7 +826,7 @@ const CORE_LEGAL = {
     law: 'codigoCivil',
     article: 'art. 781.º',
     lastVerified: V,
-    confidence: 'confirm',
+    confidence: 'verified',
   },
   procuracaoForma: {
     title: { pt: 'Forma da procuração', en: 'Form of a power of attorney' },
@@ -1000,7 +1000,7 @@ const CORE_LEGAL = {
     value: 8, // dias
     sourceUrl: 'https://clr.africanchildforum.org/Legislation%20Per%20Country/Mozambique/mozambique_civilcode_1966_pr.pdf',
     lastVerified: V,
-    confidence: 'confirm',
+    confidence: 'verified',
   },
 } satisfies Record<string, LegalEntry>;
 

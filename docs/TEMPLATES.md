@@ -171,13 +171,13 @@ breaks a legal limit. `personName(v)` and `documentDate(v)` name the PDF file.
 | type | use |
 |---|---|
 | `title` | Centred document title (contracts, declarations, receipts). `{ text, subtitle? }` |
-| `reference` | `N/Ref.ª` + "Maputo, 12 de Outubro de 2026". `{ ref?, place?, date? }` |
+| `reference` | `N/Ref.ª` + "Maputo, 12 de Outubro de 2026". `{ ref?, place?, date? }` — a ref containing "n.º" ("Ofício n.º 12/…") prints without the N/Ref.ª label |
 | `recipient` | Addressee block on the right. `{ salutation?, lines[], label? }` |
 | `subject` | **Assunto:** line. `{ text }` |
 | `salutation` | "Exmo. Senhor," |
 | `paragraph` | `{ id, text, en?, align?, size?: 'small', keepWithNext? }` — supports `**bold**` |
-| `heading` | Bold section heading inside a document |
-| `numberedClauses` | Contract clauses. `style: 'clausula'` → "Cláusula Primeira (Objecto)"; `'numeric'` → "1. Objecto". Items `{ id, heading?, text, en?, items?: string[] }` (sub-items print as a), b)…) |
+| `heading` | Bold section heading inside a document; `align: 'center'` for chapter titles ("CAPÍTULO I — …") |
+| `numberedClauses` | Contract clauses. `style: 'clausula'` → "Cláusula Primeira (Objecto)"; `'numeric'` → "1. Objecto". Items `{ id, heading?, text, en?, items?: string[] }` (sub-items print as a), b)…); `start` continues numbering after a chapter `heading` |
 | `table` | `{ columns: [{label, width?, align?}], rows: string[][], totals?, caption?, note? }` — header row repeats on page breaks |
 | `keyValue` | Label/value list, `columns: 1 | 2`, optional `title` |
 | `amount` | Money figure in a box + extenso `(quinze mil meticais)`; `value: null` prints a blank to fill in |
@@ -190,7 +190,7 @@ breaks a legal limit. `personName(v)` and `documentDate(v)` name the PDF file.
 | `spacer`, `pageBreakHint` | spacing / force a new page |
 | `courtHeader` | Court filing heading: `{ addressee, processo?, extra? }` — "Processo n.º …" then the judge addressed ("Exmo. Senhor Juiz de Direito da … Secção do Tribunal Judicial …"), followed by the blank space for the judge's order |
 | `articulado` | Numbered articles of a filing: `{ sections: [{ heading?, items: string[] }], start? }` → "1.º", "2.º"… numbering continues across sections ("I — DOS FACTOS", "II — DO DIREITO") |
-| `box` | Ruled box: `{ label, text?, lines?, dashed?, width?: 'full'|'half', align? }` — "Despacho" on an informação or requerimento, "Reservado ao notário", "Para uso dos serviços" |
+| `box` | Ruled box: `{ label, text?, lines?, dashed?, width?: 'full'|'half', align? }` — "Despacho" on an informação or requerimento, "Reservado ao notário", "Para uso dos serviços". Two consecutive `width: 'half'` boxes sit side by side |
 | `tags` | Small labels right-aligned: `{ items: ['URGENTE', 'CONFIDENCIAL'] }` |
 
 Typical letter: `reference` → `recipient` → `subject` → `salutation` →

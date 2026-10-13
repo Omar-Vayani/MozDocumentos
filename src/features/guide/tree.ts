@@ -29,6 +29,92 @@ export const GUIDE: Record<string, GuideNode> = {
     options: [
       { id: 'empresa', label: l('A minha empresa', 'My business'), hint: l('Trabalhadores, clientes, assuntos da empresa.', 'Employees, clients, company matters.'), next: 'empresa' },
       { id: 'pessoa', label: l('Para mim', 'For me'), hint: l('Assuntos pessoais, ou sou trabalhador.', 'Personal matters, or I am an employee.'), next: 'pessoa' },
+      { id: 'advogado', label: l('Sou advogado', "I'm a lawyer"), hint: l('Peças processuais, procurações, honorários, pareceres.', 'Court filings, powers of attorney, fees, opinions.'), next: 'advogado' },
+      { id: 'estado', label: l('Uma entidade pública', 'A public body'), hint: l('Ofícios, informações, despachos, circulares, guias de marcha.', 'Official letters, briefings, orders, circulars, travel orders.'), next: 'estado' },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Advogado
+  advogado: {
+    id: 'advogado',
+    question: l('Para que fase do assunto?', 'For which stage of the matter?'),
+    options: [
+      { id: 'tribunal', label: l('Peças para o tribunal', 'Court filings'), next: 'advogado-tribunal' },
+      { id: 'cliente', label: l('Relação com o cliente', 'Client relationship'), hint: l('Procuração, honorários, parecer.', 'Power of attorney, fees, opinion.'), next: 'advogado-cliente' },
+      { id: 'extrajudicial', label: l('Antes ou fora do tribunal', 'Before or outside court'), hint: l('Interpelação, acordo, queixa.', 'Demand letter, settlement, complaint.'), next: 'advogado-extrajudicial' },
+    ],
+  },
+  'advogado-tribunal': {
+    id: 'advogado-tribunal',
+    question: l('Que peça precisa?', 'Which filing do you need?'),
+    options: [
+      { id: 'peticao', label: l('Iniciar uma acção (petição inicial)', 'Start a claim (statement of claim)'), result: { doc: 'peticao-inicial', why: l('Articulado com os factos, o direito, o pedido e o valor da acção.', 'Sets out the facts, the law, the request and the value of the claim.'), also: ['procuracao-forense'] } },
+      { id: 'contestacao', label: l('Defender o réu (contestação)', 'Defend the claim (defence)'), result: { doc: 'contestacao', why: l('Resposta à petição: excepções, impugnação e, se for o caso, reconvenção.', 'Reply to the claim: objections, denial and any counterclaim.') } },
+      { id: 'requerimento', label: l('Requerer algo num processo pendente', 'Apply in a pending case'), result: { doc: 'requerimento-ao-tribunal', why: l('Junção de documentos, prorrogação de prazo, consulta, certidão, homologação.', 'Filing documents, extension, inspection, certificate, approval of a settlement.') } },
+      { id: 'substabelecimento', label: l('Passar poderes a outro advogado', 'Delegate to another lawyer'), result: { doc: 'substabelecimento', why: l('Transfere, com ou sem reserva, os poderes da procuração forense.', 'Transfers the court mandate, with or without reservation.') } },
+    ],
+  },
+  'advogado-cliente': {
+    id: 'advogado-cliente',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'procuracao', label: l('Procuração forense', 'Court power of attorney'), result: { doc: 'procuracao-forense', why: l('O cliente confere os poderes forenses gerais e, se for o caso, especiais.', 'The client grants general and any special court powers.') } },
+      { id: 'contrato', label: l('Acordar os honorários', 'Agree the fees'), result: { doc: 'contrato-de-honorarios', why: l('Define o objecto do mandato, os honorários, a provisão e as despesas.', 'Sets the scope, fees, retainer and expenses.') } },
+      { id: 'nota', label: l('Cobrar honorários e despesas', 'Bill fees and expenses'), result: { doc: 'nota-de-honorarios', why: l('Discrimina serviços, despesas, provisões e saldo a pagar.', 'Itemises services, expenses, retainers and balance due.') } },
+      { id: 'parecer', label: l('Dar um parecer jurídico', 'Give a legal opinion'), result: { doc: 'parecer-juridico', why: l('Consulta, factos, análise e conclusões numeradas.', 'Question, facts, analysis and numbered conclusions.') } },
+    ],
+  },
+  'advogado-extrajudicial': {
+    id: 'advogado-extrajudicial',
+    question: l('Qual é a situação?', 'What is the situation?'),
+    options: [
+      { id: 'interpelacao', label: l('Exigir o cumprimento ao devedor', 'Demand payment or performance'), result: { doc: 'interpelacao-extrajudicial', why: l('Constitui o devedor em mora e dá um prazo antes da acção judicial.', 'Puts the debtor in default and gives a deadline before suing.') } },
+      { id: 'transaccao', label: l('Fechar um acordo entre as partes', 'Settle between the parties'), result: { doc: 'acordo-de-transaccao', why: l('Concessões recíprocas que põem fim ao litígio, com ou sem processo pendente.', 'Mutual concessions ending the dispute, with or without a pending case.') } },
+      { id: 'queixa', label: l('Apresentar uma queixa-crime', 'File a criminal complaint'), result: { doc: 'queixa-crime', why: l('Participação dos factos ao Ministério Público, dentro do prazo do direito de queixa.', 'Reports the facts to the Public Prosecutor within the complaint deadline.') } },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Estado
+  estado: {
+    id: 'estado',
+    question: l('Que tipo de documento?', 'What kind of document?'),
+    hint: l('Use um perfil de entidade pública para o cabeçalho da República.', 'Use a public body profile for the República header.'),
+    options: [
+      { id: 'correspondencia', label: l('Correspondência e decisões', 'Correspondence and decisions'), next: 'estado-correspondencia' },
+      { id: 'reunioes', label: l('Reuniões e avisos públicos', 'Meetings and public notices'), next: 'estado-reunioes' },
+      { id: 'pessoal', label: l('Pessoal e serviço', 'Staff and service'), next: 'estado-pessoal' },
+    ],
+  },
+  'estado-correspondencia': {
+    id: 'estado-correspondencia',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'oficio', label: l('Escrever a outra entidade (ofício)', 'Write to another body (ofício)'), result: { doc: 'oficio', why: l('Correspondência oficial externa, numerada e com classificação.', 'Numbered external official correspondence.') } },
+      { id: 'nota', label: l('Comunicar dentro da instituição', 'Communicate internally'), result: { doc: 'nota-interna', why: l('Nota interna ou memorando entre serviços.', 'Internal note or memorandum between departments.') } },
+      { id: 'informacao', label: l('Propor uma decisão ao superior', 'Propose a decision to a superior'), result: { doc: 'informacao-proposta', why: l('Informação com espaço para o despacho e os pareceres.', 'Briefing with space for the decision and opinions.'), also: ['despacho'] } },
+      { id: 'despacho', label: l('Decidir (despacho)', 'Decide (despacho)'), result: { doc: 'despacho', why: l('Decisão do dirigente, com fundamento e determinação.', 'A decision by the head of the body, with grounds.') } },
+      { id: 'circular', label: l('Instruções para vários serviços', 'Instructions to several units'), result: { doc: 'circular', why: l('Circular com orientações gerais.', 'A circular with general instructions.'), also: ['ordem-de-servico'] } },
+    ],
+  },
+  'estado-reunioes': {
+    id: 'estado-reunioes',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'convocar', label: l('Convocar uma reunião', 'Call a meeting'), result: { doc: 'convocatoria-reuniao-servico', why: l('Data, local e ordem de trabalhos.', 'Date, place and agenda.'), also: ['acta-reuniao-servico'] } },
+      { id: 'acta', label: l('Registar uma reunião', 'Record a meeting'), result: { doc: 'acta-reuniao-servico', why: l('Presenças, deliberações e responsáveis.', 'Attendance, decisions and owners.') } },
+      { id: 'edital', label: l('Afixar um edital ou aviso', 'Post a public notice'), result: { doc: 'edital-aviso', why: l('Torna público um acto ou convoca interessados.', 'Makes an act public or calls interested parties.') } },
+      { id: 'imprensa', label: l('Informar a imprensa', 'Inform the press'), result: { doc: 'comunicado-de-imprensa', why: l('Comunicado oficial para os órgãos de comunicação social.', 'Official statement for the media.') } },
+    ],
+  },
+  'estado-pessoal': {
+    id: 'estado-pessoal',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'missao', label: l('Deslocação em serviço', 'Official trip'), result: { doc: 'guia-de-marcha', why: l('Guia de marcha com os vistos nos locais de destino.', 'Travel order with stamps at each destination.') } },
+      { id: 'posse', label: l('Dar posse a um funcionário', 'Swear in an official'), result: { doc: 'auto-de-posse', why: l('Auto ou termo de posse com o compromisso de honra.', 'Record of taking office with the oath.') } },
+      { id: 'entrega', label: l('Passar o serviço a outro titular', 'Hand over a post'), result: { doc: 'auto-de-entrega-servico', why: l('Auto de entrega com processos, bens e pendentes.', 'Handover record of files, assets and pending matters.') } },
+      { id: 'declaracao', label: l('Declarar que alguém trabalha aqui', 'Certify that someone works here'), result: { doc: 'declaracao-de-servico', why: l('Declaração de serviço ou de efectividade.', 'Certificate of service or active service.') } },
+      { id: 'ordem', label: l('Organizar o serviço', 'Organise the service'), result: { doc: 'ordem-de-servico', why: l('Ordem de serviço com determinações internas.', 'A service order with internal instructions.') } },
     ],
   },
 
@@ -42,7 +128,20 @@ export const GUIDE: Record<string, GuideNode> = {
       { id: 'ferias', label: l('Férias e faltas', 'Leave and absences'), next: 'empresa-ferias' },
       { id: 'disciplinar', label: l('Disciplinar um trabalhador', 'Discipline an employee'), next: 'empresa-disciplinar' },
       { id: 'terminar', label: l('Terminar um contrato', 'End a contract'), next: 'empresa-terminar' },
+      { id: 'sociedade', label: l('Sócios, quotas e gerência', 'Shareholders, quotas and management'), hint: l('Constituir a sociedade, deliberações, cessão de quotas.', 'Incorporation, resolutions, quota transfers.'), next: 'empresa-sociedade' },
       { id: 'outro', label: l('Outro assunto da empresa', 'Other company matter'), next: 'empresa-outro' },
+    ],
+  },
+  'empresa-sociedade': {
+    id: 'empresa-sociedade',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'constituir', label: l('Constituir uma sociedade por quotas', 'Incorporate a limited company'), result: { doc: 'pacto-social-lda', why: l('Pacto social (estatutos) para registo na Conservatória.', 'Articles of association for registration.'), also: ['pacto-social-unipessoal', 'declaracao-beneficiario-efectivo'] } },
+      { id: 'unipessoal', label: l('Constituir com um único sócio', 'Incorporate with one shareholder'), result: { doc: 'pacto-social-unipessoal', why: l('Estatutos da sociedade unipessoal por quotas.', 'Articles of a single-member company.') } },
+      { id: 'deliberar', label: l('Tomar uma deliberação dos sócios', 'Pass a shareholders’ resolution'), result: { doc: 'deliberacao-unanime-escrita', why: l('Deliberação unânime por escrito ou decisão do sócio único, sem reunião.', 'Unanimous written resolution or sole-member decision, no meeting.'), also: ['extracto-de-acta'] } },
+      { id: 'quotas', label: l('Vender ou ceder uma quota', 'Sell or transfer a quota'), result: { doc: 'contrato-cessao-quotas', why: l('Contrato de cessão, com consentimento da sociedade quando exigido.', 'Transfer agreement, with company consent where required.') } },
+      { id: 'beneficiario', label: l('Declarar o beneficiário efectivo', 'Declare the beneficial owner'), result: { doc: 'declaracao-beneficiario-efectivo', why: l('Exigida no registo e em concursos públicos.', 'Required for registration and public tenders.') } },
+      { id: 'gerencia', label: l('Gerência e representação', 'Management and representation'), result: { doc: 'procuracao-sociedade', why: l('Procuração da sociedade; também aceitação e renúncia de cargos.', 'Company power of attorney; also accepting or resigning posts.'), also: ['aceitacao-de-cargo', 'renuncia-gerente'] } },
     ],
   },
   'empresa-contratar': {

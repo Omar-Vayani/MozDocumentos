@@ -29,6 +29,8 @@ function registerHyphenation() {
     .hyphenateSync;
   Font.registerHyphenationCallback((word: string) => {
     if (word.length < 6 || /[\d_@/.]/.test(word)) return splitLong(word);
+    // Names and headings in capitals (court addressees, party names) are never hyphenated.
+    if (word === word.toLocaleUpperCase('pt') && /\p{L}/u.test(word)) return splitLong(word);
     try {
       const parts = hyphenateSync(word, { hyphenChar: '\u00AD' }).split('\u00AD');
       return parts.flatMap(splitLong);
