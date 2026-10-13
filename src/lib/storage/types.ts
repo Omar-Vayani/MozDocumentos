@@ -1,5 +1,7 @@
 // Persisted entities. Everything is stored on the device (IndexedDB via Dexie).
 
+import type { SectorId } from '@/features/catalog/sectors';
+
 export type LetterheadLayout = 'classico' | 'lateral' | 'faixa' | 'minimo' | 'moderno' | 'elegante';
 export type FontPreset = 'classico' | 'institucional' | 'moderno';
 export type MarginPreset = 'normal' | 'estreito';
@@ -54,6 +56,8 @@ export type Presentation = {
   watermarkText?: string;
   /** Initials line ("Rubricas") at the foot of each page; default on for contracts. */
   rubricas?: boolean;
+  /** Small formats (A5, A6, cards): print several per A4 sheet with cutting marks. */
+  imposed?: boolean;
 };
 
 export type Numbering = {
@@ -100,7 +104,7 @@ export type Profile = {
 
   // Public body (an 'empresa' profile with tipoEntidade 'publica')
   /** 'publica': ministry, provincial government, municipality, public institute… */
-  tipoEntidade?: 'privada' | 'publica';
+  tipoEntidade?: 'privada' | 'publica' | 'comunitaria';
   /** Lines under "REPÚBLICA DE MOÇAMBIQUE", one per line: "MINISTÉRIO DA SAÚDE\nDIRECÇÃO NACIONAL DE…". */
   hierarquia?: string;
   /** Acronym used in reference numbers, e.g. "DRH/MISAU". */
@@ -112,6 +116,19 @@ export type Profile = {
   /** Número da carteira profissional na Ordem dos Advogados de Moçambique. */
   oamCarteira?: string;
   profissao?: string;
+
+  // Area and professional registration
+  /** The profile's area (lawyer, health…): decides which documents are shown first. */
+  sector?: SectorId;
+  /** Professional order, e.g. "Ordem dos Médicos de Moçambique". */
+  ordemProfissional?: string;
+  /** Registration number in that order (cédula / carteira profissional). */
+  ordemNumero?: string;
+  /** Title used before the name: Dr., Dra., Eng.º, Arq.º… */
+  tituloProfissional?: string;
+  especialidade?: string;
+  /** Licence or permit of the establishment (clinic, school, pharmacy, contractor's alvará…). */
+  licenca?: string;
 
   // Pessoa
   nome?: string;
@@ -236,11 +253,42 @@ export function newProfile(kind: ProfileKind, id: string): Profile {
   };
 }
 
+/** Public bodies and community authorities: official header, no app branding. */
 export function isPublicBody(p: Profile | null | undefined): boolean {
-  return p?.kind === 'empresa' && p.tipoEntidade === 'publica';
+  return p?.kind === 'empresa' && (p.tipoEntidade === 'publica' || p.tipoEntidade === 'comunitaria');
+}
+
+/** Community authorities (secretário de bairro, chefe de quarteirão, líder comunitário). */
+export function isCommunityAuthority(p: Profile | null | undefined): boolean {
+  return p?.kind === 'empresa' && p.tipoEntidade === 'comunitaria';
 }
 
 export function profileDisplayName(p: Profile | null | undefined): string {
   if (!p) return '';
   return (p.kind === 'empresa' ? p.firma || p.nomeComercial : p.nome) || '';
+}
+
+/** Professional orders whose registration numbers appear under signatures. */
+export const ORDENS_PROFISSIONAIS = [
+  'Ordem dos Advogados de Moçambique',
+  'Ordem dos Médicos de Moçambique',
+  'Ordem dos Engenheiros de Moçambique',
+  'Ordem dos Contabilistas e Auditores de Moçambique',
+];
+
+/** "Carteira Profissional n.º 1234 — Ordem dos Médicos de Moçambique", or '' when not registered. */
+export function professionalRegistration(p: Profile | null | undefined): string {
+  if (!p) return '';
+  const numero = p.ordemNumero?.trim() || p.oamCarteira?.trim();
+  if (!numero) return '';
+  const ordem = p.ordemProfissional?.trim() || (p.oamCarteira ? 'Ordem dos Advogados de Moçambique' : '');
+  return `Carteira Profissional n.º ${numero}${ordem ? ` — ${ordem}` : ''}`;
+}
+
+/** Name with professional title: "Dra. Ana Machava". */
+export function titledName(p: Profile | null | undefined): string {
+  if (!p) return '';
+  const name = profileDisplayName(p);
+  const t = p.tituloProfissional?.trim();
+  return t && name ? `${t} ${name}` : name;
 }

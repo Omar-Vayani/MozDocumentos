@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
-import { useL10n } from '@/app/store';
+import { useL10n, usePrefs, useSectors } from '@/app/store';
 import { PROCESSES } from '@/features/guide/processes';
 import { useActiveProfile, useDocuments } from '@/lib/storage/hooks';
 import { ButtonLink } from '@/ui/Button';
@@ -9,6 +9,8 @@ import { Icon } from '@/ui/Icon';
 import { SectionTitle } from '@/ui/misc';
 import { CATALOG, getMeta, popularDocuments } from './catalog';
 import { CATEGORIES } from './categories';
+import { SectorPicker } from './SectorPicker';
+import { isForSectors, sectorById } from './sectors';
 
 /** A small paper sheet drawn in CSS: the subject of the app, not decoration. */
 function PaperIllustration() {
@@ -58,6 +60,17 @@ export function HomePage() {
   const profile = useActiveProfile();
   const docs = useDocuments();
   const recent = (docs ?? []).slice(0, 3);
+  const sectors = useSectors(profile?.sector);
+  const asked = usePrefs((s) => s.sectorsAsked);
+  const setAsked = usePrefs((s) => s.setSectorsAsked);
+  const inMine = (catId: string) => sectors.some((id) => sectorById(id)?.categories.includes(catId as never));
+  const myCats = sectors.length ? CATEGORIES.filter((c) => inMine(c.id)) : CATEGORIES;
+  const otherCats = sectors.length ? CATEGORIES.filter((c) => !inMine(c.id)) : [];
+  const mine = (m: (typeof CATALOG)[number]) => isForSectors(m, sectors);
+  const quick = sectors.length ? popularDocuments(200).filter(mine).slice(0, 5).map((m) => m.id) : QUICK;
+  const popular = popularDocuments(200).filter(mine).slice(0, 6);
+  const showProcesses = !sectors.length || sectors.some((id) => sectorById(id)?.categories.includes('disciplina'));
+  const firstArea = sectors[0] ? sectorById(sectors[0]) : undefined;
 
   return (
     <div>
@@ -97,7 +110,7 @@ export function HomePage() {
               </div>
             </form>
             <div className="mt-4 flex flex-wrap gap-2" aria-label={t('home.quickLinks')}>
-              {QUICK.map((id) => {
+              {quick.map((id) => {
                 const m = getMeta(id);
                 return m ? (
                   <Link
@@ -126,6 +139,30 @@ export function HomePage() {
       </section>
 
       <div className="container-page py-10 sm:py-12">
+        {!sectors.length && !asked ? (
+          <section className="card p-5 sm:p-6 mb-12" aria-labelledby="areas">
+            <h2 id="areas" className="text-[1.3rem] font-bold">
+              {t('home.areasTitle')}
+            </h2>
+            <p className="mt-1 mb-4 text-muted max-w-2xl">{t('home.areasText')}</p>
+            <SectorPicker />
+            <button type="button" className="mt-4 underline text-link cursor-pointer min-h-11" onClick={() => setAsked(true)}>
+              {t('home.areasSkip')}
+            </button>
+          </section>
+        ) : sectors.length ? (
+          <p className="mb-8 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-[0.95rem]">
+            <span className="text-muted">{t('home.yourAreas')}</span>
+            {sectors.map((id) => (
+              <span key={id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-soft text-primary font-semibold">
+                <Icon name={sectorById(id)?.icon ?? 'file'} size={15} />
+                {L(sectorById(id)?.title)}
+              </span>
+            ))}
+            <Link to="/definicoes#areas">{t('home.changeAreas')}</Link>
+          </p>
+        ) : null}
+
         {profile === null ? (
           <section className="card p-5 sm:p-6 flex flex-col sm:flex-row gap-5 sm:items-center mb-12 bg-primary-soft border-primary/30">
             <div className="size-12 rounded-full bg-primary text-primary-text grid place-items-center shrink-0">
@@ -136,12 +173,20 @@ export function HomePage() {
               <p className="mt-1 max-w-2xl">{t('home.setupText')}</p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <ButtonLink to="/perfis/novo?tipo=empresa" icon="building">
-                {t('profile.createCompany')}
-              </ButtonLink>
-              <ButtonLink to="/perfis/novo?tipo=pessoa" variant="secondary" icon="user">
-                {t('profile.createPerson')}
-              </ButtonLink>
+              {firstArea ? (
+                <ButtonLink to={`/perfis/novo?area=${firstArea.id}`} icon={firstArea.icon}>
+                  {t('home.createAreaProfile', { area: L(firstArea.title) })}
+                </ButtonLink>
+              ) : (
+                <>
+                  <ButtonLink to="/perfis/novo?tipo=empresa" icon="building">
+                    {t('profile.createCompany')}
+                  </ButtonLink>
+                  <ButtonLink to="/perfis/novo?tipo=pessoa" variant="secondary" icon="user">
+                    {t('profile.createPerson')}
+                  </ButtonLink>
+                </>
+              )}
             </div>
           </section>
         ) : null}
@@ -168,14 +213,14 @@ export function HomePage() {
         <section aria-labelledby="cats">
           <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1 mb-4">
             <SectionTitle id="cats" className="mb-0">
-              {t('home.categories')}
+              {sectors.length ? t('home.yourDocuments') : t('home.categories')}
             </SectionTitle>
             <Link to="/documentos" className="shrink-0 max-w-full">
               {t('home.seeAll')}
             </Link>
           </div>
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {CATEGORIES.map((c) => (
+            {myCats.map((c) => (
               <li key={c.id}>
                 <Link to={`/documentos?cat=${c.id}`} className="card card-link flex gap-3 p-4 no-underline text-text h-full">
                   <span className="size-10 rounded-[var(--radius)] bg-primary-soft text-primary grid place-items-center shrink-0">
@@ -203,13 +248,32 @@ export function HomePage() {
               </Link>
             </li>
           </ul>
+          {otherCats.length ? (
+            <div className="mt-8">
+              <h3 className="font-bold text-[1.05rem]">{t('home.otherAreas')}</h3>
+              <p className="text-muted text-[0.95rem] mb-3">{t('home.otherAreasText')}</p>
+              <ul className="flex flex-wrap gap-2">
+                {otherCats.map((c) => (
+                  <li key={c.id}>
+                    <Link
+                      to={`/documentos?cat=${c.id}`}
+                      className="no-underline text-text inline-flex items-center gap-2 min-h-10 px-3.5 rounded-full border border-border hover:border-primary hover:text-primary text-[0.93rem]"
+                    >
+                      <Icon name={c.icon} size={16} className="text-muted" />
+                      {L(c.title)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </section>
 
-        <div className="mt-14 grid gap-12 lg:grid-cols-2">
+        <div className={`mt-14 grid gap-12 ${showProcesses ? 'lg:grid-cols-2' : ''}`}>
           <section aria-labelledby="popular">
             <SectionTitle id="popular">{t('home.popular')}</SectionTitle>
             <ul className="card divide-y divide-border overflow-hidden">
-              {popularDocuments(6).map((m) => (
+              {popular.map((m) => (
                 <li key={m.id}>
                   <Link to={`/documentos/${m.id}`} className="flex items-center gap-3 px-4 py-3.5 no-underline text-text hover:bg-surface">
                     <span className="flex-1 min-w-0">
@@ -222,6 +286,7 @@ export function HomePage() {
               ))}
             </ul>
           </section>
+          {showProcesses ? (
           <section aria-labelledby="procs">
             <SectionTitle id="procs">{t('home.processes')}</SectionTitle>
             <p className="text-muted mb-3">{t('home.processesText')}</p>
@@ -245,6 +310,7 @@ export function HomePage() {
               ))}
             </ul>
           </section>
+          ) : null}
         </div>
       </div>
     </div>

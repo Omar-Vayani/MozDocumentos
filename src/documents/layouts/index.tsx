@@ -10,7 +10,7 @@ import type { RenderAsset } from '../render/types';
 import { addressLine, contactsLine, legalLine } from './address';
 
 export { addressLine, contactsLine, legalLine };
-import { A4, MM, type Theme } from '../render/theme';
+import { MM, type Theme } from '../render/theme';
 
 export type LetterheadEnv = {
   theme: Theme;
@@ -102,7 +102,7 @@ function Rule({ theme, thick = 0.75 }: { theme: Theme; thick?: number }) {
 /** Height (pt) of the full-bleed "faixa" band on the first page. */
 export function faixaHeight(env: LetterheadEnv): number {
   if (env.header) {
-    const h = (A4.width * env.header.height) / Math.max(1, env.header.width);
+    const h = (env.theme.page.width * env.header.height) / Math.max(1, env.header.width);
     return Math.min(h, 60 * MM);
   }
   return 30 * MM;
@@ -116,7 +116,7 @@ export function FaixaBand({ env }: { env: LetterheadEnv }): ReactNode {
     return (
       <Image
         src={header.dataUrl}
-        style={{ position: 'absolute', top: 0, left: 0, width: A4.width, height: h, objectFit: 'cover' }}
+        style={{ position: 'absolute', top: 0, left: 0, width: env.theme.page.width, height: h, objectFit: 'cover' }}
       />
     );
   }
@@ -126,7 +126,7 @@ export function FaixaBand({ env }: { env: LetterheadEnv }): ReactNode {
         position: 'absolute',
         top: 0,
         left: 0,
-        width: A4.width,
+        width: env.theme.page.width,
         height: h,
         backgroundColor: theme.accent,
         paddingHorizontal: theme.margin.left,

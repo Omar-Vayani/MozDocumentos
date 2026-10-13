@@ -2,6 +2,7 @@ import type { Messages } from './pt';
 
 const en: Messages = {
   app: {
+    version: 'Version {{v}}',
     name: 'Documentos MZ',
     tagline: 'Professional documents for Mozambique',
     skip: 'Skip to main content',
@@ -55,6 +56,15 @@ const en: Messages = {
     untitledPerson: 'Unnamed person',
   },
   home: {
+    areasTitle: 'Which area are your documents for?',
+    areasText: 'Pick one or more. We show your area’s documents first; everything else stays searchable.',
+    areasSkip: 'See all documents without choosing',
+    yourAreas: 'Your areas:',
+    changeAreas: 'Change',
+    createAreaProfile: 'Create profile — {{area}}',
+    yourDocuments: 'Your documents',
+    otherAreas: 'Other areas',
+    otherAreasText: 'Documents for other areas, if you need them.',
     eyebrow: 'Mozambique · Labour Law 13/2023',
     quickLinks: 'Most requested documents',
     toolsText: 'Work out net pay, leave, notice periods and severance.',
@@ -75,6 +85,10 @@ const en: Messages = {
     setupText: 'Save your company or personal details, logo and signature once. They then appear on every document.',
   },
   catalog: {
+    scopeMine: 'My areas',
+    scopeAll: 'All areas',
+    otherResults: 'In other areas',
+    otherResultsText: 'Results from areas you have not chosen.',
     title: 'Documents',
     intro: 'Choose a document or search. You can filter by category.',
     search: 'Search documents',
@@ -132,6 +146,8 @@ const en: Messages = {
     legal: 'Legal basis',
   },
   editor: {
+    imposed: 'Print {{n}} per A4 sheet, with cutting marks',
+    imposedHelp: 'Turn off to get the PDF at the document’s real size.',
     fill: 'Fill in',
     preview: 'Preview',
     save: 'Save',
@@ -227,6 +243,7 @@ const en: Messages = {
     search: 'Filter by name or type',
   },
   profiles: {
+    byArea: 'Or create a profile set up for your area:',
     title: 'Profiles',
     intro: 'The details and branding of each company or person that issues documents. You can have several and switch at the top of the page.',
     edit: 'Edit profile',
@@ -335,6 +352,8 @@ const en: Messages = {
     sections: { identity: 'Identification', work: 'Employment', contacts: 'Contacts and address', bank: 'Bank' },
   },
   settings: {
+    areas: 'Your areas',
+    areasHelp: 'Documents for these areas come first on the home page, in the catalogue and in search. With none chosen, everything is shown.',
     title: 'Settings',
     language: 'App language',
     languageHelp: 'Documents are always generated in Portuguese.',

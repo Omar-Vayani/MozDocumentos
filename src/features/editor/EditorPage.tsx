@@ -34,6 +34,9 @@ import { usePdfRender } from './useRender';
 // Route wrapper: loads the template, the saved document and the case.
 // ---------------------------------------------------------------------------
 
+/** How many copies of a small format fit on one A4 sheet (see FORMATS in render/theme). */
+const PER_SHEET: Partial<Record<string, number>> = { A5: 2, 'A5-paisagem': 2, A6: 4, cartao: 10 };
+
 // Narrow phones: tighter buttons, and no icon below 360px so all actions fit on one row.
 const COMPACT_BTN = 'flex-1 min-w-0 px-1.5 gap-1.5 [&>svg]:shrink-0 max-[359px]:[&>svg]:hidden';
 
@@ -497,6 +500,7 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
   const wmPreset = ['', 'CÓPIA', 'ORIGINAL', 'RASCUNHO', 'CONFIDENCIAL', 'PAGO', 'ANULADO'];
   const wmValue = presentation.watermarkText ?? '';
   const wmIsCustom = wmValue !== '' && !wmPreset.includes(wmValue);
+  const officialUse = typeof template.official === 'function' ? template.official(values) : template.official;
   const presentationPanel = (
     <details className="mb-6 border border-border rounded-[var(--radius-md)] group">
       <summary className="cursor-pointer min-h-12 px-4 flex items-center gap-2 font-semibold list-none">
@@ -506,8 +510,8 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
       </summary>
       <div className="px-4 pb-5 grid gap-6">
         <p className="text-muted">{t('editor.presentationIntro')}</p>
-        {template.official || isPublicBody(profile) ? (
-          <p className="text-[0.95rem] border-l-4 border-primary pl-3">{t(`editor.official.${template.official ?? 'estado'}`)}</p>
+        {officialUse || isPublicBody(profile) ? (
+          <p className="text-[0.95rem] border-l-4 border-primary pl-3">{t(`editor.official.${officialUse ?? 'estado'}`)}</p>
         ) : null}
         {hasSignature || hasStamp ? (
           <div className="grid gap-6 sm:grid-cols-2">
@@ -593,6 +597,14 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
             </FieldWrap>
           ) : null}
         </div>
+        {template.page && PER_SHEET[template.page] ? (
+          <Checkbox
+            label={t('editor.imposed', { n: PER_SHEET[template.page] })}
+            hint={t('editor.imposedHelp')}
+            checked={presentation.imposed ?? (template.page === 'A6' || template.page === 'cartao')}
+            onChange={(v) => setP({ imposed: v })}
+          />
+        ) : null}
         {template.family === 'contrato' ? (
           <Checkbox
             label={t('editor.rubricas')}

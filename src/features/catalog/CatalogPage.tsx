@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useL10n } from '@/app/store';
+import { useL10n, useSectors } from '@/app/store';
+import { useActiveProfile } from '@/lib/storage/hooks';
 import { ButtonLink } from '@/ui/Button';
 import { TextInput } from '@/ui/Field';
 import { Icon } from '@/ui/Icon';
@@ -10,6 +11,7 @@ import { CATALOG, OUT_OF_SCOPE } from './catalog';
 import { CATEGORIES, type CategoryId } from './categories';
 import { DocListItem } from './DocCard';
 import { popularDocuments, searchCatalog } from './search';
+import { isForSectors, sectorById } from './sectors';
 
 export function CatalogPage() {
   const { t } = useTranslation();
@@ -32,10 +34,19 @@ export function CatalogPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  const profile = useActiveProfile();
+  const sectors = useSectors(profile?.sector);
+  const inMine = (catId: CategoryId) => sectors.some((id) => sectorById(id)?.categories.includes(catId));
+  const myCats = sectors.length ? CATEGORIES.filter((c) => inMine(c.id)) : CATEGORIES;
+  const otherCats = sectors.length ? CATEGORIES.filter((c) => !inMine(c.id)) : [];
+
   const results = useMemo(() => {
     const base = q.trim() ? searchCatalog(q) : CATALOG;
     return cat ? base.filter((m) => m.category === cat) : base;
   }, [q, cat]);
+  // With areas chosen, search results from other areas are listed separately.
+  const mineResults = sectors.length && !cat ? results.filter((m) => isForSectors(m, sectors)) : results;
+  const otherResults = sectors.length && !cat ? results.filter((m) => !isForSectors(m, sectors)) : [];
 
   const update = (next: { q?: string; cat?: string | null }) => {
     const p = new URLSearchParams(sp);
@@ -75,7 +86,7 @@ export function CatalogPage() {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={t('catalog.category')}>
-        {[{ id: null as CategoryId | null, label: t('catalog.all') }, ...CATEGORIES.map((c) => ({ id: c.id as CategoryId | null, label: L(c.title) }))].map((c) => {
+        {[{ id: null as CategoryId | null, label: t('catalog.all') }, ...[...myCats, ...otherCats].map((c) => ({ id: c.id as CategoryId | null, label: L(c.title) }))].map((c) => {
           const on = cat === c.id;
           return (
             <button
@@ -110,7 +121,8 @@ export function CatalogPage() {
             </ul>
           </div>
         ) : grouped ? (
-          CATEGORIES.map((c) => (
+          <>
+          {myCats.map((c) => (
             <section key={c.id} className="mt-8" aria-labelledby={`cat-${c.id}`}>
               <h2 id={`cat-${c.id}`} className="text-[1.35rem] font-bold flex items-center gap-2.5">
                 <span className="size-9 rounded-[var(--radius)] bg-primary-soft text-primary grid place-items-center">
@@ -126,13 +138,57 @@ export function CatalogPage() {
                   ))}
               </ul>
             </section>
-          ))
+          ))}
+          {otherCats.length ? (
+            <section className="mt-12 max-w-3xl" aria-labelledby="other-areas">
+              <h2 id="other-areas" className="text-[1.35rem] font-bold">
+                {t('home.otherAreas')}
+              </h2>
+              <p className="text-muted mb-3">{t('home.otherAreasText')}</p>
+              {otherCats.map((c) => (
+                <details key={c.id} className="card mb-2 group">
+                  <summary className="cursor-pointer list-none min-h-12 px-4 flex items-center gap-2.5 font-semibold">
+                    <Icon name={c.icon} size={18} className="text-muted" />
+                    {L(c.title)}
+                    <span className="text-muted font-normal text-[0.9rem]">({results.filter((m) => m.category === c.id).length})</span>
+                    <Icon name="chevronDown" size={18} className="ml-auto group-open:rotate-180 transition-transform" />
+                  </summary>
+                  <ul className="border-t border-border">
+                    {results
+                      .filter((m) => m.category === c.id)
+                      .map((m) => (
+                        <DocListItem key={m.id} m={m} />
+                      ))}
+                  </ul>
+                </details>
+              ))}
+            </section>
+          ) : null}
+          </>
         ) : (
-          <ul className="card overflow-hidden max-w-3xl">
-            {results.map((m) => (
-              <DocListItem key={m.id} m={m} />
-            ))}
-          </ul>
+          <>
+            {mineResults.length ? (
+              <ul className="card overflow-hidden max-w-3xl">
+                {mineResults.map((m) => (
+                  <DocListItem key={m.id} m={m} />
+                ))}
+              </ul>
+            ) : null}
+            {otherResults.length ? (
+              <section className="mt-8 max-w-3xl" aria-labelledby="other-results">
+                <h2 id="other-results" className="text-[1.2rem] font-bold flex items-center gap-2">
+                  <Icon name="layers" size={18} className="text-muted" />
+                  {t('catalog.otherResults')}
+                </h2>
+                <p className="text-muted mb-2 text-[0.95rem]">{t('catalog.otherResultsText')}</p>
+                <ul className="card overflow-hidden opacity-95">
+                  {otherResults.map((m) => (
+                    <DocListItem key={m.id} m={m} />
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+          </>
         )}
       </div>
 

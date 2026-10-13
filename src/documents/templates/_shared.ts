@@ -4,7 +4,7 @@
 import { legalCitation, type LegalRefId } from '@/legal/mz-legal';
 import { formatDateLong, formatMoney, orBlank, parseMoney, BLANK } from '@/lib/format';
 import type { Profile } from '@/lib/storage/types';
-import { profileDisplayName } from '@/lib/storage/types';
+import { professionalRegistration, profileDisplayName, titledName } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import type { FieldDef, FieldOption, L10n, SignatureColumn, TemplateContext, Values } from '../model';
 
@@ -256,7 +256,8 @@ export function lawyerFields(section = 'advogado'): FieldDef[] {
       label: l('Carteira profissional (OAM) n.º', 'Bar card number (OAM)'),
       width: 'half',
       legal: l('Identifica o advogado inscrito na Ordem dos Advogados de Moçambique.', 'Identifies the lawyer registered with the Mozambican Bar.'),
-      default: (c) => c.profile?.oamCarteira ?? '',
+      default: (c) =>
+        c.profile?.oamCarteira || (/Advogados/i.test(c.profile?.ordemProfissional ?? '') ? c.profile?.ordemNumero : '') || '',
     },
     {
       name: 'advogadoDomicilio',
@@ -298,4 +299,18 @@ export function officialRef(ctx: TemplateContext, kind: string, numero?: unknown
   const sigla = ctx.profile?.sigla?.trim();
   const year = (ctx.today || '').slice(0, 4);
   return `${kind} n.º ${n}${sigla ? `/${sigla}` : ''}/${year}`;
+}
+
+// ---------------------------------------------------------------- Professionals
+
+/**
+ * Signature of a registered professional (doctor, engineer, accountant…):
+ * "Dra. Ana Machava", specialty, and "Carteira Profissional n.º … — Ordem …".
+ * For a clinic or firm profile the representative signs.
+ */
+export function professionalSignature(ctx: TemplateContext, role: string): SignatureColumn {
+  const p = ctx.profile;
+  const name = p?.kind === 'pessoa' ? titledName(p) : p?.representanteNome || '';
+  const detail = [p?.kind === 'pessoa' ? p?.especialidade : p?.representanteCargo, professionalRegistration(p)].filter(Boolean).join('\n');
+  return { role, name: name || undefined, detail: detail || undefined, image: 'both' };
 }

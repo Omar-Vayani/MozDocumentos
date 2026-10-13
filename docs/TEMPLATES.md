@@ -67,6 +67,60 @@ Who issues the document decides the letterhead:
 - A short document must fit **one page** with realistic data; check it with
   the preview harness (below).
 
+## Formats, design blocks and areas (v2)
+
+**Page formats** (`page`): `'A4'` (default), `'A4-paisagem'` (certificates,
+wide registers), `'A5'` / `'A5-paisagem'` (prescriptions, receipts, notices —
+the user can print two per A4), `'A6'` (invitations, vouchers — four per A4
+with cutting marks by default), `'DL'` (envelope 220 × 110), `'cartao'`
+(business or membership card 85 × 55 — ten per A4 with cutting marks).
+Type and spacing scale with the format; small formats (A6, DL, card) have no
+page numbers, running header, footer lines or brand line. **Design to one
+page** on small formats: anything longer is cut.
+
+Template options for designed documents:
+- `verticalAlign: 'center'` — centre the content on the page (certificates,
+  invitations, cards);
+- `frame: 'simple' | 'double' | 'tricolour'` — decorative frame;
+- `noBrand: true` — no brand line (invitations, cards, envelopes, public notices);
+- `style: { mono: true }` — black and grey only (funeral notices);
+  `style: { font: 'classico' }` — force the serif face (invitations);
+- `rubricas: false` — no initials line on a contract;
+- `repeat: (v) => v.participantes.map((p) => ({ participanteNome: p.nome }))` —
+  one page per item (a certificate for each participant);
+- `official` may be a function of the values: `(v) => (v.finalidade === 'tribunal' ? 'tribunal' : undefined)`.
+
+Design blocks:
+
+| type | use |
+|---|---|
+| `display` | `{ text, size: 'xxl'…'xs', align?, tone: 'accent'|'text'|'muted', weight, italic, uppercase, after?, fit? }` — invitation and certificate typography; `\n` for line breaks; `fit` shrinks a long line to the width; never below 6.5 pt |
+| `ornament` | `{ style: 'rule'|'double'|'tricolour'|'dots'|'cross', width?, align? }` — separators; `tricolour` is the app's subtle Mozambican mark; `cross` for religious/funeral notices |
+| `logo` | the issuing profile's logo `{ size, align }` |
+| `envelope` | DL envelope face `{ sender: string[], recipient: string[], note? }` |
+| `box` | add `cut: true` for a tear-off slip ("recortar e devolver") |
+| `checklist` | `columns: 2` for two columns |
+| `table` | a row whose first cell starts with `"§ "` is a chapter row; `"= "` a bold subtotal row |
+| `numberedClauses` | style `'artigo'` prints "Artigo 1.º" |
+
+**Areas.** Catalogue entries belong to the areas whose categories include
+them (see `src/features/catalog/sectors.ts`); add `sectors: [...]` to an entry
+that is also useful elsewhere (e.g. a certificate for education and
+associations). Categories: `saude`, `educacao`, `associacoes`, `comunidade`,
+`construcao`, `eventos`, `comercio` plus the earlier ones.
+
+**Profiles** now carry `sector`, `ordemProfissional`, `ordemNumero`,
+`tituloProfissional`, `especialidade`, `licenca` (licence/alvará/appointment)
+and `tipoEntidade: 'comunitaria'` for community authorities (official header,
+emblem off by default, no app branding). Helpers: `professionalSignature(ctx,
+role)` (title, name, specialty, "Carteira Profissional n.º … — Ordem …"),
+`professionalRegistration(profile)`, `titledName(profile)` in
+`@/lib/storage/types` / `_shared.ts`.
+
+Preview issuers in `samples/_profiles.ts`: `company()`, `person()`,
+`lawyer()`, `publicBody()`, `doctor()`, `clinic()`, `school()`,
+`association()`, `community()`, `contractor()`.
+
 ## Rules
 
 1. **Templates are data.** Never import `@react-pdf/*` or React. Return

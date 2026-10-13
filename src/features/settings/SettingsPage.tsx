@@ -9,6 +9,7 @@ import { clearAllData, requestPersistence, setLegalOverrides, storageEstimate } 
 import { Button } from '@/ui/Button';
 import { FieldWrap, RadioGroup, TextInput } from '@/ui/Field';
 import { Notice, PageHeader, SectionTitle, formatBytes, toast } from '@/ui/misc';
+import { SectorPicker } from '@/features/catalog/SectorPicker';
 
 function LegalValues() {
   const { t } = useTranslation();
@@ -296,6 +297,11 @@ export function SettingsPage() {
           options={(['system', 'light', 'dark'] as const).map((k) => ({ value: k, label: t(`settings.themes.${k}`) }))}
         />
       </div>
+      <section className="mt-12 scroll-mt-24" id="areas" aria-labelledby="areas-title">
+        <SectionTitle id="areas-title">{t('settings.areas')}</SectionTitle>
+        <p className="text-muted mb-4 max-w-2xl">{t('settings.areasHelp')}</p>
+        <SectorPicker />
+      </section>
       <LegalValues />
       <Backup />
       <Danger />

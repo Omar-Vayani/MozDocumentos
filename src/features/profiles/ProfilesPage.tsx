@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { usePrefs } from '@/app/store';
+import { useL10n, usePrefs } from '@/app/store';
+import { SECTORS } from '@/features/catalog/sectors';
 import { useActiveProfile, useProfiles } from '@/lib/storage/hooks';
 import { deleteProfile, formatRef } from '@/lib/storage/repo';
 import { profileDisplayName } from '@/lib/storage/types';
@@ -10,6 +11,7 @@ import { PageHeader, Tag } from '@/ui/misc';
 
 export function ProfilesPage() {
   const { t } = useTranslation();
+  const L = useL10n();
   const profiles = useProfiles();
   const active = useActiveProfile();
   const setActive = usePrefs((s) => s.setActiveProfile);
@@ -27,6 +29,22 @@ export function ProfilesPage() {
         <ButtonLink to="/perfis/novo?tipo=publica" icon="landmark" variant="secondary">
           {t('profile.createPublic')}
         </ButtonLink>
+      </div>
+      <div className="-mt-4 mb-8">
+        <p className="text-muted text-[0.95rem] mb-2">{t('profiles.byArea')}</p>
+        <ul className="flex flex-wrap gap-2">
+          {SECTORS.map((s) => (
+            <li key={s.id}>
+              <Link
+                to={`/perfis/novo?area=${s.id}`}
+                className="no-underline text-text inline-flex items-center gap-2 min-h-10 px-3.5 rounded-full border border-border hover:border-primary hover:text-primary text-[0.93rem]"
+              >
+                <Icon name={s.icon} size={16} className="text-muted" />
+                {L(s.title)}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
       {profiles && profiles.length === 0 ? <p className="text-muted">{t('profile.noneYet')}</p> : null}
       <ul className="border-t border-border">

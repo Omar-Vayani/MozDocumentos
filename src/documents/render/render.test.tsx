@@ -11,7 +11,7 @@ import { AVAILABLE_TEMPLATE_IDS, loadTemplate } from '../registry';
 import { companyProfile, fixtureValues, personProfile, type ProfileFixture } from '@/test/fixtures';
 import type { LetterheadLayout } from '@/lib/storage/types';
 import { renderPdf } from './renderPdf';
-import { A4, makeTheme } from './theme';
+import { makeTheme } from './theme';
 
 const FONT_BASE = join(process.cwd(), 'public/fonts');
 const OUT = process.env.RENDER_OUT;
@@ -41,7 +41,8 @@ async function textBounds(pdf: ArrayBuffer) {
       if (!('str' in item) || !item.str.trim()) continue;
       const x = item.transform[4];
       const y = item.transform[5];
-      if (x < -0.5 || x + item.width > A4.width + 0.5 || y < 0 || y > A4.height) {
+      const [, , pw, ph] = page.view;
+      if (x < -0.5 || x + item.width > pw + 0.5 || y < 0 || y > ph) {
         issues.push(`p${p} "${item.str.slice(0, 40)}" x=${x.toFixed(1)} w=${item.width.toFixed(1)} y=${y.toFixed(1)}`);
       }
     }
@@ -56,7 +57,11 @@ describe('templates render without overflow', () => {
       const t = await loadTemplate(id);
       for (const fx of profilesFor()) {
         for (const mode of ['minimal', 'long'] as const) {
-          const theme = makeTheme(fx.profile.branding);
+          const theme = makeTheme(fx.profile.branding, undefined, {}, { format: t.page, family: t.family });
+          const format = t.page ?? 'A4';
+          // Small formats print several per A4 sheet: check page bounds only.
+          const imposed = format === 'A6' || format === 'cartao';
+          const numbered = !imposed && !['A6', 'DL', 'cartao'].includes(format) && !t.frame && t.verticalAlign !== 'center';
           const base = defaultValues(t, { profile: fx.profile, today, nextRef: 'RH/2026/014' });
           const values = fixtureValues(t, base, mode);
           const res = await renderPdf({
@@ -83,7 +88,7 @@ describe('templates render without overflow', () => {
               if (Math.abs(item.transform[0] - 7) < 0.01 && item.transform[5] > 80 * 2.8346) {
                 strict.push(`p${p} footer text out of place "${item.str.slice(0, 30)}" y=${item.transform[5].toFixed(1)}`);
               }
-              if (x < theme.margin.left - 2 || x + item.width > A4.width - theme.margin.right + 2) {
+              if (!imposed && (x < theme.margin.left - 2 || x + item.width > theme.page.width - theme.margin.right + 2)) {
                 strict.push(`p${p} "${item.str.slice(0, 50)}" x=${x.toFixed(1)} right=${(x + item.width).toFixed(1)}`);
               }
             }
@@ -123,7 +128,7 @@ describe('templates render without overflow', () => {
             }
           }
           // "Página N de M" on every page.
-          for (let p = 1; p <= doc.numPages; p++) {
+          for (let p = 1; numbered && p <= doc.numPages; p++) {
             const text = (await (await doc.getPage(p)).getTextContent()).items.map((i) => ('str' in i ? i.str : '')).join(' ');
             expect(text, `${fx.name}/${mode} page number p${p}`).toContain(`Página ${p} de ${doc.numPages}`);
           }

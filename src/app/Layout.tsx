@@ -252,6 +252,7 @@ export function Layout() {
                 {copyrightLine()}. {t('app.rights')}
               </span>
               <span>{t('app.builtBy', { name: OWNER.name })}</span>
+              <span>{t('app.version', { v: OWNER.version })}</span>
             </div>
           </div>
         </footer>

@@ -101,3 +101,101 @@ export function person(): Issuer {
   });
   return { profile: p, assets: {} };
 }
+
+/** A doctor registered with the Ordem dos Médicos. */
+export function doctor(): Issuer {
+  const p = newProfile('pessoa', 'pv-doctor');
+  Object.assign(p, {
+    nome: 'Isabel Mondlane Chissano',
+    genero: 'F',
+    sector: 'saude',
+    tituloProfissional: 'Dra.',
+    especialidade: 'Medicina Interna',
+    ordemProfissional: 'Ordem dos Médicos de Moçambique',
+    ordemNumero: '2417',
+    nuit: '108765432',
+    morada: { rua: 'Avenida Eduardo Mondlane', numero: '2104', cidade: 'Maputo', provincia: 'Maputo Cidade' },
+    telefones: '+258 84 777 1200',
+  });
+  return { profile: p, assets: {} };
+}
+
+/** A private clinic. */
+export function clinic(): Issuer {
+  const { profile: p, assets } = company();
+  Object.assign(p, {
+    id: 'pv-clinic',
+    firma: 'Clínica Sorriso Saudável, Lda',
+    sector: 'saude',
+    licenca: 'Licença de funcionamento n.º 045/MISAU/2024',
+    representanteNome: 'Dr. Armando Cumbe',
+    representanteCargo: 'Director Clínico',
+    email: 'geral@sorrisosaudavel.co.mz',
+    website: '',
+  });
+  return { profile: p, assets };
+}
+
+/** A private school. */
+export function school(): Issuer {
+  const { profile: p, assets } = company();
+  Object.assign(p, {
+    id: 'pv-school',
+    firma: 'Escola Primária e Secundária Horizonte, Lda',
+    sector: 'educacao',
+    licenca: 'Alvará n.º 112/DPEDH-MPT/2023',
+    representanteNome: 'Mestre Rosa Tembe',
+    representanteCargo: 'Directora Pedagógica',
+    email: 'secretaria@horizonte.ac.mz',
+    website: '',
+  });
+  return { profile: p, assets };
+}
+
+/** An association (non-profit). */
+export function association(): Issuer {
+  const { profile: p } = company();
+  Object.assign(p, {
+    id: 'pv-assoc',
+    firma: 'Associação Juvenil Esperança de Mafalala',
+    sector: 'associacoes',
+    nuel: '',
+    capitalSocial: '',
+    licenca: 'Reconhecida por Despacho do Governador da Cidade de Maputo, BR III Série n.º 98, de 2022',
+    representanteNome: 'Celso Matsinhe',
+    representanteCargo: 'Presidente da Direcção',
+    email: 'esperanca.mafalala@gmail.com',
+    website: '',
+  });
+  return { profile: p, assets: {} };
+}
+
+/** A community authority (secretário do bairro). */
+export function community(): Issuer {
+  const p = newProfile('empresa', 'pv-community');
+  Object.assign(p, {
+    tipoEntidade: 'comunitaria',
+    emblema: false,
+    sector: 'comunidade',
+    firma: 'Secretaria do Bairro da Malhangalene "A"',
+    hierarquia: 'CONSELHO MUNICIPAL DA CIDADE DE MAPUTO\nDISTRITO MUNICIPAL KAMPFUMO\nBAIRRO DA MALHANGALENE "A"',
+    representanteNome: 'Amélia Joaquim Nhantumbo',
+    representanteCargo: 'Secretária do Bairro',
+    morada: { rua: 'Rua da Resistência', numero: '1050', cidade: 'Maputo', provincia: 'Maputo Cidade' },
+    telefones: '+258 82 400 1122',
+  });
+  return { profile: p, assets: {} };
+}
+
+/** A building contractor with an alvará. */
+export function contractor(): Issuer {
+  const { profile: p, assets } = company();
+  Object.assign(p, {
+    id: 'pv-contractor',
+    sector: 'construcao',
+    licenca: 'Alvará de Empreiteiro de Obras Públicas n.º 3021, 4.ª Classe',
+    ordemProfissional: 'Ordem dos Engenheiros de Moçambique',
+    ordemNumero: '1890',
+  });
+  return { profile: p, assets };
+}

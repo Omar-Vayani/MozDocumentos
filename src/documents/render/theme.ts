@@ -1,10 +1,26 @@
 import { ensurePrintContrast, tint } from '@/lib/color';
 import { DEFAULT_BRANDING, type Branding, type Presentation } from '@/lib/storage/types';
-import type { DocumentFamily } from '../model';
+import type { DocumentFamily, PageFormat } from '../model';
 import { FONT_FAMILIES, type FontFamilies } from './fonts';
 
 export const MM = 2.8346457; // points per millimetre
 export const A4 = { width: 210 * MM, height: 297 * MM };
+
+/**
+ * Paper formats (mm). `sheet` = how many fit on an A4 sheet when printed
+ * "several per sheet" (imposed with cutting marks); `scale` sets type sizes.
+ */
+export const FORMATS: Record<PageFormat, { w: number; h: number; margin: number; scale: number; sheet?: { cols: number; rows: number; landscape?: boolean } }> = {
+  A4: { w: 210, h: 297, margin: 0, scale: 1 },
+  'A4-paisagem': { w: 297, h: 210, margin: 16, scale: 1.05 },
+  A5: { w: 148, h: 210, margin: 13, scale: 0.9, sheet: { cols: 2, rows: 1, landscape: true } },
+  'A5-paisagem': { w: 210, h: 148, margin: 12, scale: 0.9, sheet: { cols: 1, rows: 2 } },
+  A6: { w: 105, h: 148, margin: 9, scale: 0.72, sheet: { cols: 2, rows: 2 } },
+  DL: { w: 220, h: 110, margin: 12, scale: 0.85 },
+  cartao: { w: 85, h: 55, margin: 5, scale: 0.7, sheet: { cols: 2, rows: 5 } },
+};
+
+export const isSmallFormat = (f: PageFormat) => f === 'A6' || f === 'DL' || f === 'cartao';
 
 export type Theme = {
   font: string;
@@ -34,9 +50,14 @@ export type Theme = {
   plain: boolean;
   /** Tighter spacing and a smaller letterhead so receipts and tables fit one page. */
   compact: boolean;
+  format: PageFormat;
+  /** Page size in points. */
+  page: { width: number; height: number };
+  /** Type scale for the format (A4 = 1). */
+  scale: number;
 };
 
-export type ThemeOptions = { family?: DocumentFamily; plain?: boolean };
+export type ThemeOptions = { family?: DocumentFamily; plain?: boolean; format?: PageFormat };
 
 const clamp = (n: unknown, lo: number, hi: number, d: number) =>
   typeof n === 'number' && Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d;
@@ -51,15 +72,20 @@ export function makeTheme(
   const family = opts.family ?? 'carta';
   const peca = family === 'peca';
   const plain = Boolean(opts.plain);
-  const compact = family === 'recibo' || family === 'mapa';
+  const format = opts.format ?? 'A4';
+  const fmt = FORMATS[format];
+  const compact = family === 'recibo' || family === 'mapa' || format === 'A5' || format === 'A5-paisagem';
   const size = presentation.textSize ?? b.textSize ?? 'normal';
   const spacing = presentation.lineSpacing ?? b.lineSpacing ?? 'normal';
   const accent = ensurePrintContrast(b.accent || DEFAULT_BRANDING.accent);
   // Court filings keep the traditional wider left (binding) margin.
   const margin =
-    b.margins === 'estreito' && !peca
-      ? { top: 18 * MM, right: 15 * MM, bottom: 18 * MM, left: 18 * MM }
-      : { top: 25 * MM, right: 20 * MM, bottom: 25 * MM, left: peca ? 30 * MM : 25 * MM };
+    format !== 'A4'
+      ? { top: fmt.margin * MM, right: fmt.margin * MM, bottom: fmt.margin * MM, left: fmt.margin * MM }
+      : b.margins === 'estreito' && !peca
+        ? { top: 18 * MM, right: 15 * MM, bottom: 18 * MM, left: 18 * MM }
+        : { top: 25 * MM, right: 20 * MM, bottom: 25 * MM, left: peca ? 30 * MM : 25 * MM };
+  const page = { width: fmt.w * MM, height: fmt.h * MM };
   const lineHeight = spacing === 'compacto' ? 1.3 : spacing === 'amplo' ? 1.55 : 1.42;
   const serif = b.font === 'classico';
   return {
@@ -70,12 +96,13 @@ export function makeTheme(
     text: '#111111',
     muted: '#4a4f55',
     // Sans faces look larger at the same size; keep visual size consistent.
-    bodySize: (serif ? 11 : 10.5) + (size === 'pequeno' ? -1 : size === 'grande' ? 1 : 0),
-    smallSize: 8,
+    // Body size follows the format: A5 a point smaller, cards much smaller.
+    bodySize: Math.max(6.5, ((serif ? 11 : 10.5) + (size === 'pequeno' ? -1 : size === 'grande' ? 1 : 0)) * Math.min(1, 0.55 + fmt.scale * 0.45)),
+    smallSize: Math.max(5.5, 8 * Math.min(1, 0.6 + fmt.scale * 0.4)),
     lineHeight: peca ? Math.max(1.5, lineHeight) : lineHeight,
     align: b.textAlign === 'left' && !peca ? 'left' : 'justify',
     margin,
-    contentWidth: A4.width - margin.left - margin.right,
+    contentWidth: page.width - margin.left - margin.right,
     gap: spacing === 'compacto' || compact ? 5 : spacing === 'amplo' ? 9 : 7,
     // Official documents and court filings are printed in black.
     heading: b.accentHeadings === false || plain || peca || family === 'oficio' ? '#111111' : accent,
@@ -87,5 +114,8 @@ export function makeTheme(
     indent: peca ? 12 * MM : 0,
     plain,
     compact,
+    format,
+    page,
+    scale: fmt.scale,
   };
 }

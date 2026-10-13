@@ -164,7 +164,7 @@ export type Block =
     })
   | (BlockBase & { type: 'annexList'; title?: string; items: string[] })
   | (BlockBase & { type: 'list'; items: string[]; style?: 'bullet' | 'alpha' | 'numeric' })
-  | (BlockBase & { type: 'checklist'; items: { label: string; checked: boolean }[] })
+  | (BlockBase & { type: 'checklist'; items: { label: string; checked: boolean }[]; columns?: 1 | 2 })
   | (BlockBase & { type: 'note'; text: string; en?: string })
   | (BlockBase & { type: 'spacer'; size?: 'small' | 'medium' | 'large' })
   /**
@@ -189,9 +189,35 @@ export type Block =
       dashed?: boolean;
       width?: 'full' | 'half';
       align?: 'left' | 'right';
+      /** Tear-off slip: a dashed cut line with "recortar e devolver" above the box. */
+      cut?: boolean;
     })
   /** Small uppercase labels such as URGENTE or CONFIDENCIAL, right-aligned. */
   | (BlockBase & { type: 'tags'; items: string[] })
+  /**
+   * Display text for invitations, certificates and cards: one line or a short
+   * paragraph set large, centred by default. Sizes scale with the page format.
+   */
+  | (BlockBase & {
+      type: 'display';
+      text: string;
+      size?: 'xxl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs';
+      align?: 'left' | 'center' | 'right';
+      tone?: 'accent' | 'text' | 'muted';
+      weight?: 'normal' | 'bold';
+      italic?: boolean;
+      uppercase?: boolean;
+      /** Extra space after, in points (default scales with size). */
+      after?: number;
+      /** Shrink the size so a long line still fits on one line. */
+      fit?: boolean;
+    })
+  /** Decorative separator: a short rule, a double rule, or the tricolour mark. */
+  | (BlockBase & { type: 'ornament'; style?: 'rule' | 'double' | 'tricolour' | 'dots' | 'cross'; width?: 'short' | 'medium' | 'full'; align?: 'left' | 'center' | 'right' })
+  /** Envelope face (DL): sender at the top left, addressee in the lower right window area. */
+  | (BlockBase & { type: 'envelope'; sender: string[]; recipient: string[]; note?: string })
+  /** The issuing profile's logo (if any), sized for the page format. */
+  | (BlockBase & { type: 'logo'; size?: 'sm' | 'md' | 'lg'; align?: 'left' | 'center' | 'right' })
   | (BlockBase & { type: 'pageBreakHint' });
 
 export type SignatureColumn = {
@@ -254,12 +280,44 @@ export type DocumentFamily =
  */
 export type OfficialUse = 'tribunal' | 'estado' | 'notario' | 'registo';
 
+/**
+ * Paper format. A4 is the default. Small formats print on A4 sheets several
+ * per sheet with cutting marks ("imposed"): A6 four per sheet, business cards
+ * ten per sheet. A5 prints on its own size (any printer scales it) unless the
+ * user asks for two per A4 sheet.
+ */
+export type PageFormat = 'A4' | 'A4-paisagem' | 'A5' | 'A5-paisagem' | 'A6' | 'DL' | 'cartao';
+
 export type DocumentTemplate = {
   id: string;
   /** Page conventions (default 'carta'). */
   family?: DocumentFamily;
-  /** Set when the document is filed with a court, registry, notary or public body. */
-  official?: OfficialUse;
+  /**
+   * Set when the document is filed with a court, registry, notary or public
+   * body. A function decides from the values (e.g. a medical certificate that
+   * goes to a public body only for some purposes).
+   */
+  official?: OfficialUse | ((v: Values) => OfficialUse | undefined);
+  /** Paper format (default 'A4'). */
+  page?: PageFormat;
+  /** Centre the content vertically on the page (certificates, invitations, cards). */
+  verticalAlign?: 'top' | 'center';
+  /** Decorative frame around the page (certificates, diplomas, invitations). */
+  frame?: 'simple' | 'double' | 'tricolour';
+  /** Initials line on each page (default: on for the 'contrato' family). */
+  rubricas?: boolean;
+  /** Never print the app's brand line (cards, invitations, envelopes). */
+  noBrand?: boolean;
+  /**
+   * Visual overrides: `mono` prints in black and grey only (funeral notices);
+   * `font` forces a typeface regardless of the profile (e.g. serif invitations).
+   */
+  style?: { mono?: boolean; font?: 'classico' | 'institucional' | 'moderno' };
+  /**
+   * One page per item from the same form (e.g. a certificate for each
+   * participant): returns the values for each page, or undefined for one page.
+   */
+  repeat?: (v: Values) => Values[] | undefined;
   /** Field sections, rendered in order as form fieldsets. */
   sections: SectionDef[];
   fields: FieldDef[];

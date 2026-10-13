@@ -1,5 +1,6 @@
 const pt = {
   app: {
+    version: 'Versão {{v}}',
     name: 'Documentos MZ',
     tagline: 'Documentos profissionais para Moçambique',
     skip: 'Saltar para o conteúdo',
@@ -53,6 +54,15 @@ const pt = {
     untitledPerson: 'Pessoa sem nome',
   },
   home: {
+    areasTitle: 'Para que área são os seus documentos?',
+    areasText: 'Escolha uma ou mais. Mostramos primeiro os documentos da sua área; todos os outros continuam disponíveis na pesquisa.',
+    areasSkip: 'Ver todos os documentos sem escolher',
+    yourAreas: 'As suas áreas:',
+    changeAreas: 'Alterar',
+    createAreaProfile: 'Criar perfil — {{area}}',
+    yourDocuments: 'Os seus documentos',
+    otherAreas: 'Outras áreas',
+    otherAreasText: 'Documentos de outras áreas, se precisar.',
     eyebrow: 'Moçambique · Lei do Trabalho n.º 13/2023',
     quickLinks: 'Documentos mais procurados',
     toolsText: 'Calcule salário líquido, férias, aviso prévio e indemnizações.',
@@ -73,6 +83,10 @@ const pt = {
     setupText: 'Guarde uma vez os dados da empresa ou os seus dados pessoais, o logótipo e a assinatura. Depois aparecem em todos os documentos.',
   },
   catalog: {
+    scopeMine: 'As minhas áreas',
+    scopeAll: 'Todas as áreas',
+    otherResults: 'Noutras áreas',
+    otherResultsText: 'Resultados de áreas que não escolheu.',
     title: 'Documentos',
     intro: 'Escolha um documento ou pesquise. Pode filtrar por categoria.',
     search: 'Pesquisar documentos',
@@ -130,6 +144,8 @@ const pt = {
     legal: 'Base legal',
   },
   editor: {
+    imposed: 'Imprimir {{n}} por folha A4, com marcas de corte',
+    imposedHelp: 'Desligue para obter o PDF no tamanho real do documento.',
     fill: 'Preencher',
     preview: 'Pré-visualizar',
     save: 'Guardar',
@@ -225,6 +241,7 @@ const pt = {
     search: 'Filtrar por nome ou tipo',
   },
   profiles: {
+    byArea: 'Ou crie um perfil já preparado para a sua área:',
     title: 'Perfis',
     intro: 'Os dados e a marca de cada empresa ou pessoa que emite documentos. Pode ter vários perfis e mudar no topo da página.',
     edit: 'Editar perfil',
@@ -333,6 +350,8 @@ const pt = {
     sections: { identity: 'Identificação', work: 'Trabalho', contacts: 'Contactos e morada', bank: 'Banco' },
   },
   settings: {
+    areas: 'As suas áreas',
+    areasHelp: 'Os documentos destas áreas aparecem primeiro no início, no catálogo e na pesquisa. Sem nenhuma escolhida, mostramos tudo.',
     title: 'Definições',
     language: 'Idioma da aplicação',
     languageHelp: 'Os documentos são sempre gerados em português.',

@@ -1,5 +1,5 @@
 // Preview samples for core documents.
-import { company, publicBody, type Sample } from './_profiles';
+import { company, lawyer, publicBody, type Sample } from './_profiles';
 
 const worker = {
   trabalhadorNome: 'Joana Celeste Cossa',
@@ -56,5 +56,23 @@ export const SAMPLES: Sample[] = [
   { id: 'contrato-indeterminado', who: company, values: { ...worker, funcoes: 'Registar os documentos contabilísticos\nPreparar as reconciliações bancárias mensais', localTrabalho: 'Sede da empresa, Maputo' } },
   { id: 'declaracao-de-trabalho', who: company, values: { ...worker, finalidade: 'abertura de conta bancária', destinatario: 'Banco Comercial e de Investimentos' } },
   { id: 'recibo-de-salario', who: company, values: { ...worker, periodo: '2026-09', salarioBase: '28500' } },
+  { id: 'cartao-de-visita', who: company, values: { telefone: '+258 84 300 0000', email: 'ana@machava.co.mz', website: 'www.machava.co.mz', morada: 'Av. Julius Nyerere, 1234, Maputo' } },
+  { id: 'cartao-de-visita', name: 'cartao-de-visita-esquerda', who: lawyer, values: { estilo: 'esquerda', empresa: 'Tembe & Associados — Advogados' } },
+  {
+    id: 'certificado-de-participacao',
+    who: company,
+    values: {
+      participanteNome: 'Joana Celeste Cossa',
+      participanteGenero: 'F',
+      titulo: 'Segurança no Trabalho em Obras de Construção Civil',
+      modalidade: 'no workshop',
+      dataInicio: '2026-10-08',
+      dataFim: '2026-10-10',
+      cargaHoraria: 16,
+      local: 'Maputo',
+      assinante2Nome: 'Eng.º Paulo Sitoe',
+      assinante2Cargo: 'Formador',
+      codigo: 'MF-2026-031',
+    },
+  },
 ];
-

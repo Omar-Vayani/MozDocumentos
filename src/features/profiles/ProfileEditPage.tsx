@@ -15,7 +15,8 @@ import { processImage } from '@/lib/image';
 import { db } from '@/lib/storage/db';
 import { useLegalOverrides } from '@/lib/storage/hooks';
 import { brandingAssets, formatRef, saveAsset, saveProfile } from '@/lib/storage/repo';
-import { newProfile, type Asset, type Branding, type Profile } from '@/lib/storage/types';
+import { SECTORS, sectorById, type SectorId } from '@/features/catalog/sectors';
+import { newProfile, ORDENS_PROFISSIONAIS, type Asset, type Branding, type Profile } from '@/lib/storage/types';
 import { Button } from '@/ui/Button';
 import { Checkbox, FieldWrap, RadioGroup, Select, TextArea, TextInput } from '@/ui/Field';
 import { SizeSlider } from '@/ui/Slider';
@@ -229,12 +230,19 @@ export function ProfileEditPage() {
       </div>
     );
   }
+  const area = sectorById(sp.get('area') as SectorId);
   const fresh = () => {
-    const p = newProfile(kind, uid());
-    // A public body is a company-type profile with the República header.
-    return tipo === 'publica' ? { ...p, tipoEntidade: 'publica' as const, emblema: true, numbering: { ...p.numbering, prefix: 'OF' } } : p;
+    const pk = area?.profile ?? (tipo === 'publica' ? 'publica' : kind);
+    const p = newProfile(pk === 'pessoa' ? 'pessoa' : 'empresa', uid());
+    if (area) p.sector = area.id;
+    // A public body (or community authority) is a company-type profile with the República header.
+    if (pk !== 'publica') return p;
+    // Community authorities are not State bodies: no emblem by default.
+    return area?.id === 'comunidade'
+      ? { ...p, tipoEntidade: 'comunitaria' as const, emblema: false, numbering: { ...p.numbering, prefix: 'DEC' } }
+      : { ...p, tipoEntidade: 'publica' as const, emblema: true, numbering: { ...p.numbering, prefix: 'OF' } };
   };
-  return <ProfileForm key={id ?? `novo-${tipo ?? kind}`} initial={stored ?? fresh()} isNew={isNew} />;
+  return <ProfileForm key={id ?? `novo-${area?.id ?? tipo ?? kind}`} initial={stored ?? fresh()} isNew={isNew} />;
 }
 
 function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
@@ -285,15 +293,96 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
   };
 
   const company = d.kind === 'empresa';
-  const publicBody = company && d.tipoEntidade === 'publica';
+  const community = company && d.tipoEntidade === 'comunitaria';
+  const publicBody = company && (d.tipoEntidade === 'publica' || community);
   const b = d.branding;
   const adjusted = ensurePrintContrast(b.accent);
 
+  // Area and professional registration: shared by company and personal profiles.
+  const knownOrdem = !d.ordemProfissional || ORDENS_PROFISSIONAIS.includes(d.ordemProfissional);
+  const areaGroup = (
+    <Group title={tx('Área de actividade', 'Area of work')}>
+      <FieldWrap
+        className="sm:col-span-2"
+        label={tx('Em que área trabalha com este perfil?', 'Which area do you work in with this profile?')}
+        hint={tx('Os documentos desta área aparecem primeiro. Todos continuam disponíveis na pesquisa.', 'Documents for this area are shown first. Everything stays searchable.')}
+      >
+        {({ id, describedBy }) => (
+          <Select id={id} aria-describedby={describedBy} value={d.sector ?? ''} onChange={(e) => set({ sector: (e.target.value || undefined) as SectorId | undefined })}>
+            <option value="">{tx('Geral', 'General')}</option>
+            {SECTORS.map((s) => (
+              <option key={s.id} value={s.id}>
+                {lang === 'en' ? s.title.en : s.title.pt}
+              </option>
+            ))}
+          </Select>
+        )}
+      </FieldWrap>
+      {!publicBody ? (
+        <>
+          <FieldWrap label={tx('Ordem profissional (opcional)', 'Professional order (optional)')} hint={tx('Aparece por baixo da assinatura, com o número.', 'Printed under the signature, with the number.')}>
+            {({ id, describedBy }) => (
+              <Select
+                id={id}
+                aria-describedby={describedBy}
+                value={knownOrdem ? (d.ordemProfissional ?? '') : '__outra'}
+                onChange={(e) => set({ ordemProfissional: e.target.value === '__outra' ? ' ' : e.target.value || undefined })}
+              >
+                <option value="">—</option>
+                {ORDENS_PROFISSIONAIS.map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+                <option value="__outra">{tx('Outra', 'Other')}</option>
+              </Select>
+            )}
+          </FieldWrap>
+          {!knownOrdem ? (
+            <Text label={tx('Nome da ordem ou associação profissional', 'Name of the professional body')} value={d.ordemProfissional?.trim()} onChange={(v) => set({ ordemProfissional: v || ' ' })} />
+          ) : null}
+          <Text label={tx('N.º de inscrição / carteira profissional', 'Registration / card number')} value={d.ordemNumero ?? d.oamCarteira} onChange={(v) => set({ ordemNumero: v })} />
+          {company ? (
+            <Text
+              label={tx('Licença ou alvará do estabelecimento (opcional)', 'Establishment licence (optional)')}
+              value={d.licenca}
+              onChange={(v) => set({ licenca: v })}
+              hint={tx('Ex.: licença da clínica, alvará de empreiteiro, autorização da escola.', 'E.g. clinic licence, contractor permit, school authorisation.')}
+            />
+          ) : (
+            <>
+              <Text label={tx('Título (opcional)', 'Title (optional)')} value={d.tituloProfissional} onChange={(v) => set({ tituloProfissional: v })} hint={tx('Ex.: Dr., Dra., Eng.º, Arq.º', 'E.g. Dr., Eng.')} />
+              <Text label={tx('Especialidade (opcional)', 'Specialty (optional)')} value={d.especialidade} onChange={(v) => set({ especialidade: v })} hint={tx('Ex.: Medicina Interna, Direito Laboral', 'E.g. Internal Medicine, Labour Law')} />
+            </>
+          )}
+        </>
+      ) : null}
+    </Group>
+  );
+
   const dataTab = company ? (
     <>
+      {areaGroup}
       {publicBody ? (
-        <Group title={tx('Identificação da entidade pública', 'Public body details')}>
-          <Text className="sm:col-span-2" label={tx('Nome da entidade', 'Name of the body')} value={d.firma} onChange={(v) => set({ firma: v })} inputId="profile-name" error={nameError && !d.firma?.trim() ? tx('Indique o nome da entidade', 'Enter the name of the body') : undefined} hint={tx('Ex.: Direcção Provincial de Saúde de Nampula', 'E.g. Direcção Provincial de Saúde de Nampula')} />
+        <Group title={community ? tx('Identificação da autoridade comunitária', 'Community authority details') : tx('Identificação da entidade pública', 'Public body details')}>
+          <Text
+            className="sm:col-span-2"
+            label={community ? tx('Unidade (bairro, quarteirão ou povoação)', 'Unit (neighbourhood, block or village)') : tx('Nome da entidade', 'Name of the body')}
+            value={d.firma}
+            onChange={(v) => set({ firma: v })}
+            inputId="profile-name"
+            error={nameError && !d.firma?.trim() ? tx('Indique o nome da entidade', 'Enter the name of the body') : undefined}
+            hint={community ? tx('Ex.: Secretaria do Bairro da Malhangalene', 'E.g. Secretaria do Bairro da Malhangalene') : tx('Ex.: Direcção Provincial de Saúde de Nampula', 'E.g. Direcção Provincial de Saúde de Nampula')}
+          />
+          {community ? (
+            <Text
+              className="sm:col-span-2"
+              label={tx('Acto de nomeação ou reconhecimento (opcional)', 'Appointment or recognition (optional)')}
+              value={d.licenca}
+              onChange={(v) => set({ licenca: v })}
+              hint={tx('Ex.: Despacho do Presidente do Conselho Municipal n.º 12/2024', 'E.g. appointment order number')}
+            />
+          ) : null}
           <FieldWrap className="sm:col-span-2" label={tx('Linhas do cabeçalho', 'Header lines')} hint={tx('Uma por linha, por baixo de «REPÚBLICA DE MOÇAMBIQUE». Ex.: MINISTÉRIO DA SAÚDE / DIRECÇÃO NACIONAL DE RECURSOS HUMANOS', 'One per line, below "REPÚBLICA DE MOÇAMBIQUE". E.g. MINISTÉRIO DA SAÚDE / DIRECÇÃO NACIONAL DE RECURSOS HUMANOS')}>
             {({ id, describedBy }) => (
               <TextArea id={id} aria-describedby={describedBy} rows={3} value={d.hierarquia ?? ''} onChange={(e) => set({ hierarquia: e.target.value })} />
@@ -302,10 +391,15 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
           <Text label={tx('Sigla para referências', 'Acronym for references')} value={d.sigla} onChange={(v) => set({ sigla: v.toUpperCase() })} hint={tx('Ex.: DRH/MISAU — aparece em «Ofício n.º 12/DRH/MISAU/2026».', 'E.g. DRH/MISAU — used in reference numbers.')} />
           <Text label="NUIT" value={d.nuit} onChange={(v) => set({ nuit: v })} inputMode="numeric" />
           <p className="sm:col-span-2 text-muted text-[0.94rem]">
-            {tx(
-              'O emblema da República identifica órgãos e instituições do Estado. Use este perfil apenas para documentos emitidos em nome de uma entidade pública.',
-              'The national emblem identifies State bodies. Use this profile only for documents issued on behalf of a public body.',
-            )}
+            {community
+              ? tx(
+                  'As declarações das autoridades comunitárias servem de meio de prova e não substituem documentos oficiais (atestados, certidões, DUAT, registo criminal). O emblema da República fica desligado por defeito.',
+                  'Community authority declarations are evidence only and do not replace official documents. The national emblem is off by default.',
+                )
+              : tx(
+                  'O emblema da República identifica órgãos e instituições do Estado. Use este perfil apenas para documentos emitidos em nome de uma entidade pública.',
+                  'The national emblem identifies State bodies. Use this profile only for documents issued on behalf of a public body.',
+                )}
           </p>
         </Group>
       ) : (
@@ -317,7 +411,6 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
         <Text label={tx('N.º de inscrição no INSS', 'INSS registration number')} value={d.inss} onChange={(v) => set({ inss: v })} />
         <Text label={tx('Alvará / licença (opcional)', 'Licence (optional)')} value={d.alvara} onChange={(v) => set({ alvara: v })} />
         <Text label={tx('Capital social (opcional)', 'Share capital (optional)')} value={d.capitalSocial} onChange={(v) => set({ capitalSocial: v })} inputMode="decimal" />
-        <Text label={tx('Registo na Ordem dos Advogados (opcional)', 'Bar registration (optional)')} value={d.oamCarteira} onChange={(v) => set({ oamCarteira: v })} hint={tx('Só para sociedades de advogados.', 'Law firms only.')} />
       </Group>
       )}
       <Group title={t('profiles.addressSection')}>
@@ -345,6 +438,7 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
     </>
   ) : (
     <>
+      {areaGroup}
       <Group title={t('profiles.personSection')}>
         <Text className="sm:col-span-2" label={tx('Nome completo', 'Full name')} value={d.nome} onChange={(v) => set({ nome: v })} inputId="profile-name" error={nameError && !d.nome?.trim() ? tx('Indique o seu nome completo', 'Enter your full name') : undefined} />
         <FieldWrap label={tx('Tratamento', 'Form of address')} hint={tx('Para a concordância do texto (portador / portadora).', 'For grammatical agreement in documents.')}>
@@ -384,7 +478,7 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
         <Text label={tx('Naturalidade', 'Place of birth')} value={d.naturalidade} onChange={(v) => set({ naturalidade: v })} />
         <Text label={tx('Nacionalidade', 'Nationality')} value={d.nacionalidade} onChange={(v) => set({ nacionalidade: v })} hint={tx('Ex.: moçambicana', 'E.g. moçambicana')} />
         <Text label={tx('Profissão (opcional)', 'Occupation (optional)')} value={d.profissao} onChange={(v) => set({ profissao: v })} hint={tx('Ex.: Advogado, Contabilista', 'E.g. Lawyer, Accountant')} />
-        <Text label={tx('Carteira profissional da OAM (opcional)', 'Bar card number (optional)')} value={d.oamCarteira} onChange={(v) => set({ oamCarteira: v })} hint={tx('Advogados: aparece na assinatura das peças processuais.', 'Lawyers: printed under the signature on court filings.')} />
+
       </Group>
       <Group title={t('profiles.addressSection')}>
         <Text className="sm:col-span-2" label={tx('Avenida / rua', 'Avenue / street')} value={d.morada.rua} onChange={(v) => setAddr({ rua: v })} />

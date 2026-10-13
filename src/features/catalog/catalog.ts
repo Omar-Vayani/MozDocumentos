@@ -5,7 +5,15 @@
 import type { L10n } from '@/documents/model';
 import type { LegalRefId } from '@/legal/mz-legal';
 import type { CategoryId } from './categories';
+import type { SectorId } from './sectors';
 import { CATALOG_ADVOCACIA } from './extra/advocacia';
+import { CATALOG_SAUDE } from './extra/saude';
+import { CATALOG_EDUCACAO } from './extra/educacao';
+import { CATALOG_ASSOCIACOES } from './extra/associacoes';
+import { CATALOG_COMUNIDADE } from './extra/comunidade';
+import { CATALOG_CONSTRUCAO } from './extra/construcao';
+import { CATALOG_EVENTOS } from './extra/eventos';
+import { CATALOG_COMERCIO } from './extra/comercio';
 import { CATALOG_CONTRATOS } from './extra/contratos';
 import { CATALOG_ESTADO } from './extra/estado';
 import { CATALOG_PESSOAL_RH } from './extra/pessoal-rh';
@@ -33,6 +41,8 @@ export type TemplateMeta = {
   lastReviewed: string;
   /** Ranking hint for "most used" (higher first). */
   popularity?: number;
+  /** Extra user areas this document belongs to, beyond its category's areas. */
+  sectors?: SectorId[];
 };
 
 const REVIEWED = '2026-10-12';
@@ -854,6 +864,39 @@ const CORE_CATALOG: TemplateMeta[] = [
     related: ['declaracao-de-divida'],
     lastReviewed: REVIEWED,
   },
+  // ------------------------------------------------------------------ Eventos e pessoal
+  {
+    id: 'cartao-de-visita',
+    category: 'eventos',
+    audience: 'ambos',
+    phase: 'A',
+    title: { pt: 'Cartões de visita', en: 'Business cards' },
+    formalTitle: 'Cartão de visita',
+    summary: {
+      pt: 'Cartões de 85 × 55 mm, dez por folha A4, com marcas de corte.',
+      en: '85 × 55 mm cards, ten per A4 sheet, with cutting marks.',
+    },
+    tags: ['cartao de visita', 'cartao', 'contactos', 'business card', 'visiting card', 'cartoes'],
+    legalRefs: [],
+    sectors: ['empresa', 'particular', 'advocacia', 'saude', 'construcao', 'educacao', 'associacoes'],
+    lastReviewed: '2026-10-13',
+  },
+  {
+    id: 'certificado-de-participacao',
+    category: 'eventos',
+    audience: 'ambos',
+    phase: 'A',
+    title: { pt: 'Certificado de participação ou mérito', en: 'Certificate of attendance or merit' },
+    formalTitle: 'Certificado de Participação',
+    summary: {
+      pt: 'Certificado em A4 horizontal, com moldura, para cursos, workshops, seminários e reconhecimentos.',
+      en: 'Framed landscape certificate for courses, workshops, seminars and awards.',
+    },
+    tags: ['certificado', 'diploma', 'participacao', 'workshop', 'formacao', 'merito', 'certificate', 'attendance', 'award'],
+    legalRefs: [],
+    sectors: ['empresa', 'educacao', 'associacoes', 'saude', 'estado'],
+    lastReviewed: '2026-10-13',
+  },
 ];
 
 /** Every document: core list plus per-category files in ./extra. */
@@ -864,6 +907,13 @@ export const CATALOG: TemplateMeta[] = [
   ...CATALOG_ADVOCACIA,
   ...CATALOG_ESTADO,
   ...CATALOG_PESSOAL_RH,
+  ...CATALOG_SAUDE,
+  ...CATALOG_EDUCACAO,
+  ...CATALOG_ASSOCIACOES,
+  ...CATALOG_COMUNIDADE,
+  ...CATALOG_CONSTRUCAO,
+  ...CATALOG_EVENTOS,
+  ...CATALOG_COMERCIO,
 ];
 
 export const catalogById = new Map(CATALOG.map((m) => [m.id, m]));

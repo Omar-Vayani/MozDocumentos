@@ -17,7 +17,11 @@ export type BlockEnv = {
   /** Undefined when the profile has none or the user hid it for this document. */
   signature?: RenderAsset;
   stamp?: RenderAsset;
+  /** The issuing profile's logo, for the `logo` block. */
+  logo?: RenderAsset;
 };
+
+const DISPLAY_PT = { xxl: 30, xl: 22, lg: 16, md: 13, sm: 10.5, xs: 8.5 } as const;
 
 /** Renders `**bold**` inline markup (single line; see RichText for line breaks). */
 export function rich(text: string): ReactNode[] {
@@ -87,7 +91,7 @@ function para(env: BlockEnv, align?: string): Style {
 
 function clauseHeading(style: 'clausula' | 'numeric' | 'artigo', i: number, item: ClauseItem): string {
   if (style === 'clausula') return `Cláusula ${ORDINAIS_F[i] ?? i + 1}`;
-  if (style === 'artigo') return `Artigo ${i + 1}`;
+  if (style === 'artigo') return `Artigo ${i + 1}.º`;
   return `${i + 1}.${item.heading ? ` ${item.heading}` : ''}`;
 }
 
@@ -398,7 +402,17 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           >
             {block.columns.map((c, i) => cell(c.label, i, true, true))}
           </View>
-          {block.rows.map((r, ri) => (
+          {block.rows.map((r, ri) =>
+            // "§ Chapter" → section row across the table; "= Subtotal" → bold row with a rule.
+            r[0]?.startsWith('§ ') ? (
+              <View key={ri} wrap={false} minPresenceAhead={30} style={{ backgroundColor: theme.accentTint, paddingVertical: 3, paddingHorizontal: 5, marginTop: ri ? 4 : 0 }}>
+                <Text style={{ fontSize: theme.bodySize - 1, fontWeight: 700, color: theme.heading }}>{oneLine(r[0].slice(2))}</Text>
+              </View>
+            ) : r[0]?.startsWith('= ') ? (
+              <View key={ri} wrap={false} style={{ flexDirection: 'row', borderTopWidth: 0.6, borderTopColor: theme.text }}>
+                {r.map((c, i) => cell(i === 0 ? c.slice(2) : c, i, true))}
+              </View>
+            ) : (
             <View
               key={ri}
               wrap={!canKeep(theme, Math.max(...r.map((c, ci) => textLines(theme, c, widths[ci] / total, theme.bodySize - 1))) * (theme.bodySize - 1) * 1.4 + 8)}
@@ -406,7 +420,8 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
             >
               {r.map((c, i) => cell(c, i))}
             </View>
-          ))}
+            ),
+          )}
           {block.totals?.map((r, ri) => (
             <View
               key={`t${ri}`}
@@ -622,7 +637,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
 
     case 'box': {
       const lines = Math.max(0, Math.min(12, block.lines ?? 0));
-      return (
+      const boxView = (
         <View
           key={key}
           wrap={false}
@@ -645,6 +660,136 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
               <View style={{ height: 0.4, backgroundColor: theme.rule }} />
             </Fragment>
           ))}
+        </View>
+      );
+      if (!block.cut) return boxView;
+      // Tear-off slip: dashed cut line with a label, then the box.
+      return (
+        <View key={key} wrap={false}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, marginBottom: 6 }}>
+            <View style={{ flex: 1, borderTopWidth: 0.6, borderTopColor: theme.rule, borderStyle: 'dashed' }} />
+            <Text style={{ fontSize: theme.smallSize, color: theme.muted, marginHorizontal: 6 }}>recortar e devolver</Text>
+            <View style={{ flex: 1, borderTopWidth: 0.6, borderTopColor: theme.rule, borderStyle: 'dashed' }} />
+          </View>
+          {boxView}
+        </View>
+      );
+    }
+
+    case 'display': {
+      // Never below 6.5 pt: the smallest size that stays legible in print.
+      let size = Math.max(6.5, DISPLAY_PT[block.size ?? 'md'] * theme.scale);
+      if (block.fit) {
+        // Shrink so the longest line fits the width (average glyph ≈ 0.55 em; capitals wider).
+        const longest = Math.max(...block.text.split(/\r?\n/).map((x) => x.length), 1);
+        const em = block.uppercase ? 0.68 : 0.55;
+        size = Math.max(6.5, Math.min(size, theme.contentWidth / (longest * em)));
+      }
+      const color = block.tone === 'accent' ? (theme.plain ? theme.text : theme.accent) : block.tone === 'muted' ? theme.muted : theme.text;
+      const lines = block.text.split(/\r?\n/);
+      return (
+        <View
+          key={key}
+          // Long centred text reads better on a narrower measure.
+          style={{ marginBottom: block.after ?? size * 0.45, ...(block.align !== 'left' && block.align !== 'right' && block.text.length > 90 ? { width: '86%', alignSelf: 'center' } : {}) }}
+          wrap={false}
+        >
+          {lines.map((ln, i) => (
+            <Text
+              key={i}
+              style={{
+                fontSize: size,
+                lineHeight: 1.22,
+                textAlign: block.align ?? 'center',
+                color,
+                fontWeight: block.weight === 'bold' ? 700 : 400,
+                fontStyle: block.italic ? 'italic' : 'normal',
+              }}
+            >
+              {/* Uppercased before layout (react-pdf measures before textTransform). */}
+              {block.uppercase ? ln.toLocaleUpperCase('pt') : ln || ' '}
+            </Text>
+          ))}
+        </View>
+      );
+    }
+
+    case 'ornament': {
+      const w = block.width === 'full' ? '100%' : block.width === 'medium' ? '40%' : 34 * theme.scale;
+      const self = {
+        alignSelf: (block.align === 'left' ? 'flex-start' : block.align === 'right' ? 'flex-end' : 'center') as 'flex-start' | 'flex-end' | 'center',
+        marginVertical: 6 * theme.scale,
+      };
+      if (block.style === 'tricolour') {
+        // The app's mark: green, a gap, yellow and red — muted for print.
+        return (
+          <View key={key} style={{ ...self, flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ width: 26 * theme.scale, height: 1.6, backgroundColor: theme.plain ? theme.text : '#0b5a40' }} />
+            <View style={{ width: 7 * theme.scale, height: 1.6, backgroundColor: theme.plain ? theme.text : '#f2b81c', marginLeft: 2 }} />
+            <View style={{ width: 7 * theme.scale, height: 1.6, backgroundColor: theme.plain ? theme.text : '#c8102e' }} />
+          </View>
+        );
+      }
+      if (block.style === 'cross') {
+        // A thin Latin cross, drawn (fonts may lack the glyph).
+        const h = 16 * theme.scale;
+        return (
+          <View key={key} style={{ ...self, width: h * 0.62, height: h }}>
+            <View style={{ position: 'absolute', left: h * 0.31 - 0.6, top: 0, width: 1.2, height: h, backgroundColor: theme.text }} />
+            <View style={{ position: 'absolute', left: 0, top: h * 0.28, width: h * 0.62, height: 1.2, backgroundColor: theme.text }} />
+          </View>
+        );
+      }
+      if (block.style === 'dots') {
+        return (
+          <Text key={key} style={{ ...self, fontSize: 9 * theme.scale, color: theme.accent, letterSpacing: 0 }}>
+            •  •  •
+          </Text>
+        );
+      }
+      if (block.style === 'double') {
+        return (
+          <View key={key} style={{ ...self, width: w }}>
+            <View style={{ height: 1, backgroundColor: theme.accent }} />
+            <View style={{ height: 0.5, backgroundColor: theme.accent, marginTop: 1.6 }} />
+          </View>
+        );
+      }
+      return <View key={key} style={{ ...self, width: w, height: 1, backgroundColor: theme.accent }} />;
+    }
+
+    case 'logo': {
+      if (!env.logo) return null;
+      const h = (block.size === 'lg' ? 22 : block.size === 'sm' ? 9 : 14) * 2.8346 * theme.scale;
+      const ratio = env.logo.width / Math.max(1, env.logo.height);
+      const w = Math.min(h * ratio, theme.contentWidth * 0.7);
+      return (
+        <View key={key} style={{ alignItems: block.align === 'left' ? 'flex-start' : block.align === 'right' ? 'flex-end' : 'center', marginBottom: 6 * theme.scale }}>
+          <Image src={env.logo.dataUrl} style={{ width: w, height: w / ratio, objectFit: 'contain' }} />
+        </View>
+      );
+    }
+
+    case 'envelope': {
+      // DL envelope: sender top left, addressee in the window position (lower right).
+      const lineStyle = { fontSize: theme.bodySize, lineHeight: 1.35 };
+      return (
+        <View key={key} style={{ height: theme.page.height - theme.margin.top - theme.margin.bottom, justifyContent: 'space-between' }}>
+          <View style={{ width: '45%' }}>
+            {block.sender.filter(Boolean).map((ln, i) => (
+              <Text key={i} style={{ ...lineStyle, fontSize: theme.bodySize - 1.5, fontWeight: i === 0 ? 700 : 400, color: i === 0 ? theme.text : theme.muted }}>
+                {oneLine(ln)}
+              </Text>
+            ))}
+          </View>
+          <View style={{ alignSelf: 'flex-end', width: '52%', marginBottom: 6 }}>
+            {block.note ? <Text style={{ fontSize: theme.smallSize, fontWeight: 700, marginBottom: 4 }}>{oneLine(block.note).toLocaleUpperCase('pt')}</Text> : null}
+            {block.recipient.filter(Boolean).map((ln, i) => (
+              <Text key={i} style={{ ...lineStyle, fontWeight: i === 0 ? 700 : 400 }}>
+                {rich(oneLine(ln))}
+              </Text>
+            ))}
+          </View>
         </View>
       );
     }
@@ -679,9 +824,9 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
 
     case 'checklist':
       return (
-        <View key={key} style={{ marginBottom: theme.gap }}>
+        <View key={key} style={{ marginBottom: theme.gap, flexDirection: block.columns === 2 ? 'row' : 'column', flexWrap: 'wrap' }}>
           {block.items.map((it, i) => (
-            <View key={i} wrap={false} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3 }}>
+            <View key={i} wrap={false} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3, width: block.columns === 2 ? '50%' : '100%', paddingRight: block.columns === 2 ? 8 : 0 }}>
               <View
                 style={{
                   width: 9,
@@ -759,7 +904,7 @@ export function estimateHeight(b: Block, theme: Theme): number {
     case 'annexList':
       return b.items.reduce((h, it) => h + lines(it, 0.9) * lineH, 0) + theme.gap;
     case 'checklist':
-      return b.items.length * 16;
+      return Math.ceil(b.items.length / (b.columns ?? 1)) * 16;
     case 'numberedClauses':
       return b.items.reduce((h, it) => h + 32 + lines(it.text) * lineH + (it.items ?? []).reduce((x, sub) => x + lines(sub, 0.9) * lineH, 0), 0);
     case 'amount':
@@ -777,6 +922,14 @@ export function estimateHeight(b: Block, theme: Theme): number {
       return 24 + lines(b.text, b.width === 'half' ? 0.45 : 0.95) * lineH + (b.lines ?? 0) * 15.4;
     case 'tags':
       return 20;
+    case 'display':
+      return b.text.split('\n').length * DISPLAY_PT[b.size ?? 'md'] * theme.scale * 1.7;
+    case 'ornament':
+      return 14;
+    case 'envelope':
+      return theme.page.height;
+    case 'logo':
+      return 70 * theme.scale;
     case 'spacer':
       return 20;
     default:
@@ -796,7 +949,7 @@ export function renderBlocks(blocks: Block[], env: BlockEnv): ReactNode[] {
   const out: ReactNode[] = [];
   let loneHalfBox = -1; // index in `out` of a half-width box waiting for a partner
   let group: Block[] = [];
-  const pageBody = 297 * 2.8346 - env.theme.margin.top - env.theme.margin.bottom - 60;
+  const pageBody = env.theme.page.height - env.theme.margin.top - env.theme.margin.bottom - 60;
   blocks.forEach((b, i) => {
     // Two half-width boxes in a row sit side by side (e.g. Despacho | Parecer).
     if (isHalfBox(b) && group.length === 0) {
