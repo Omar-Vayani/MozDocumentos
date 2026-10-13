@@ -57,6 +57,8 @@ const PERSON_KEYS = ['nome', 'genero', 'estadoCivil', 'nacionalidade', 'docTipo'
 
 export default defineTemplate({
   id: 'declaracao-de-venda',
+  family: 'declaracao',
+  official: 'registo',
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'vendedor', title: l('Vendedor', 'Seller'), personRole: 'outro' },

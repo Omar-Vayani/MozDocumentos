@@ -5,11 +5,17 @@
 import type { L10n } from '@/documents/model';
 import type { LegalRefId } from '@/legal/mz-legal';
 import type { CategoryId } from './categories';
+import { CATALOG_ADVOCACIA } from './extra/advocacia';
+import { CATALOG_CONTRATOS } from './extra/contratos';
+import { CATALOG_ESTADO } from './extra/estado';
+import { CATALOG_PESSOAL_RH } from './extra/pessoal-rh';
+import { CATALOG_SOCIEDADES } from './extra/sociedades';
 
 export type TemplateMeta = {
   id: string;
   category: CategoryId;
-  audience: 'empresa' | 'pessoa' | 'ambos';
+  /** Who issues it: a company, an individual, either, a lawyer, or a public body. */
+  audience: 'empresa' | 'pessoa' | 'ambos' | 'advogado' | 'estado';
   phase: 'A' | 'B';
   /** Plain-language title. */
   title: L10n;
@@ -31,7 +37,7 @@ export type TemplateMeta = {
 
 const REVIEWED = '2026-10-12';
 
-export const CATALOG: TemplateMeta[] = [
+const CORE_CATALOG: TemplateMeta[] = [
   // ------------------------------------------------------------------ Contratar
   {
     id: 'proposta-de-emprego',
@@ -848,6 +854,16 @@ export const CATALOG: TemplateMeta[] = [
     related: ['declaracao-de-divida'],
     lastReviewed: REVIEWED,
   },
+];
+
+/** Every document: core list plus per-category files in ./extra. */
+export const CATALOG: TemplateMeta[] = [
+  ...CORE_CATALOG,
+  ...CATALOG_CONTRATOS,
+  ...CATALOG_SOCIEDADES,
+  ...CATALOG_ADVOCACIA,
+  ...CATALOG_ESTADO,
+  ...CATALOG_PESSOAL_RH,
 ];
 
 export const catalogById = new Map(CATALOG.map((m) => [m.id, m]));

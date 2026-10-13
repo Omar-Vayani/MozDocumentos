@@ -41,15 +41,41 @@ type WrapProps = {
   children: (ids: { id: string; describedBy?: string }) => ReactNode;
   className?: string;
   id?: string;
+  /**
+   * 'split': label/hint/error and the input become two grid items, so a parent
+   * grid with `grid-rows-subgrid` cells can line inputs up across columns.
+   */
+  layout?: 'stack' | 'split';
+  /** Rendered under the input (split layout), e.g. a validation warning. */
+  after?: ReactNode;
 };
 
 /** Label + hint + error wrapper that wires aria-describedby. */
-export function FieldWrap({ label, hint, error, badge, children, className = '', id: idProp }: WrapProps) {
+export function FieldWrap({ label, hint, error, badge, children, className = '', id: idProp, layout = 'stack', after }: WrapProps) {
   const auto = useId();
   const id = idProp ?? auto;
   const hintId = hint ? `${id}-hint` : undefined;
   const errId = error ? `${id}-err` : undefined;
   const describedBy = [hintId, errId].filter(Boolean).join(' ') || undefined;
+  if (layout === 'split') {
+    const bar = error ? 'border-l-4 border-error pl-3' : '';
+    return (
+      <>
+        <div className={`self-end ${bar}`}>
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <Label htmlFor={id}>{label}</Label>
+            {badge}
+          </div>
+          {hint ? <Hint id={hintId}>{hint}</Hint> : null}
+          <FieldError id={errId}>{error}</FieldError>
+        </div>
+        <div className={`pb-5 ${bar}`}>
+          {children({ id, describedBy })}
+          {after}
+        </div>
+      </>
+    );
+  }
   return (
     <div className={`${error ? 'border-l-4 border-error pl-3' : ''} ${className}`}>
       <div className="flex flex-wrap items-baseline gap-x-2">

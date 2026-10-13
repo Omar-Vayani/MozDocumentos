@@ -17,6 +17,7 @@ const valorExtenso = (n: number | null) =>
 
 export default defineTemplate({
   id: 'acordo-de-revogacao',
+  family: 'contrato',
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'trabalhador', title: l('Trabalhador', 'Employee'), personRole: 'trabalhador' },

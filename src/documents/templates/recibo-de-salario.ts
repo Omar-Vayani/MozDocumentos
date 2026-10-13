@@ -26,6 +26,7 @@ const sum = (rows: Record<string, any>[]) => rows.reduce((t, r) => t + (money(r.
 
 export default defineTemplate({
   id: 'recibo-de-salario',
+  family: 'recibo',
   sections: [
     { id: 'documento', title: l('Período e pagamento', 'Period and payment') },
     { id: 'trabalhador', title: l('Trabalhador', 'Employee'), personRole: 'trabalhador' },

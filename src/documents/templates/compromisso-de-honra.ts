@@ -89,6 +89,7 @@ const PESSOA_KEYS = [
 
 export default defineTemplate({
   id: 'compromisso-de-honra',
+  family: 'declaracao',
   letterhead: false,
   sections: [
     { id: 'documento', title: l('Local e data', 'Place and date') },

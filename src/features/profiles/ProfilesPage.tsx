@@ -24,6 +24,9 @@ export function ProfilesPage() {
         <ButtonLink to="/perfis/novo?tipo=pessoa" icon="user" variant="secondary">
           {t('profile.createPerson')}
         </ButtonLink>
+        <ButtonLink to="/perfis/novo?tipo=publica" icon="landmark" variant="secondary">
+          {t('profile.createPublic')}
+        </ButtonLink>
       </div>
       {profiles && profiles.length === 0 ? <p className="text-muted">{t('profile.noneYet')}</p> : null}
       <ul className="border-t border-border">
@@ -38,7 +41,7 @@ export function ProfilesPage() {
                 {active?.id === p.id ? <Tag tone="green">{t('profiles.isActive')}</Tag> : null}
               </p>
               <p className="text-muted text-[0.95rem]">
-                {p.kind === 'empresa' ? t('profile.empresa') : t('profile.pessoa')}
+                {p.tipoEntidade === 'publica' ? t('profile.publica') : p.kind === 'empresa' ? t('profile.empresa') : t('profile.pessoa')}
                 {p.nuit ? ` · NUIT ${p.nuit}` : ''} · {t('profiles.nextNumber', { ref: formatRef(p) })}
               </p>
             </div>

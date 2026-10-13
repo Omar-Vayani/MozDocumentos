@@ -74,6 +74,7 @@ function contrato(v: Values): { pt: string; en: string } {
 
 export default defineTemplate({
   id: 'declaracao-de-trabalho',
+  family: 'declaracao',
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'trabalhador', title: l('Trabalhador', 'Employee'), personRole: 'trabalhador' },

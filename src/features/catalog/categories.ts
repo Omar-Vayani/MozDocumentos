@@ -1,7 +1,7 @@
 import type { L10n } from '@/documents/model';
 import type { IconName } from '@/ui/Icon';
 
-export type CategoryId = 'contratar' | 'salario' | 'ferias' | 'disciplina' | 'fim' | 'pessoal' | 'empresa';
+export type CategoryId = 'contratar' | 'salario' | 'ferias' | 'disciplina' | 'fim' | 'pessoal' | 'empresa' | 'contratos' | 'advocacia' | 'estado';
 
 export type Category = { id: CategoryId; title: L10n; description: L10n; icon: IconName };
 
@@ -46,7 +46,25 @@ export const CATEGORIES: Category[] = [
     id: 'empresa',
     icon: 'building',
     title: { pt: 'Empresa', en: 'Business admin' },
-    description: { pt: 'Credenciais, actas, cartas e orçamentos.', en: 'Authorisations, minutes, letters and quotes.' },
+    description: { pt: 'Sociedades, actas, credenciais, cartas e orçamentos.', en: 'Companies, minutes, authorisations, letters and quotes.' },
+  },
+  {
+    id: 'contratos',
+    icon: 'handshake',
+    title: { pt: 'Contratos', en: 'Contracts' },
+    description: { pt: 'Compra e venda, empréstimo, empreitada, fornecimento e parcerias.', en: 'Sales, loans, construction, supply and partnerships.' },
+  },
+  {
+    id: 'advocacia',
+    icon: 'gavel',
+    title: { pt: 'Advocacia e tribunais', en: 'Lawyers and courts' },
+    description: { pt: 'Procurações forenses, petições, requerimentos, queixas e honorários.', en: 'Court powers of attorney, claims, applications, complaints and fees.' },
+  },
+  {
+    id: 'estado',
+    icon: 'landmark',
+    title: { pt: 'Administração pública', en: 'Public administration' },
+    description: { pt: 'Ofícios, informações, despachos, circulares e guias de marcha.', en: 'Official letters, briefings, orders, circulars and travel orders.' },
   },
 ];
 

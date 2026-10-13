@@ -17,7 +17,7 @@ import { useLegalOverrides } from '@/lib/storage/hooks';
 import { brandingAssets, formatRef, saveAsset, saveProfile } from '@/lib/storage/repo';
 import { newProfile, type Asset, type Branding, type Profile } from '@/lib/storage/types';
 import { Button } from '@/ui/Button';
-import { Checkbox, FieldWrap, RadioGroup, Select, TextInput } from '@/ui/Field';
+import { Checkbox, FieldWrap, RadioGroup, Select, TextArea, TextInput } from '@/ui/Field';
 import { SizeSlider } from '@/ui/Slider';
 import { Notice, Spinner, toast } from '@/ui/misc';
 import { Tabs } from '@/ui/Tabs';
@@ -212,7 +212,8 @@ export function ProfileEditPage() {
   const { id } = useParams();
   const [sp] = useSearchParams();
   const isNew = !id || id === 'novo';
-  const kind = sp.get('tipo') === 'pessoa' ? 'pessoa' : 'empresa';
+  const tipo = sp.get('tipo');
+  const kind = tipo === 'pessoa' ? 'pessoa' : 'empresa';
   const stored = useLiveQuery(async () => (isNew ? null : ((await db.profiles.get(id!)) ?? null)), [id]);
   if (!isNew && stored === undefined) {
     return (
@@ -228,7 +229,12 @@ export function ProfileEditPage() {
       </div>
     );
   }
-  return <ProfileForm key={id ?? `novo-${kind}`} initial={stored ?? newProfile(kind, uid())} isNew={isNew} />;
+  const fresh = () => {
+    const p = newProfile(kind, uid());
+    // A public body is a company-type profile with the República header.
+    return tipo === 'publica' ? { ...p, tipoEntidade: 'publica' as const, emblema: true, numbering: { ...p.numbering, prefix: 'OF' } } : p;
+  };
+  return <ProfileForm key={id ?? `novo-${tipo ?? kind}`} initial={stored ?? fresh()} isNew={isNew} />;
 }
 
 function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
@@ -279,11 +285,30 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
   };
 
   const company = d.kind === 'empresa';
+  const publicBody = company && d.tipoEntidade === 'publica';
   const b = d.branding;
   const adjusted = ensurePrintContrast(b.accent);
 
   const dataTab = company ? (
     <>
+      {publicBody ? (
+        <Group title={tx('Identificação da entidade pública', 'Public body details')}>
+          <Text className="sm:col-span-2" label={tx('Nome da entidade', 'Name of the body')} value={d.firma} onChange={(v) => set({ firma: v })} inputId="profile-name" error={nameError && !d.firma?.trim() ? tx('Indique o nome da entidade', 'Enter the name of the body') : undefined} hint={tx('Ex.: Direcção Provincial de Saúde de Nampula', 'E.g. Direcção Provincial de Saúde de Nampula')} />
+          <FieldWrap className="sm:col-span-2" label={tx('Linhas do cabeçalho', 'Header lines')} hint={tx('Uma por linha, por baixo de «REPÚBLICA DE MOÇAMBIQUE». Ex.: MINISTÉRIO DA SAÚDE / DIRECÇÃO NACIONAL DE RECURSOS HUMANOS', 'One per line, below "REPÚBLICA DE MOÇAMBIQUE". E.g. MINISTÉRIO DA SAÚDE / DIRECÇÃO NACIONAL DE RECURSOS HUMANOS')}>
+            {({ id, describedBy }) => (
+              <TextArea id={id} aria-describedby={describedBy} rows={3} value={d.hierarquia ?? ''} onChange={(e) => set({ hierarquia: e.target.value })} />
+            )}
+          </FieldWrap>
+          <Text label={tx('Sigla para referências', 'Acronym for references')} value={d.sigla} onChange={(v) => set({ sigla: v.toUpperCase() })} hint={tx('Ex.: DRH/MISAU — aparece em «Ofício n.º 12/DRH/MISAU/2026».', 'E.g. DRH/MISAU — used in reference numbers.')} />
+          <Text label="NUIT" value={d.nuit} onChange={(v) => set({ nuit: v })} inputMode="numeric" />
+          <p className="sm:col-span-2 text-muted text-[0.94rem]">
+            {tx(
+              'O emblema da República identifica órgãos e instituições do Estado. Use este perfil apenas para documentos emitidos em nome de uma entidade pública.',
+              'The national emblem identifies State bodies. Use this profile only for documents issued on behalf of a public body.',
+            )}
+          </p>
+        </Group>
+      ) : (
       <Group title={t('profiles.companySection')}>
         <Text className="sm:col-span-2" label={tx('Firma (nome legal)', 'Registered name')} value={d.firma} onChange={(v) => set({ firma: v })} inputId="profile-name" error={nameError && !d.firma?.trim() ? tx('Indique o nome da empresa', 'Enter the company name') : undefined} hint={tx('Ex.: Construções Machava, Lda', 'E.g. Construções Machava, Lda')} />
         <Text label={tx('Nome comercial', 'Trading name')} value={d.nomeComercial} onChange={(v) => set({ nomeComercial: v })} />
@@ -292,7 +317,9 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
         <Text label={tx('N.º de inscrição no INSS', 'INSS registration number')} value={d.inss} onChange={(v) => set({ inss: v })} />
         <Text label={tx('Alvará / licença (opcional)', 'Licence (optional)')} value={d.alvara} onChange={(v) => set({ alvara: v })} />
         <Text label={tx('Capital social (opcional)', 'Share capital (optional)')} value={d.capitalSocial} onChange={(v) => set({ capitalSocial: v })} inputMode="decimal" />
+        <Text label={tx('Registo na Ordem dos Advogados (opcional)', 'Bar registration (optional)')} value={d.oamCarteira} onChange={(v) => set({ oamCarteira: v })} hint={tx('Só para sociedades de advogados.', 'Law firms only.')} />
       </Group>
+      )}
       <Group title={t('profiles.addressSection')}>
         <Text className="sm:col-span-2" label={tx('Avenida / rua', 'Avenue / street')} value={d.morada.rua} onChange={(v) => setAddr({ rua: v })} />
         <Text label={tx('Número', 'Number')} value={d.morada.numero} onChange={(v) => setAddr({ numero: v })} />
@@ -356,6 +383,8 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
         </FieldWrap>
         <Text label={tx('Naturalidade', 'Place of birth')} value={d.naturalidade} onChange={(v) => set({ naturalidade: v })} />
         <Text label={tx('Nacionalidade', 'Nationality')} value={d.nacionalidade} onChange={(v) => set({ nacionalidade: v })} hint={tx('Ex.: moçambicana', 'E.g. moçambicana')} />
+        <Text label={tx('Profissão (opcional)', 'Occupation (optional)')} value={d.profissao} onChange={(v) => set({ profissao: v })} hint={tx('Ex.: Advogado, Contabilista', 'E.g. Lawyer, Accountant')} />
+        <Text label={tx('Carteira profissional da OAM (opcional)', 'Bar card number (optional)')} value={d.oamCarteira} onChange={(v) => set({ oamCarteira: v })} hint={tx('Advogados: aparece na assinatura das peças processuais.', 'Lawyers: printed under the signature on court filings.')} />
       </Group>
       <Group title={t('profiles.addressSection')}>
         <Text className="sm:col-span-2" label={tx('Avenida / rua', 'Avenue / street')} value={d.morada.rua} onChange={(v) => setAddr({ rua: v })} />
@@ -371,7 +400,19 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
 
   const brandingTab = (
     <>
-      {company ? (
+      {publicBody ? (
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Checkbox
+              label={tx('Imprimir o emblema da República no cabeçalho', 'Print the national emblem in the header')}
+              hint={tx('Desligue se a instituição usa o seu próprio logótipo (ex.: institutos, universidades).', 'Turn off if the institution uses its own logo.')}
+              checked={d.emblema !== false}
+              onChange={(v) => set({ emblema: v })}
+            />
+          </div>
+          {d.emblema === false ? <ImageField kind="logo" label={t('profiles.logo')} hint={t('profiles.logoHelp')} branding={b} onChange={setB} /> : null}
+        </div>
+      ) : company ? (
         <>
           <RadioGroup
             legend={t('profiles.layout')}
@@ -547,7 +588,7 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
         <p className="mb-3">
           <Link to="/perfis">{t('profiles.title')}</Link>
         </p>
-        <h1 className="text-[1.9rem] sm:text-[2.3rem] font-bold">{isNew ? (company ? t('profile.createCompany') : t('profile.createPerson')) : t('profiles.edit')}</h1>
+        <h1 className="text-[1.9rem] sm:text-[2.3rem] font-bold">{isNew ? (publicBody ? t('profile.createPublic') : company ? t('profile.createCompany') : t('profile.createPerson')) : t('profiles.edit')}</h1>
         <div className="mt-6">
           <Tabs
             label={t('profiles.edit')}

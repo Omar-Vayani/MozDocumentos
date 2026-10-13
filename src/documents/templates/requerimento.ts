@@ -104,6 +104,7 @@ function empresaDesc(profile: Profile | null, v: Values): string {
 
 export default defineTemplate({
   id: 'requerimento',
+  official: 'estado',
   letterhead: false,
   sections: [
     { id: 'destinatario', title: l('A quem se dirige', 'Addressee') },

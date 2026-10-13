@@ -52,6 +52,8 @@ export type Presentation = {
   lineSpacing?: LineSpacing;
   /** Large diagonal text on every page, e.g. CÓPIA, RASCUNHO, CONFIDENCIAL. */
   watermarkText?: string;
+  /** Initials line ("Rubricas") at the foot of each page; default on for contracts. */
+  rubricas?: boolean;
 };
 
 export type Numbering = {
@@ -95,6 +97,21 @@ export type Profile = {
   representanteNome?: string;
   representanteCargo?: string;
   localPadrao?: string;
+
+  // Public body (an 'empresa' profile with tipoEntidade 'publica')
+  /** 'publica': ministry, provincial government, municipality, public institute… */
+  tipoEntidade?: 'privada' | 'publica';
+  /** Lines under "REPÚBLICA DE MOÇAMBIQUE", one per line: "MINISTÉRIO DA SAÚDE\nDIRECÇÃO NACIONAL DE…". */
+  hierarquia?: string;
+  /** Acronym used in reference numbers, e.g. "DRH/MISAU". */
+  sigla?: string;
+  /** Print the national emblem above the header (default true for public bodies). */
+  emblema?: boolean;
+
+  // Lawyers (individual or law firm)
+  /** Número da carteira profissional na Ordem dos Advogados de Moçambique. */
+  oamCarteira?: string;
+  profissao?: string;
 
   // Pessoa
   nome?: string;
@@ -217,6 +234,10 @@ export function newProfile(kind: ProfileKind, id: string): Profile {
     branding: { ...DEFAULT_BRANDING, footer: { ...DEFAULT_BRANDING.footer } },
     numbering: { prefix: kind === 'empresa' ? 'RH' : 'DOC', year: new Date().getFullYear(), counter: 0, digits: 3 },
   };
+}
+
+export function isPublicBody(p: Profile | null | undefined): boolean {
+  return p?.kind === 'empresa' && p.tipoEntidade === 'publica';
 }
 
 export function profileDisplayName(p: Profile | null | undefined): string {

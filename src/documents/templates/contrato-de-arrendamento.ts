@@ -191,6 +191,7 @@ const QUEM_PAGA = [
 
 export default defineTemplate({
   id: 'contrato-de-arrendamento',
+  family: 'contrato',
   sections: [
     { id: 'documento', title: l('Local e data', 'Place and date') },
     {

@@ -165,6 +165,31 @@ export type Block =
   | (BlockBase & { type: 'checklist'; items: { label: string; checked: boolean }[] })
   | (BlockBase & { type: 'note'; text: string; en?: string })
   | (BlockBase & { type: 'spacer'; size?: 'small' | 'medium' | 'large' })
+  /**
+   * Court filing heading: the judge addressed at the top and, for filings in a
+   * pending case, the process number above it.
+   */
+  | (BlockBase & { type: 'courtHeader'; addressee: string; processo?: string; extra?: string })
+  /**
+   * Numbered articles of a court filing ("1.º", "2.º"…). Numbering runs on
+   * across sections; each section may have a heading ("I — DOS FACTOS").
+   */
+  | (BlockBase & { type: 'articulado'; sections: { heading?: string; items: string[] }[]; start?: number })
+  /**
+   * A ruled box: the superior's "Despacho" on an informação, "Reservado ao
+   * notário", "Para uso dos serviços"… `lines` adds blank lines to write on.
+   */
+  | (BlockBase & {
+      type: 'box';
+      label: string;
+      text?: string;
+      lines?: number;
+      dashed?: boolean;
+      width?: 'full' | 'half';
+      align?: 'left' | 'right';
+    })
+  /** Small uppercase labels such as URGENTE or CONFIDENCIAL, right-aligned. */
+  | (BlockBase & { type: 'tags'; items: string[] })
   | (BlockBase & { type: 'pageBreakHint' });
 
 export type SignatureColumn = {
@@ -205,8 +230,34 @@ export type TemplateContext = {
   place: string;
 };
 
+/**
+ * Document family: a group of documents that share page conventions. The
+ * renderer adjusts spacing, indentation and decoration per family, so every
+ * contract, court filing or official letter looks the same. See docs/TEMPLATES.md.
+ */
+export type DocumentFamily =
+  | 'carta' // letters and notices (default)
+  | 'contrato' // contracts and agreements: parties, clauses, initials on each page
+  | 'declaracao' // declarations, certificates, attestations
+  | 'peca' // court filings: plain, 1.5 spacing, indented paragraphs, binding margin
+  | 'oficio' // public administration correspondence
+  | 'acta' // minutes and resolutions
+  | 'mapa' // tables and forms: payroll, leave plans, registers
+  | 'recibo'; // receipts and payslips
+
+/**
+ * Where the document is presented. Documents filed with a court, a registry,
+ * a notary or a public body carry no third-party marks and no decoration
+ * (background images, page borders, coloured headings).
+ */
+export type OfficialUse = 'tribunal' | 'estado' | 'notario' | 'registo';
+
 export type DocumentTemplate = {
   id: string;
+  /** Page conventions (default 'carta'). */
+  family?: DocumentFamily;
+  /** Set when the document is filed with a court, registry, notary or public body. */
+  official?: OfficialUse;
   /** Field sections, rendered in order as form fieldsets. */
   sections: SectionDef[];
   fields: FieldDef[];

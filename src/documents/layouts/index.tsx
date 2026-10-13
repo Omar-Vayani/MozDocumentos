@@ -5,6 +5,7 @@ import { Image, Text, View } from '@react-pdf/renderer';
 import type { ReactNode } from 'react';
 import type { Profile } from '@/lib/storage/types';
 import { profileDisplayName } from '@/lib/storage/types';
+import { EMBLEMA } from '../assets/emblema';
 import type { RenderAsset } from '../render/types';
 import { addressLine, contactsLine, legalLine } from './address';
 
@@ -146,10 +147,37 @@ export function FaixaBand({ env }: { env: LetterheadEnv }): ReactNode {
   );
 }
 
+/**
+ * Public bodies: the national emblem, "REPÚBLICA DE MOÇAMBIQUE" and the
+ * organisational hierarchy, centred, as on official correspondence. Bodies
+ * that use their own logo (institutes, universities) can turn the emblem off.
+ */
+export function RepublicaHeader({ env }: { env: LetterheadEnv }): ReactNode {
+  const { profile, logo } = env;
+  const lines = (profile.hierarquia ?? '')
+    .split(/\r?\n/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!lines.length && profile.firma) lines.push(profile.firma);
+  const mark = profile.emblema === false ? logo : EMBLEMA;
+  return (
+    <View style={{ marginBottom: 16, alignItems: 'center' }}>
+      {mark ? <Logo asset={mark} maxW={30 * MM} maxH={17 * MM} capW={30 * MM} capH={17 * MM} /> : null}
+      <Text style={{ fontSize: 10.5, fontWeight: 700, marginTop: 5, textAlign: 'center', lineHeight: 1.3 }}>REPÚBLICA DE MOÇAMBIQUE</Text>
+      {lines.slice(0, 4).map((ln, i) => (
+        <Text key={i} style={{ fontSize: 10, fontWeight: 700, textAlign: 'center', lineHeight: 1.3 }}>
+          {ln.toLocaleUpperCase('pt')}
+        </Text>
+      ))}
+      <View style={{ width: 36 * MM, height: 0.7, backgroundColor: '#111111', marginTop: 6 }} />
+    </View>
+  );
+}
+
 /** In-flow letterhead at the top of the first page. */
 export function Letterhead({ env, layout }: { env: LetterheadEnv; layout: Profile['branding']['layout'] }): ReactNode {
   const { theme, profile, logo } = env;
-  const ls = theme.logoScale;
+  const ls = theme.logoScale * (theme.compact ? 0.8 : 1);
   switch (layout) {
     case 'lateral':
       return (

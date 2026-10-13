@@ -92,6 +92,7 @@ function clauseHeading(style: 'clausula' | 'numeric' | 'artigo', i: number, item
 }
 
 const ALPHA = 'abcdefghijklmnopqrstuvwxyz';
+const MM_PT = 2.8346457;
 
 /** Estimated rendered lines of text in a column of `width` (fraction of the content width). */
 function textLines(theme: Theme, t: string | undefined, width = 1, size = theme.bodySize): number {
@@ -201,7 +202,9 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
             {/* Uppercased before layout: react-pdf measures lines before textTransform/letterSpacing. */}
             {block.text.toLocaleUpperCase('pt')}
           </Text>
-          <View style={{ width: 34, height: 1.6, backgroundColor: theme.accent, marginTop: 5 }} />
+          {theme.plain || theme.family === 'peca' || theme.family === 'oficio' ? null : (
+            <View style={{ width: 34, height: 1.6, backgroundColor: theme.accent, marginTop: 5 }} />
+          )}
           {block.subtitle ? (
             <Text style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center', color: theme.muted, marginTop: 5 }}>
               {block.subtitle}
@@ -276,7 +279,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
             style={{
               ...para(env, block.align),
               fontSize: block.size === 'small' ? theme.bodySize - 1.5 : theme.bodySize,
-              textIndent: block.indent ? 24 : 0,
+              textIndent: block.indent ? 24 : !block.align || block.align === 'justify' ? theme.indent : 0,
             }}
           />
           <Translation text={block.en} env={env} />
@@ -301,12 +304,10 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       return (
         <Fragment key={key}>
           {block.items.map((item, i) => {
-            // Keep the heading with the first paragraph of its clause so it is
-            // never left alone at the foot of a page.
-            const lines = (item.text ?? '').split(/\r?\n/);
-            const first = lines[0] ?? '';
-            const rest = lines.slice(1).join('\n');
-            const groupFirst = first.length > 0 && canKeep(theme, textLines(theme, first) * theme.bodySize * theme.lineHeight + 40);
+            // The heading needs room for at least three lines of its text below it,
+            // so it is never left alone at the foot of a page; the text itself may
+            // then run on to the next page (no large gaps before long clauses).
+            const ahead = theme.bodySize * theme.lineHeight * 3;
             const heading =
               block.style === 'numeric' ? (
                 <Text style={{ ...para(env), fontWeight: 700, marginBottom: 2, color: theme.heading }}>{clauseHeading('numeric', i, item)}</Text>
@@ -319,11 +320,10 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
             const last = i === block.items.length - 1;
             return (
               <Fragment key={item.id}>
-                <View wrap={false}>
+                <View wrap={false} minPresenceAhead={ahead}>
                   {heading}
-                  {groupFirst ? <RichText text={first} style={para(env)} /> : null}
                 </View>
-                {groupFirst ? (rest ? <RichText text={rest} style={para(env)} /> : null) : item.text ? <RichText text={item.text} style={para(env)} /> : null}
+                {item.text ? <RichText text={item.text} style={para(env)} /> : null}
                 {item.items?.map((sub, j) => (
                   <View
                     key={j}
@@ -505,7 +505,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       const roleHeight =
         Math.max(...block.columns.map((c) => textLines(theme, c.role, frac, theme.bodySize - 0.5))) * (theme.bodySize - 0.5) * 1.2;
       return (
-        <View key={key} wrap={false} style={{ marginTop: 10, marginBottom: theme.gap + 4 }}>
+        <View key={key} wrap={false} style={{ marginTop: theme.compact ? 4 : 10, marginBottom: theme.gap + 4 }}>
           {block.placeDate ? (
             <Text style={{ fontSize: theme.bodySize, marginBottom: 14 }}>{block.placeDate}</Text>
           ) : null}
@@ -549,6 +549,100 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
             <Text key={i} style={{ fontSize: theme.bodySize - 1, lineHeight: 1.35 }}>
               {`${i + 1}. ${oneLine(it)}`}
             </Text>
+          ))}
+        </View>
+      );
+
+    case 'courtHeader':
+      return (
+        <View key={key} wrap={false} style={{ marginBottom: theme.gap }}>
+          {block.processo ? (
+            <Text style={{ fontSize: theme.bodySize - 0.5, marginBottom: 12 }}>
+              <Text style={{ fontWeight: 700 }}>Processo n.º </Text>
+              {oneLine(block.processo)}
+              {block.extra ? ` — ${oneLine(block.extra)}` : ''}
+            </Text>
+          ) : null}
+          <Text style={{ fontSize: theme.bodySize, fontWeight: 700, lineHeight: 1.35, width: '78%' }}>{oneLine(block.addressee)}</Text>
+          {/* Space left blank at the top of a filing for the judge's order. */}
+          <View style={{ height: 16 * MM_PT }} />
+        </View>
+      );
+
+    case 'articulado': {
+      let n = (block.start ?? 1) - 1;
+      return (
+        <Fragment key={key}>
+          {block.sections.map((sec, si) => (
+            <Fragment key={si}>
+              {sec.heading ? (
+                <Text
+                  style={{ fontSize: theme.bodySize, fontWeight: 700, textAlign: 'center', marginTop: 6, marginBottom: theme.gap + 2 }}
+                  minPresenceAhead={60}
+                >
+                  {oneLine(sec.heading).toLocaleUpperCase('pt')}
+                </Text>
+              ) : null}
+              {sec.items.map((it, ii) => {
+                n += 1;
+                return (
+                  <View
+                    key={ii}
+                    style={{ flexDirection: 'row', marginBottom: theme.gap }}
+                    wrap={!canKeep(theme, textLines(theme, it, 0.88) * theme.bodySize * theme.lineHeight)}
+                  >
+                    <Text style={{ width: 30, fontSize: theme.bodySize, fontWeight: 700 }} minPresenceAhead={theme.bodySize * theme.lineHeight * 2}>
+                      {`${n}.º`}
+                    </Text>
+                    <View style={{ flex: 1 }}>
+                      <RichText text={it} style={para(env)} />
+                    </View>
+                  </View>
+                );
+              })}
+            </Fragment>
+          ))}
+        </Fragment>
+      );
+    }
+
+    case 'box': {
+      const lines = Math.max(0, Math.min(12, block.lines ?? 0));
+      return (
+        <View
+          key={key}
+          wrap={false}
+          style={{
+            width: block.width === 'half' ? '48%' : '100%',
+            alignSelf: block.align === 'right' ? 'flex-end' : 'flex-start',
+            borderWidth: 0.6,
+            borderStyle: block.dashed ? 'dashed' : 'solid',
+            borderColor: theme.rule,
+            paddingVertical: 6,
+            paddingHorizontal: 8,
+            marginBottom: theme.gap + 2,
+          }}
+        >
+          <Text style={{ fontSize: theme.smallSize, fontWeight: 700, color: theme.muted }}>{oneLine(block.label).toLocaleUpperCase('pt')}</Text>
+          {block.text ? <RichText text={block.text} style={{ fontSize: theme.bodySize - 1, lineHeight: 1.35, marginTop: 3 }} /> : null}
+          {Array.from({ length: lines }, (_, i) => (
+            <Fragment key={i}>
+              <View style={{ height: 15 }} />
+              <View style={{ height: 0.4, backgroundColor: theme.rule }} />
+            </Fragment>
+          ))}
+        </View>
+      );
+    }
+
+    case 'tags':
+      if (!block.items.length) return null;
+      return (
+        <View key={key} wrap={false} style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: theme.gap }}>
+          {block.items.map((t, i) => (
+            <View key={i} style={{ borderWidth: 0.8, borderColor: theme.text, paddingHorizontal: 5, paddingVertical: 1.5, marginLeft: 6 }}>
+              <Text style={{ fontSize: theme.smallSize + 0.5, fontWeight: 700 }}>{oneLine(t).toLocaleUpperCase('pt')}</Text>
+            </View>
           ))}
         </View>
       );
@@ -661,6 +755,14 @@ export function estimateHeight(b: Block, theme: Theme): number {
       return Math.max(130, 84 + Math.max(46, 40 * theme.signatureScale + 6, 58 * theme.stampScale * 0.75));
     case 'acknowledgement':
       return 60;
+    case 'courtHeader':
+      return 3 * lineH + 16 * MM_PT + (b.processo ? 20 : 0);
+    case 'articulado':
+      return b.sections.reduce((h, sec) => h + (sec.heading ? 24 : 0) + sec.items.reduce((x, it) => x + lines(it, 0.88) * lineH + theme.gap, 0), 0);
+    case 'box':
+      return 24 + lines(b.text, b.width === 'half' ? 0.45 : 0.95) * lineH + (b.lines ?? 0) * 15.4;
+    case 'tags':
+      return 20;
     case 'spacer':
       return 20;
     default:

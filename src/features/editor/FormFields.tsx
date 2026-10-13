@@ -49,11 +49,14 @@ function FieldInput({
   name,
   computedValue,
   warning,
+  split = false,
 }: {
   f: FieldDef;
   name: string;
   computedValue?: unknown;
   warning?: Warning;
+  /** Label row and input row as separate grid items (aligned across columns). */
+  split?: boolean;
 }) {
   const L = useL10n();
   const { t } = useTranslation();
@@ -119,7 +122,7 @@ function FieldInput({
   }
 
   return (
-    <FieldWrap id={`${id}-input`} label={label} hint={showHint ? hint : undefined} error={error} badge={badge}>
+    <FieldWrap id={`${id}-input`} label={label} hint={showHint ? hint : undefined} error={error} badge={badge} layout={split ? 'split' : 'stack'} after={split ? warnBox : undefined}>
       {({ id: inputId, describedBy }) => {
         const common = {
           id: inputId,
@@ -156,11 +159,11 @@ function FieldInput({
             );
             break;
           case 'date':
-            input = <TextInput {...common} type="date" value={String(value)} onChange={(e) => field.onChange(e.target.value)} className="max-w-[14rem]" />;
+            input = <TextInput {...common} type="date" value={String(value)} onChange={(e) => field.onChange(e.target.value)} className="sm:max-w-[16rem]" />;
             break;
           case 'month':
             input = (
-              <TextInput {...common} type="month" placeholder="AAAA-MM" value={String(value)} onChange={(e) => field.onChange(e.target.value)} className="max-w-[14rem]" />
+              <TextInput {...common} type="month" placeholder="AAAA-MM" value={String(value)} onChange={(e) => field.onChange(e.target.value)} className="sm:max-w-[16rem]" />
             );
             break;
           case 'money':
@@ -209,7 +212,7 @@ function FieldInput({
         return (
           <>
             {input}
-            {warnBox}
+            {split ? null : warnBox}
           </>
         );
       }}
@@ -347,8 +350,34 @@ export function SectionFields({
   const values = useWatch() as Values;
   const visible = fields.filter((f) => isFieldVisible(f, values));
   if (!visible.length) return null;
-  const width = (f: FieldDef) =>
-    f.width === 'half' ? 'sm:col-span-3' : f.width === 'third' ? 'sm:col-span-2' : 'sm:col-span-6';
+  // A select whose longest option would be cut off in a narrow column gets the full row.
+  const longest = (f: FieldDef) => Math.max(0, ...(f.options ?? []).map((o) => L(o.label).length));
+  const span = (f: FieldDef): 'full' | 'half' | 'third' => {
+    const w = f.width ?? 'full';
+    // Choice groups read badly beside a text box: give them the row.
+    if (f.type === 'radio' && w !== 'full') return 'full';
+    if (f.type === 'select' && ((w === 'half' && longest(f) > 26) || (w === 'third' && longest(f) > 14))) return 'full';
+    return w;
+  };
+  // Simple fields sit in a two-row subgrid (label | input) so inputs line up
+  // across columns even when one label wraps or has a hint.
+  const simple = (f: FieldDef) => f.type !== 'lines' && f.type !== 'toggle' && f.type !== 'radio';
+  // A half-width field with nothing beside it takes the full row instead of leaving a gap.
+  const spans = new Map<string, 'full' | 'half' | 'third'>();
+  let pos = 0; // column (of 6) where the next field starts
+  visible.forEach((f, i) => {
+    let s = span(f);
+    const next = visible[i + 1] ? span(visible[i + 1]) : undefined;
+    if (s === 'half' && pos === 0 && next !== 'half') s = 'full';
+    if (s === 'third' && pos === 0 && next !== 'third') s = next === 'half' ? 'half' : 'full';
+    spans.set(f.name, s);
+    pos = s === 'full' ? 0 : (pos + (s === 'half' ? 3 : 2)) % 6;
+  });
+  const width = (f: FieldDef) => {
+    const s = spans.get(f.name) ?? span(f);
+    const col = s === 'half' ? 'sm:col-span-3' : s === 'third' ? 'sm:col-span-2' : 'sm:col-span-6';
+    return simple(f) ? `${col} sm:grid sm:grid-rows-subgrid sm:row-span-2` : `${col} sm:row-span-2 pb-5`;
+  };
   return (
     <fieldset className="mb-8 border-t-2 border-border-strong pt-4" aria-labelledby={`sec-${section.id}`}>
       <legend className="sr-only">{L(section.title)}</legend>
@@ -357,7 +386,7 @@ export function SectionFields({
       </h2>
       {section.description ? <p className="text-muted mb-3">{L(section.description)}</p> : <div className="mb-3" />}
       {section.personRole ? <PersonPicker section={section} fields={fields} /> : null}
-      <div className="grid gap-5 sm:grid-cols-6">
+      <div className="grid gap-x-5 gap-y-0 sm:grid-cols-6">
         {visible.map((f) => (
           <div key={f.name} className={width(f)}>
             {f.type === 'lines' ? (
@@ -368,6 +397,7 @@ export function SectionFields({
                 name={f.name}
                 computedValue={f.computedKey ? computed[f.computedKey] : undefined}
                 warning={warnings.find((w) => w.field === f.name)}
+                split={simple(f)}
               />
             )}
           </div>

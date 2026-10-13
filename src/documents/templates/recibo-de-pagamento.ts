@@ -35,6 +35,7 @@ const clean = (s: unknown) => String(s ?? '').trim().replace(/[.;]+$/, '');
 
 export default defineTemplate({
   id: 'recibo-de-pagamento',
+  family: 'recibo',
   sections: [
     { id: 'documento', title: l('Recibo', 'Receipt') },
     { id: 'recebedor', title: l('Quem recebe', 'Received by') },

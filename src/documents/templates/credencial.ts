@@ -44,6 +44,7 @@ function issuerText(p: Profile | null): { pt: string; en: string; fem: boolean }
 
 export default defineTemplate({
   id: 'credencial',
+  family: 'declaracao',
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'credenciado', title: l('Pessoa credenciada', 'Authorised person'), personRole: 'trabalhador' },

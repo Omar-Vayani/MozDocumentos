@@ -33,6 +33,15 @@ each package under `node_modules/<package>/LICENSE`) with any distribution.
 
 The fonts are embedded in generated PDFs, which their licences permit.
 
+## National emblem
+
+The image of the Emblema da República de Moçambique (Constituição da
+República, art. 306.º in the 2023 republication) printed on public-body
+letterheads was rasterised from `dist/coats/MZ.svg` in the
+[`coat-of-arms`](https://www.npmjs.com/package/coat-of-arms) package (MIT
+licence). The emblem itself is a State symbol: the app offers it only on
+profiles of public bodies.
+
 ## Build and test tools (not shipped)
 
 Vite, TypeScript, Tailwind CSS, Vitest, Playwright, axe-core and

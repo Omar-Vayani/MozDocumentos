@@ -7,14 +7,12 @@
 // n.º 165, 2.º Suplemento. Entered into force 180 days after publication
 // (21 February 2024) and revoked Lei n.º 23/2007.
 
-import type { L10n } from '@/documents/model';
+import type { Confidence, LawInfo, LegalEntryDef } from './types';
+import { LAWS_EXTRA, LEGAL_EXTRA } from './extra';
 
-export type Confidence = 'verified' | 'confirm';
+export type { Confidence, LawInfo };
 
-export type LawId = 'lei13_2023' | 'codigoCivil' | 'cirps' | 'inss' | 'salarioMinimo2026' | 'codigoComercial' | 'rtd2008' | 'rtd2026'
-  | 'cis' | 'lei22_2009' | 'lei14_2011' | 'codigoNotariado' | 'civa';
-
-export const LAWS: Record<LawId, { short: string; cite: string; title: string; url?: string }> = {
+const CORE_LAWS = {
   lei13_2023: {
     short: 'Lei n.º 13/2023',
     cite: 'da Lei n.º 13/2023',
@@ -90,26 +88,21 @@ export const LAWS: Record<LawId, { short: string; cite: string; title: string; u
     title: 'Código do Imposto sobre o Valor Acrescentado (republicado pela Lei n.º 22/2022, de 28 de Dezembro, em vigor desde 1 de Janeiro de 2023)',
     url: 'https://www.at.gov.mz',
   },
-};
+} satisfies Record<string, LawInfo>;
+
+/** Every law the app cites: core plus per-category files in ./extra. */
+const ALL_LAWS = { ...CORE_LAWS, ...LAWS_EXTRA };
+export type LawId = keyof typeof ALL_LAWS;
+export const LAWS: Record<LawId, LawInfo> = ALL_LAWS;
 
 export const LAW_IN_FORCE_SINCE = '2024-02-21';
 
-export type LegalEntry = {
-  title: L10n;
-  summary: L10n;
-  law: LawId;
-  article?: string;
-  value?: unknown;
-  sourceUrl?: string;
-  lastVerified: string;
-  confidence: Confidence;
-  note?: L10n;
-};
+export type LegalEntry = Omit<LegalEntryDef, 'law'> & { law: LawId };
 
 const LEI = LAWS.lei13_2023.url;
 const V = '2026-10-12';
 
-export const LEGAL = {
+const CORE_LEGAL = {
   // ------------------------------------------------------------------ General
   leiTrabalho: {
     title: { pt: 'Lei do Trabalho', en: 'Labour Law' },
@@ -1011,6 +1004,9 @@ export const LEGAL = {
   },
 } satisfies Record<string, LegalEntry>;
 
+/** Every legal value: core plus per-category files in ./extra. */
+export const LEGAL = { ...CORE_LEGAL, ...LEGAL_EXTRA };
+
 export type LegalRefId = keyof typeof LEGAL;
 
 export function legalEntry(id: LegalRefId): LegalEntry {
@@ -1106,6 +1102,6 @@ export function resolveLegalValue(id: LegalRefId, o: LegalOverrides = {}): unkno
 
 export function legalCitation(id: LegalRefId): string {
   const e = legalEntry(id);
-  const law = LAWS[e.law];
+  const law = LAWS[e.law] ?? { short: '', cite: '' };
   return e.article ? `${e.article} ${law.cite}` : law.short;
 }

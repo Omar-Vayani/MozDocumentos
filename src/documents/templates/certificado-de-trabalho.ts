@@ -20,6 +20,7 @@ const dataOuTexto = (v: unknown) => {
 
 export default defineTemplate({
   id: 'certificado-de-trabalho',
+  family: 'declaracao',
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'trabalhador', title: l('Trabalhador', 'Employee'), personRole: 'trabalhador' },

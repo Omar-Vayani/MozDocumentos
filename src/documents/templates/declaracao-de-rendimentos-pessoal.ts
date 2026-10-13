@@ -98,6 +98,7 @@ const FINALIDADES: Record<string, { pt: string; en: string }> = {
 
 export default defineTemplate({
   id: 'declaracao-de-rendimentos-pessoal',
+  family: 'declaracao',
   letterhead: false,
   sections: [
     { id: 'documento', title: l('Local e data', 'Place and date') },

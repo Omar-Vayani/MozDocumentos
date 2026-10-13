@@ -3,7 +3,7 @@
 import { Document, pdf } from '@react-pdf/renderer';
 import { buildBlocks, buildContext } from '../context';
 import { loadTemplate } from '../registry';
-import { DocumentPdf } from './DocumentPdf';
+import { DocumentPdf, pdfMetadata } from './DocumentPdf';
 import { registerFontGeneration } from './fonts';
 import type { RenderInput, RenderResult } from './types';
 
@@ -31,7 +31,7 @@ export async function renderBatchPdf(inputs: RenderInput[], title: string): Prom
     pages.push(<DocumentPdf key={i} input={input} template={template} blocks={blocks} refNumber={ref} families={families} pageOnly />);
   }
   const doc = (
-    <Document title={title} creator="Documentos MZ" producer="Documentos MZ" language="pt-MZ">
+    <Document {...pdfMetadata(title, inputs[0].profile?.firma || inputs[0].profile?.nome, undefined, undefined)}>
       {pages}
     </Document>
   );

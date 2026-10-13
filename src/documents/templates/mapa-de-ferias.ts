@@ -34,6 +34,7 @@ function contarDias(inicio: string, fim: string, feriados: string[]): { dias: nu
 
 export default defineTemplate({
   id: 'mapa-de-ferias',
+  family: 'mapa',
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'ferias', title: l('Períodos de férias', 'Leave periods') },

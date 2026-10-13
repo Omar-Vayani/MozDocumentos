@@ -44,6 +44,7 @@ const [fNome, fGenero, fEstadoCivil, fNacionalidade, fDocTipo, fDocNumero, fDocE
 
 export default defineTemplate({
   id: 'declaracao-de-quitacao',
+  family: 'declaracao',
   letterhead: false,
   sections: [
     { id: 'trabalhador', title: l('Trabalhador (quem declara)', 'Employee (declarant)'), personRole: 'trabalhador' },

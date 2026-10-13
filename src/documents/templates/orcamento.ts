@@ -19,6 +19,7 @@ type Linha = { descricao: string; quantidade: number; unidade: string; preco: nu
 
 export default defineTemplate({
   id: 'orcamento',
+  family: 'mapa',
   sections: [
     { id: 'documento', title: l('Orçamento', 'Quote') },
     { id: 'cliente', title: l('Cliente', 'Customer'), personRole: 'cliente' },

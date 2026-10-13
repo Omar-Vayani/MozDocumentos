@@ -42,6 +42,7 @@ const textField = (name: string, section: string, label: [string, string], extra
 
 export default defineTemplate({
   id: 'ficha-de-admissao',
+  family: 'mapa',
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'trabalhador', title: l('Dados pessoais', 'Personal details'), personRole: 'trabalhador' },

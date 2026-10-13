@@ -1,10 +1,12 @@
-import { Document, Image, Page, Text, View } from '@react-pdf/renderer';
-import { profileDisplayName, type Presentation } from '@/lib/storage/types';
+import { Document, Image, Link, Page, Text, View } from '@react-pdf/renderer';
+import { OWNER } from '@/app/owner';
+import { isPublicBody, profileDisplayName, type Presentation } from '@/lib/storage/types';
 import { renderBlocks, type BlockEnv } from '../blocks';
-import { estimateLines, FaixaBand, footerLines, Letterhead, type LetterheadEnv } from '../layouts';
+import { estimateLines, FaixaBand, footerLines, Letterhead, RepublicaHeader, type LetterheadEnv } from '../layouts';
 import type { Block } from '../model';
 import type { FullTemplate } from '../registry';
 import type { FontFamilies } from './fonts';
+import { documentId } from './docId';
 import { A4, MM, makeTheme } from './theme';
 import type { RenderInput } from './types';
 
@@ -22,10 +24,18 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
   const { profile, assets } = input;
   const branding = profile?.branding;
   const presentation = (input.values.__presentation ?? {}) as Presentation;
-  const theme = makeTheme(branding, families, presentation);
+  const publicBody = isPublicBody(profile);
+  // Filed with a court, registry, notary or public body: no third-party marks, no decoration.
+  const official = Boolean(template.official);
+  const family = template.family ?? 'carta';
+  const theme = makeTheme(branding, families, presentation, { family, plain: official || publicBody });
   const isCompany = profile?.kind === 'empresa';
   const showLetterhead = isCompany && template.letterhead !== false;
   const layout = branding?.layout ?? 'classico';
+  // The small Documents MZ line is left off official documents and anything a public body issues.
+  const brandLine = !official && !publicBody;
+  const docId = documentId(template.id, input.values, profile?.id);
+  const rubricas = presentation.rubricas ?? family === 'contrato';
   const asset = (id?: string) => (id ? assets[id] : undefined);
 
   const lhEnv: LetterheadEnv | null =
@@ -42,15 +52,16 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
 
   // Footer: fixed on every page; its height is reserved in the bottom padding.
   const fLines = showLetterhead ? footerLines(profile, layout) : [];
-  const footerImg = showLetterhead ? asset(branding?.footerAssetId) : undefined;
+  const footerImg = showLetterhead && !official ? asset(branding?.footerAssetId) : undefined;
   const footerImgH = footerImg ? Math.min((A4.width * footerImg.height) / Math.max(1, footerImg.width), 30 * MM) : 0;
   const pageNumbers = !pageOnly && (branding?.pageNumbers ?? true);
   const lineCount = fLines.reduce((n, l) => n + Math.min(2, estimateLines(l, theme.contentWidth - (pageNumbers ? 95 : 5))), 0);
   const footerTextH = lineCount * 10 + (pageNumbers || lineCount ? 10 : 0);
   const footerBottom = footerImgH + 8 * MM;
-  const paddingBottom = Math.max(theme.margin.bottom, footerBottom + footerTextH + 5 * MM);
+  const rubricasH = rubricas ? 16 : 0;
+  const paddingBottom = Math.max(theme.margin.bottom, footerBottom + footerTextH + rubricasH + 5 * MM);
 
-  const watermark = showLetterhead ? asset(branding?.watermarkAssetId) : undefined;
+  const watermark = showLetterhead && !official ? asset(branding?.watermarkAssetId) : undefined;
   const wmBox = { w: A4.width - 50 * MM, h: A4.height - 80 * MM };
   let wmW = wmBox.w;
   let wmH = watermark ? (wmW * watermark.height) / Math.max(1, watermark.width) : 0;
@@ -101,7 +112,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
         {wmText ? (
           <View
             fixed
-            style={{ position: 'absolute', top: 0, left: 0, width: A4.width, height: A4.height, alignItems: 'center', justifyContent: 'center' }}
+            style={{ position: 'absolute', top: 0, left: 0, width: A4.width, height: A4.height, alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
           >
             <Text
               style={{
@@ -117,7 +128,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
           </View>
         ) : null}
 
-        {branding?.pageBorder ? (
+        {branding?.pageBorder && !official ? (
           <View
             fixed
             style={{
@@ -132,7 +143,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
           />
         ) : null}
 
-        {lhEnv && layout === 'faixa' ? (
+        {lhEnv && layout === 'faixa' && !publicBody ? (
           <View
             fixed
             style={{ position: 'absolute', top: 0, left: 0, width: A4.width }}
@@ -145,6 +156,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
           fixed
           style={{
             position: 'absolute',
+            lineHeight: 1.2,
             top: Math.max(8 * MM, theme.margin.top - 12 * MM),
             left: theme.margin.left,
             right: theme.margin.right,
@@ -153,6 +165,9 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
             pageNumber > 1 ? (
               <View
                 style={{
+                  // Fixed elements must not inherit the page line height: react-pdf
+                  // compounds it on every page until the box size overflows.
+                  lineHeight: 1.2,
                   flexDirection: 'row',
                   justifyContent: 'space-between',
                   borderBottomWidth: 0.5,
@@ -171,7 +186,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
           }
         />
 
-        {lhEnv ? <Letterhead env={lhEnv} layout={layout} /> : null}
+        {lhEnv ? publicBody ? <RepublicaHeader env={lhEnv} /> : <Letterhead env={lhEnv} layout={layout} /> : null}
 
         {renderBlocks(blocks, blockEnv)}
 
@@ -191,6 +206,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
             position: 'absolute',
             top: A4.height - footerBottom - footerTextH,
             height: footerTextH,
+            lineHeight: 1.35,
             left: theme.margin.left,
             right: theme.margin.right,
             borderTopWidth: fLines.length ? 0.5 : 0,
@@ -218,12 +234,61 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
               top: A4.height - footerBottom - 10,
               right: theme.margin.right,
               width: 80,
+              lineHeight: 1.2,
               fontSize: 7.5,
               color: theme.muted,
               textAlign: 'right',
             }}
             render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`}
           />
+        ) : null}
+
+        {/* Initials line on every page but the last, where the parties sign in full. */}
+        {rubricas ? (
+          <Text
+            fixed
+            style={{
+              position: 'absolute',
+              top: A4.height - footerBottom - footerTextH - rubricasH,
+              right: theme.margin.right,
+              lineHeight: 1.2,
+              fontSize: 7.5,
+              color: theme.muted,
+              textAlign: 'right',
+            }}
+            render={({ pageNumber, totalPages }) => (pageNumber < totalPages ? 'Rubricas: ____________   ____________' : '')}
+          />
+        ) : null}
+
+        {brandLine ? (
+          <View
+            fixed
+            style={{
+              position: 'absolute',
+              top: A4.height - footerImgH - 5.6 * MM,
+              lineHeight: 1.2,
+              left: theme.margin.left,
+              right: theme.margin.right,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              {/* The app's tricolour mark: a long green rule, then yellow and red. */}
+              <View style={{ width: 14, height: 1.3, backgroundColor: '#0b5a40' }} />
+              <View style={{ width: 4, height: 1.3, backgroundColor: '#f2b81c', marginLeft: 1.5 }} />
+              <View style={{ width: 4, height: 1.3, backgroundColor: '#c8102e' }} />
+              {OWNER.website ? (
+                <Link src={`https://${OWNER.website}`} style={{ fontSize: 5.6, color: '#8a9089', marginLeft: 4, textDecoration: 'none' }}>
+                  {`${OWNER.product} · ${OWNER.website}`}
+                </Link>
+              ) : (
+                <Text style={{ fontSize: 5.6, color: '#8a9089', marginLeft: 4 }}>{OWNER.product}</Text>
+              )}
+            </View>
+            <Text style={{ fontSize: 5.6, color: '#8a9089' }}>{docId}</Text>
+          </View>
         ) : null}
 
         {footerImg ? (
@@ -237,14 +302,22 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
   );
   if (pageOnly) return page;
   return (
-    <Document
-      title={template.formalTitle}
-      author={profileDisplayName(profile) || undefined}
-      creator="Documentos MZ — Omar Vayani"
-      producer="Documentos MZ"
-      language="pt-MZ"
-    >
+    <Document {...pdfMetadata(template.formalTitle, profileDisplayName(profile), refNumber, docId, template.category)}>
       {page}
     </Document>
   );
+}
+
+/** PDF document properties: who made it, with what, and its document ID. */
+export function pdfMetadata(title: string, author: string | undefined, ref: string | undefined, docId: string | undefined, category?: string) {
+  const site = OWNER.website ? ` (${OWNER.website})` : '';
+  return {
+    title,
+    author: author || undefined,
+    subject: [title, ref ? `Ref. ${ref}` : '', docId].filter(Boolean).join(' — '),
+    keywords: ['Documentos MZ', 'Moçambique', category, docId].filter(Boolean).join(', '),
+    creator: `${OWNER.product}${site} — © ${OWNER.name}`,
+    producer: `${OWNER.product} ${OWNER.version}`,
+    language: 'pt-MZ',
+  };
 }

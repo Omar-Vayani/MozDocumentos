@@ -61,6 +61,7 @@ const MODO: Record<string, string> = {
 
 export default defineTemplate({
   id: 'recibo-de-renda',
+  family: 'recibo',
   sections: [
     { id: 'documento', title: l('Recibo', 'Receipt') },
     {

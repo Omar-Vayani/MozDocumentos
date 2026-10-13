@@ -12,6 +12,7 @@ type ProbatorioCat = 'geral' | 'tecnicoMedio' | 'tecnicoSuperior';
 
 export default defineTemplate({
   id: 'contrato-indeterminado',
+  family: 'contrato',
   sections: [
     CONTRATO_SECTIONS.documento,
     CONTRATO_SECTIONS.trabalhador,

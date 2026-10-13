@@ -52,6 +52,7 @@ function eventoPadrao(v: Values): string {
 
 export default defineTemplate({
   id: 'contrato-prazo-incerto',
+  family: 'contrato',
   sections: [
     CONTRATO_SECTIONS.documento,
     CONTRATO_SECTIONS.trabalhador,

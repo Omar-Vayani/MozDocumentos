@@ -34,6 +34,7 @@ function longerThan(v: Values, inicio: string | undefined, fim: string | null, m
 
 export default defineTemplate({
   id: 'contrato-prazo-certo',
+  family: 'contrato',
   sections: [
     CONTRATO_SECTIONS.documento,
     CONTRATO_SECTIONS.trabalhador,

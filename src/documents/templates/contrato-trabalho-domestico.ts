@@ -137,6 +137,7 @@ type Horas = { horasDia: number; horasSemana: number };
 
 export default defineTemplate({
   id: 'contrato-trabalho-domestico',
+  family: 'contrato',
   letterhead: false,
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },

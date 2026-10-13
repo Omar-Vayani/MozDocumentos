@@ -5,7 +5,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { CATALOG, getMeta } from '@/features/catalog/catalog';
-import { LEGAL } from '@/legal/mz-legal';
+import { LAWS, LEGAL } from '@/legal/mz-legal';
 import { companyProfile, fixtureValues, personProfile } from '@/test/fixtures';
 import { buildBlocks, buildContext, defaultValues, editableTexts } from '../context';
 import { AVAILABLE_TEMPLATE_IDS, loadTemplate } from '../registry';
@@ -88,6 +88,20 @@ describe('catalogue', () => {
       for (const r of m.legalRefs) expect(r in LEGAL, `${m.id} → ${r}`).toBe(true);
       for (const r of m.related ?? []) expect(getMeta(r), `${m.id} related ${r}`).toBeTruthy();
       expect(m.tags.length, `${m.id} tags`).toBeGreaterThan(3);
+    }
+  });
+
+  it('has a template file for every catalogue entry and no orphan template', () => {
+    expect(AVAILABLE_TEMPLATE_IDS.filter((id) => !getMeta(id))).toEqual([]);
+  });
+});
+
+describe('legal config', () => {
+  it('cites only known laws and never an article when unconfirmed is required', () => {
+    for (const [id, e] of Object.entries(LEGAL)) {
+      expect(e.law in LAWS, `${id} → law ${e.law}`).toBe(true);
+      expect(['verified', 'confirm'], id).toContain(e.confidence);
+      expect(e.title.pt && e.title.en && e.summary.pt && e.summary.en, `${id} texts`).toBeTruthy();
     }
   });
 });

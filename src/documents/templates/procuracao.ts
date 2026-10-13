@@ -84,6 +84,8 @@ function deEntidade(e: string): string {
 
 export default defineTemplate({
   id: 'procuracao',
+  family: 'declaracao',
+  official: 'notario',
   letterhead: false,
   sections: [
     { id: 'documento', title: l('Local e data', 'Place and date') },

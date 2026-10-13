@@ -51,6 +51,7 @@ type Prestacao = { n: number; data: string; valor: number };
 
 export default defineTemplate({
   id: 'declaracao-de-divida',
+  family: 'declaracao',
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'devedor', title: l('Devedor (quem deve)', 'Debtor (who owes)'), personRole: 'outro' },

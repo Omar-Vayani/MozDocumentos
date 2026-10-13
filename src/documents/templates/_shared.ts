@@ -229,3 +229,73 @@ export function workerSignature(v: Values, role?: string, prefix = 'trabalhador'
   const f = isF(v[`${prefix}Genero`]);
   return { role: role ?? (f ? 'A Trabalhadora' : 'O Trabalhador'), name: (v[`${prefix}Nome`] as string) || undefined };
 }
+
+// ---------------------------------------------------------------- Lawyers
+
+/**
+ * Lawyer identification fields (`advogadoNome`, `advogadoGenero`,
+ * `advogadoCarteira`, `advogadoDomicilio`, `advogadoContacto`), defaulted from a
+ * personal profile with an OAM card number, or from a law firm profile.
+ */
+export function lawyerFields(section = 'advogado'): FieldDef[] {
+  const pessoa = (c: { profile: Profile | null }) => (c.profile?.kind === 'pessoa' ? c.profile : null);
+  return [
+    { name: 'advogadoNome', type: 'text', section, label: l('Nome do advogado', "Lawyer's name"), width: 'half', default: (c) => pessoa(c)?.nome ?? c.profile?.representanteNome ?? '' },
+    {
+      name: 'advogadoGenero',
+      type: 'radio',
+      section,
+      label: l('Tratamento', 'Form of address'),
+      options: GENERO_OPTIONS,
+      default: (c) => pessoa(c)?.genero ?? 'M',
+    },
+    {
+      name: 'advogadoCarteira',
+      type: 'text',
+      section,
+      label: l('Carteira profissional (OAM) n.º', 'Bar card number (OAM)'),
+      width: 'half',
+      legal: l('Identifica o advogado inscrito na Ordem dos Advogados de Moçambique.', 'Identifies the lawyer registered with the Mozambican Bar.'),
+      default: (c) => c.profile?.oamCarteira ?? '',
+    },
+    {
+      name: 'advogadoDomicilio',
+      type: 'text',
+      section,
+      label: l('Domicílio profissional (escritório)', 'Office address'),
+      width: 'half',
+      default: (c) => (c.profile ? addressLine(c.profile) : ''),
+    },
+    { name: 'advogadoContacto', type: 'text', section, label: l('Telefone / email (opcional)', 'Phone / email (optional)'), width: 'half', default: (c) => [c.profile?.telefones, c.profile?.email].filter(Boolean).join(' · ') },
+  ];
+}
+
+/** Signature column for court filings: "O Advogado", name, "Carteira Profissional n.º … — OAM". */
+export function lawyerSignature(v: Values): SignatureColumn {
+  const f = isF(v.advogadoGenero);
+  const carteira = (v.advogadoCarteira as string | undefined)?.trim();
+  return {
+    role: f ? 'A Advogada' : 'O Advogado',
+    name: (v.advogadoNome as string) || undefined,
+    detail: `Carteira Profissional n.º ${carteira || '________'} — OAM`,
+    image: 'signature',
+  };
+}
+
+// ---------------------------------------------------------------- Public bodies
+
+/** Name of the issuing public body (or company), for "A Direcção …" phrases. */
+export function entityName(ctx: TemplateContext): string {
+  return profileDisplayName(ctx.profile) || BLANK;
+}
+
+/**
+ * Official reference such as "Ofício n.º 014/DPS-NPL/2026". Uses the number the
+ * user typed (or the profile's next number) and the profile acronym.
+ */
+export function officialRef(ctx: TemplateContext, kind: string, numero?: unknown): string {
+  const n = (typeof numero === 'string' && numero.trim()) || '____';
+  const sigla = ctx.profile?.sigla?.trim();
+  const year = (ctx.today || '').slice(0, 4);
+  return `${kind} n.º ${n}${sigla ? `/${sigla}` : ''}/${year}`;
+}

@@ -33,6 +33,7 @@ const ouList = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -
 
 export default defineTemplate({
   id: 'termo-de-entrega',
+  family: 'contrato',
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'entrega', title: l('Quem entrega', 'Handed over by') },

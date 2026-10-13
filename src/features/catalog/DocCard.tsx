@@ -27,7 +27,7 @@ export function DocListItem({ m, headingLevel = 3 }: { m: TemplateMeta; headingL
           {m.formalTitle !== L(m.title) ? <p className="text-muted text-[0.95rem]">{m.formalTitle}</p> : null}
           <p className="mt-1 leading-snug">{L(m.summary)}</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
-            <Tag>{m.audience === 'empresa' ? t('catalog.forCompany') : m.audience === 'pessoa' ? t('catalog.forPerson') : t('catalog.forBoth')}</Tag>
+            <Tag>{t(`catalog.for.${m.audience}`)}</Tag>
             {!available ? <Tag tone="amber">{t('catalog.soon')}</Tag> : null}
           </div>
         </div>

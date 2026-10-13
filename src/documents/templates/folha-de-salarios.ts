@@ -36,6 +36,7 @@ const sumOf = (rows: Linha[], k: keyof Linha) => roundMoney(rows.reduce((t, r) =
 
 export default defineTemplate({
   id: 'folha-de-salarios',
+  family: 'mapa',
   sections: [
     { id: 'documento', title: l('Período e pagamento', 'Period and payment') },
     { id: 'trabalhadores', title: l('Trabalhadores', 'Employees') },

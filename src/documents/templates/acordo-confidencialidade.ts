@@ -60,6 +60,7 @@ const parc = (name: string, type: FieldDef['type'], label: [string, string], sho
 
 export default defineTemplate({
   id: 'acordo-confidencialidade',
+  family: 'contrato',
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'contraparte', title: l('Quem assina o compromisso', 'Who signs the undertaking') },

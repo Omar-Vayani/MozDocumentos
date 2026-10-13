@@ -66,6 +66,7 @@ const singularOnly = (f: FieldDef): FieldDef => ({ ...f, showIf: isSingular });
 
 export default defineTemplate({
   id: 'contrato-prestacao-servicos',
+  family: 'contrato',
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'prestador', title: l('Prestador de serviços', 'Service provider'), personRole: 'outro' },

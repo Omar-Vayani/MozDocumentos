@@ -64,6 +64,7 @@ function chunk<T>(arr: T[], n: number): T[][] {
 
 export default defineTemplate({
   id: 'acta',
+  family: 'acta',
   sections: [
     { id: 'reuniao', title: l('Reunião', 'Meeting') },
     { id: 'mesa', title: l('Mesa e presenças', 'Chair and attendance') },

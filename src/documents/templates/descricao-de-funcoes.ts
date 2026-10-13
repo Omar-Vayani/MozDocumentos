@@ -6,6 +6,7 @@ const sentence = (s: string) => (/[.!?:]$/.test(s) ? s : `${s}.`);
 
 export default defineTemplate({
   id: 'descricao-de-funcoes',
+  family: 'mapa',
   sections: [
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'cargo', title: l('Identificação do cargo', 'Position') },
