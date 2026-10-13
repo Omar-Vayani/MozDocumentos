@@ -175,10 +175,10 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
                   paddingBottom: 2,
                 }}
               >
-                <Text style={{ fontSize: 7.5, color: theme.muted, maxWidth: '62%', maxLines: 1, textOverflow: 'ellipsis' }}>
+                <Text style={{ fontSize: 7.5, color: theme.muted, width: '60%', maxLines: 1, textOverflow: 'ellipsis' }}>
                   {runningLeft}
                 </Text>
-                <Text style={{ fontSize: 7.5, color: theme.muted, maxWidth: '36%', textAlign: 'right', maxLines: 1, textOverflow: 'ellipsis' }}>
+                <Text style={{ fontSize: 7.5, color: theme.muted, width: '38%', textAlign: 'right', maxLines: 1, textOverflow: 'ellipsis' }}>
                   {template.formalTitle}
                 </Text>
               </View>

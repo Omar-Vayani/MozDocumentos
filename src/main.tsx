@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
-import './i18n';
+import { languageReady } from './i18n';
 import './app/index.css';
 import { router } from './app/router';
 import { applyTheme, usePrefs } from './app/store';
@@ -18,10 +18,13 @@ router.subscribe((state) => {
   }
 });
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>,
+// Render once the saved interface language is loaded (English is fetched on demand).
+void languageReady.then(() =>
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <RouterProvider router={router} />
+    </StrictMode>,
+  ),
 );
 
 registerPwa();

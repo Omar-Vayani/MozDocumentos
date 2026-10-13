@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import i18n, { initialLang, type Lang } from '@/i18n';
+import { initialLang, loadLanguage, type Lang } from '@/i18n';
 
 export type ThemePref = 'system' | 'light' | 'dark';
 
@@ -30,7 +30,7 @@ export const usePrefs = create<Prefs>()(
       activeProfileId: null,
       readingAid: false,
       setLang: (lang) => {
-        void i18n.changeLanguage(lang);
+        void loadLanguage(lang);
         document.documentElement.lang = lang === 'pt' ? 'pt-MZ' : 'en';
         set({ lang });
       },

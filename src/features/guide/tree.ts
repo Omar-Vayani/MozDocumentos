@@ -203,6 +203,10 @@ export const GUIDE: Record<string, GuideNode> = {
         label: l('Registar os dados de quem entrou', 'Record a new employee’s details'),
         result: { doc: 'ficha-de-admissao', why: l('Reúne os dados pessoais, NUIT, INSS, banco e contacto de emergência.', 'Collects personal details, NUIT, INSS, bank and emergency contact.') },
       },
+      { id: 'estagio', label: l('Receber um estagiário', 'Take on an intern'), result: { doc: 'contrato-estagio', why: l('Estágio com plano, orientador, duração e bolsa.', 'Internship with plan, supervisor, duration and allowance.') } },
+      { id: 'parcial', label: l('Contrato a tempo parcial', 'Part-time contract'), result: { doc: 'contrato-tempo-parcial', why: l('Horário reduzido com remuneração proporcional.', 'Reduced hours with proportional pay.') } },
+      { id: 'teletrabalho', label: l('Trabalho a partir de casa', 'Working from home'), result: { doc: 'acordo-teletrabalho', why: l('Regras de teletrabalho: equipamento, horário, despesas e controlo.', 'Telework rules: equipment, hours, expenses and monitoring.') } },
+      { id: 'estrangeiro', label: l('Contratar um estrangeiro', 'Hire a foreign national'), result: { doc: 'contratacao-estrangeiro', why: l('Pedido ou comunicação à administração do trabalho, dentro das quotas.', 'Request or notice to the labour administration, within quotas.') } },
     ],
   },
   'empresa-pagar': {
@@ -214,6 +218,7 @@ export const GUIDE: Record<string, GuideNode> = {
       { id: 'trabalha', label: l('Confirmar que alguém trabalha aqui', 'Confirm someone works here'), result: { doc: 'declaracao-de-trabalho', why: l('Declara o vínculo, a função e a data de admissão.', 'States the employment, role and start date.') } },
       { id: 'adiantamento', label: l('Adiantar parte do salário', 'Advance part of a salary'), result: { doc: 'adiantamento-salarial', why: l('Regista o pedido, a autorização e como será descontado.', 'Records the request, approval and how it will be deducted.') } },
       { id: 'outro', label: l('Recibo de outro pagamento', 'Receipt for another payment'), result: { doc: 'recibo-de-pagamento', why: l('Um recibo simples para qualquer valor recebido.', 'A simple receipt for any amount received.') } },
+      { id: 'promocao', label: l('Promover ou mudar de categoria', 'Promote or change category'), result: { doc: 'carta-promocao', why: l('Nova categoria, funções e salário, por escrito.', 'New category, duties and pay, in writing.') } },
     ],
   },
   'empresa-ferias': {
@@ -224,6 +229,7 @@ export const GUIDE: Record<string, GuideNode> = {
       { id: 'pedido', label: l('Um formulário de pedido de férias', 'A leave request form'), result: { doc: 'pedido-de-ferias', why: l('O trabalhador preenche e a chefia decide no mesmo documento.', 'The employee fills it in and the manager decides on the same form.') } },
       { id: 'falta', label: l('Um trabalhador faltou', 'An employee was absent'), result: { doc: 'justificacao-de-falta', why: l('Regista o motivo da falta e a decisão: justificada ou injustificada.', 'Records the reason and the decision: justified or not.') } },
       { id: 'parental', label: l('Licença de maternidade ou paternidade', 'Maternity or paternity leave'), result: { doc: 'licenca-parental', why: l('Calcula as datas da licença de acordo com a lei.', 'Calculates the leave dates under the law.') } },
+      { id: 'horario', label: l('Afixar o horário de trabalho', 'Post the working hours'), result: { doc: 'mapa-horario-trabalho', why: l('Mapa de horário com intervalos e descanso semanal.', 'Working-hours schedule with breaks and weekly rest.') } },
     ],
   },
   'empresa-disciplinar': {
@@ -266,6 +272,7 @@ export const GUIDE: Record<string, GuideNode> = {
       { id: 'acordo', label: l('De comum acordo com o trabalhador', 'By mutual agreement'), result: { doc: 'acordo-de-revogacao', why: l('Regista a data de fim e a compensação acordada, assinado pelas duas partes.', 'Records the end date and agreed compensation, signed by both.'), also: ['certificado-de-trabalho', 'declaracao-de-quitacao'] } },
       { id: 'despedir', label: l('Despedimento por falta grave', 'Dismissal for serious misconduct'), result: { doc: 'nota-de-culpa', why: l('Só é possível com processo disciplinar, que começa com a nota de culpa.', 'Only possible through a disciplinary procedure, starting with the charge.'), process: 'despedimento-justa-causa' } },
       { id: 'saiu', label: l('O trabalhador já saiu', 'The employee has already left'), result: { doc: 'certificado-de-trabalho', why: l('A lei obriga a entregar um certificado de trabalho em qualquer cessação.', 'The law requires a certificate of employment on any termination.'), also: ['declaracao-de-quitacao'] } },
+      { id: 'economicos', label: l('Reduzir pessoal por motivos económicos', 'Lay off staff for economic reasons'), result: { doc: 'rescisao-motivos-economicos', why: l('Aviso ao trabalhador, ao órgão sindical e ao ministério, com a indemnização calculada.', 'Notice to the worker, the union and the ministry, with the compensation calculated.') } },
     ],
   },
   'empresa-outro': {
@@ -290,6 +297,7 @@ export const GUIDE: Record<string, GuideNode> = {
       { id: 'casa', label: l('Arrendar uma casa', 'Rent a house'), next: 'pessoa-casa' },
       { id: 'dinheiro', label: l('Dinheiro: recibos, dívidas, rendimentos, vendas', 'Money: receipts, debts, income, sales'), next: 'pessoa-dinheiro' },
       { id: 'contratos', label: l('Comprar, vender, emprestar ou doar', 'Buy, sell, lend or give'), next: 'contratos-pessoa' },
+      { id: 'familia', label: l('Família e viagens', 'Family and travel'), hint: l('Menores, união de facto, cônjuge, convites.', 'Children, partnerships, spouse, invitations.'), next: 'pessoa-familia' },
       { id: 'autorizar', label: l('Autorizar alguém a tratar por mim', 'Authorise someone to act for me'), result: { doc: 'procuracao', why: l('A procuração dá poderes a outra pessoa para agir em seu nome.', 'A power of attorney lets another person act on your behalf.') } },
       { id: 'instituicao', label: l('Fazer um pedido a uma instituição pública', 'Make a request to a public body'), result: { doc: 'requerimento', why: l('O requerimento é a forma habitual de pedir algo a um serviço público.', 'The standard way to ask a public office for something.') } },
       { id: 'outro', label: l('Outro', 'Something else'), next: 'pessoa-outro' },
@@ -305,6 +313,7 @@ export const GUIDE: Record<string, GuideNode> = {
       { id: 'falta', label: l('Justificar uma falta', 'Justify an absence'), result: { doc: 'justificacao-de-falta', why: l('Explica o motivo da ausência e junta os comprovativos.', 'Explains the reason and attaches proof.') } },
       { id: 'parental', label: l('Licença de maternidade ou paternidade', 'Maternity or paternity leave'), result: { doc: 'licenca-parental', why: l('Comunica a licença à empresa com as datas calculadas.', 'Notifies the employer with the calculated dates.') } },
       { id: 'adiantamento', label: l('Pedir um adiantamento de salário', 'Ask for a salary advance'), result: { doc: 'adiantamento-salarial', why: l('Pedido e autorização no mesmo documento.', 'Request and approval in one document.') } },
+      { id: 'mediacao', label: l('Resolver um conflito com o empregador', 'Resolve a dispute with my employer'), result: { doc: 'pedido-mediacao-laboral', why: l('Pedido de mediação ao centro de mediação e arbitragem laboral.', 'Request for mediation at the labour mediation centre.') } },
     ],
   },
   'pessoa-casa': {
@@ -325,6 +334,17 @@ export const GUIDE: Record<string, GuideNode> = {
       { id: 'vender', label: l('Vender um carro ou outro bem', 'Sell a car or other item'), result: { doc: 'declaracao-de-venda', why: l('Regista a venda, o preço e a identificação do bem.', 'Records the sale, price and item details.') } },
     ],
   },
+  'pessoa-familia': {
+    id: 'pessoa-familia',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'viagem', label: l('Autorizar a viagem de um filho menor', 'Authorise a child to travel'), result: { doc: 'autorizacao-viagem-menor', why: l('Consentimento do pai ou da mãe ausente, com assinatura reconhecida.', 'Consent of the absent parent, with a certified signature.') } },
+      { id: 'uniao', label: l('Declarar uma união de facto', 'Declare a de facto union'), result: { doc: 'declaracao-uniao-de-facto', why: l('Declaração conjunta para obter a certidão administrativa.', 'Joint declaration to obtain the administrative certificate.') } },
+      { id: 'filhos', label: l('Acordar a guarda e a pensão dos filhos', 'Agree custody and child support'), result: { doc: 'acordo-poder-parental', why: l('Acordo de regulação do poder parental e alimentos, para homologação.', 'Parenting and support agreement, for court approval.') } },
+      { id: 'conjuge', label: l('Consentimento do cônjuge', 'Spouse’s consent'), result: { doc: 'consentimento-conjuge', why: l('Consentimento para um acto concreto que a lei exige.', 'Consent to a specific act where the law requires it.') } },
+      { id: 'convite', label: l('Convidar um estrangeiro (visto)', 'Invite a foreigner (visa)'), result: { doc: 'carta-convite-visto', why: l('Carta-convite e termo de responsabilidade para o pedido de visto.', 'Invitation and guarantee for the visa application.') } },
+    ],
+  },
   'pessoa-outro': {
     id: 'pessoa-outro',
     question: l('O que precisa?', 'What do you need?'),
@@ -332,6 +352,9 @@ export const GUIDE: Record<string, GuideNode> = {
       { id: 'reclamar', label: l('Reclamar de um produto ou serviço', 'Complain about a product or service'), result: { doc: 'carta-de-reclamacao', why: l('Expõe o problema e pede uma solução com prazo.', 'Sets out the problem and asks for a remedy with a deadline.') } },
       { id: 'declarar', label: l('Declarar que algo é verdade', 'Declare that something is true'), result: { doc: 'compromisso-de-honra', why: l('Uma declaração sob compromisso de honra.', 'A sworn statement on your honour.') } },
       { id: 'carta', label: l('Escrever uma carta formal', 'Write a formal letter'), result: { doc: 'carta-oficial', why: l('Uma carta formal com destinatário e assunto.', 'A formal letter with addressee and subject.') } },
+      { id: 'extravio', label: l('Perdi um documento', 'I lost a document'), result: { doc: 'declaracao-extravio-documento', why: l('Declara a perda ou o furto para pedir a segunda via.', 'Declares the loss or theft to request a replacement.') } },
+      { id: 'residencia', label: l('Preciso de uma declaração de residência', 'I need proof of residence'), result: { doc: 'pedido-declaracao-residencia', why: l('Pedido ao Secretário do Bairro, que emite a declaração.', 'Request to the neighbourhood secretary, who issues it.') } },
+      { id: 'viatura', label: l('Autorizar alguém a usar o meu carro', 'Allow someone to use my car'), result: { doc: 'autorizacao-uso-viatura', why: l('Autorização para conduzir e circular com a viatura.', 'Authorisation to drive the vehicle.') } },
     ],
   },
 };

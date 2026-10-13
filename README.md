@@ -2,7 +2,7 @@
 
 By **Omar Vayani**. © 2026 Omar Vayani. All rights reserved — proprietary software, see [`LICENSE`](LICENSE).
 
-A client-side web app that generates professional business and personal documents for Mozambique — employment contracts, payslips, declarations, disciplinary procedures, leases, powers of attorney and more — following Lei n.º 13/2023 (Lei do Trabalho) and related rules.
+A client-side web app that generates 115 professional documents for Mozambique — employment contracts and payslips, civil and commercial contracts, court filings, company articles and resolutions, public-administration correspondence, family and personal declarations — following Lei n.º 13/2023 (Lei do Trabalho), the Civil and Commercial Codes and related rules.
 
 - **No backend, no account.** Everything runs in the browser; data stays on the device (IndexedDB).
 - **Portuguese first.** UI in Portuguese and English; documents are always generated in Portuguese, with an optional English reading aid and, for some documents, bilingual output.
@@ -75,7 +75,7 @@ All legal values live in [`src/legal/mz-legal.ts`](src/legal/mz-legal.ts) with t
 
 ## Adding a document
 
-See [`docs/TEMPLATES.md`](docs/TEMPLATES.md). In short: add metadata to `src/features/catalog/catalog.ts`, create `src/documents/templates/<id>.ts`, and run the template and render tests for that id.
+See [`docs/TEMPLATES.md`](docs/TEMPLATES.md). In short: add metadata to `src/features/catalog/catalog.ts` (or the category file in `src/features/catalog/extra/`), legal values to `src/legal/` (core or `extra/`), create `src/documents/templates/<id>.ts`, and run the template and render tests for that id.
 
 ## Ownership and licence
 

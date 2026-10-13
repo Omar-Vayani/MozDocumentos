@@ -8,7 +8,7 @@ async function noHorizontalScroll(page: Page) {
 
 test.describe('layout at 320 px', () => {
   test.use({ viewport: { width: 320, height: 640 } });
-  for (const path of ['/', '/documentos', '/assistente', '/meus-documentos', '/perfis', '/pessoas', '/definicoes', '/sobre', '/termos', '/privacidade', '/ferramentas', '/ferramentas/recibos-em-lote', '/processos/despedimento-justa-causa', '/documentos/recibo-de-salario', '/perfis/novo?tipo=empresa']) {
+  for (const path of ['/', '/documentos', '/assistente', '/meus-documentos', '/perfis', '/pessoas', '/definicoes', '/sobre', '/termos', '/privacidade', '/ferramentas', '/ferramentas/recibos-em-lote', '/processos/despedimento-justa-causa', '/documentos/recibo-de-salario', '/perfis/novo?tipo=empresa', '/perfis/novo?tipo=publica', '/documentos/peticao-inicial', '/documentos/pacto-social-lda', '/documentos/informacao-proposta']) {
     test(`no horizontal scroll on ${path}`, async ({ page }) => {
       await page.goto(path);
       await page.waitForLoadState('networkidle');
@@ -21,15 +21,19 @@ test.describe('layout at 320 px', () => {
 test('search finds documents in Portuguese, without accents and in English', async ({ page }) => {
   await page.goto('/documentos');
   const search = page.getByLabel('Pesquisar documentos');
+  // "despedir" is ambiguous (misconduct or economic reasons): both must rank near the top.
   for (const [q, title] of [
     ['despedir', 'Acusar formalmente de uma falta'],
+    ['despedir', 'Despedir por motivos económicos'],
     ['rescisao', 'Sair do emprego — para o trabalhador'],
     ['payslip', 'Recibo de salário'],
+    ['peticao inicial', 'Processar alguém por uma dívida'],
+    ['oficio', 'Ofício de um órgão do Estado'],
   ]) {
     await search.fill(q);
     const results = page.locator('#catalog-results li h3');
-    const top3 = (await results.allTextContents()).slice(0, 3);
-    expect(top3, q).toContain(title);
+    const top = (await results.allTextContents()).slice(0, 4);
+    expect(top, q).toContain(title);
   }
 });
 

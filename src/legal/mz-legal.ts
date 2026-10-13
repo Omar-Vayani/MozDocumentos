@@ -617,8 +617,8 @@ const CORE_LEGAL = {
   indemnizacaoMotivosEconomicos: {
     title: { pt: 'Despedimento por motivos estruturais, tecnológicos ou de mercado', en: 'Dismissal for structural, technological or market reasons' },
     summary: {
-      pt: 'Aviso escrito de pelo menos 30 dias ao trabalhador, ao órgão sindical e ao ministério. Indemnização por ano de serviço: 30 dias de salário base (até 7 salários mínimos), 15 dias (mais de 7 e até 18) ou 5 dias (mais de 18).',
-      en: 'Written notice of at least 30 days to the employee, the union and the ministry. Compensation per year of service: 30 days of base pay (up to 7 minimum wages), 15 days (over 7 and up to 18) or 5 days (over 18).',
+      pt: 'Aviso escrito de pelo menos 30 dias ao trabalhador, ao órgão sindical e ao ministério. Indemnização por ano de serviço: 30 dias de salário base (até 7 salários mínimos), 15 dias (mais de 7 e até 18) ou 5 dias (mais de 18). O salário base inclui o bónus de antiguidade; o salário mínimo é o do sector.',
+      en: 'Written notice of at least 30 days to the employee, the union and the ministry. Compensation per year of service: 30 days of base pay (up to 7 minimum wages), 15 days (over 7 and up to 18) or 5 days (over 18). Base pay includes the seniority bonus; the minimum wage is that of the sector.',
     },
     law: 'lei13_2023',
     article: 'arts. 141.º e 142.º',
