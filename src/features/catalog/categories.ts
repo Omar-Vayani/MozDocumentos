@@ -18,7 +18,12 @@ export type CategoryId =
   | 'educacao'
   | 'associacoes'
   | 'construcao'
-  | 'eventos';
+  | 'eventos'
+  | 'financas'
+  | 'digital'
+  | 'turismo'
+  | 'cidadao'
+  | 'contratacao';
 
 export type Category = { id: CategoryId; title: L10n; description: L10n; icon: IconName };
 
@@ -124,6 +129,36 @@ export const CATEGORIES: Category[] = [
     icon: 'sparkle',
     title: { pt: 'Eventos e pessoal', en: 'Events and personal' },
     description: { pt: 'Convites, certificados, currículos, cartões de visita e cartas pessoais.', en: 'Invitations, certificates, CVs, business cards and personal letters.' },
+  },
+  {
+    id: 'financas',
+    icon: 'briefcase',
+    title: { pt: 'Banca, seguros e impostos', en: 'Banking, insurance and tax' },
+    description: { pt: 'Cartas ao banco, garantias, sinistros, reclamações fiscais e acordos de pagamento.', en: 'Bank letters, guarantees, insurance claims, tax objections and payment plans.' },
+  },
+  {
+    id: 'digital',
+    icon: 'globe',
+    title: { pt: 'Tecnologia, media e propriedade intelectual', en: 'Technology, media and intellectual property' },
+    description: { pt: 'Termos de uso, privacidade, software, licenças, imagem e direitos de autor.', en: 'Terms of use, privacy, software, licences, image and copyright.' },
+  },
+  {
+    id: 'turismo',
+    icon: 'sun',
+    title: { pt: 'Turismo, transportes e agricultura', en: 'Tourism, transport and agriculture' },
+    description: { pt: 'Reservas, alojamento, aluguer de viaturas, transporte, terra e produção agrícola.', en: 'Bookings, lodging, car hire, transport, land and farming.' },
+  },
+  {
+    id: 'cidadao',
+    icon: 'user',
+    title: { pt: 'Cidadão e consumidor', en: 'Citizen and consumer' },
+    description: { pt: 'Pedidos e reclamações a serviços públicos, município, água, energia e operadoras.', en: 'Requests and complaints to public services, the municipality, utilities and operators.' },
+  },
+  {
+    id: 'contratacao',
+    icon: 'layers',
+    title: { pt: 'Concursos e contratação pública', en: 'Public procurement' },
+    description: { pt: 'Propostas, declarações de concorrentes, cadernos de encargos, actas de abertura e adjudicação.', en: 'Bids, bidder declarations, specifications, bid-opening minutes and awards.' },
   },
 ];
 

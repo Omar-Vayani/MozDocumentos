@@ -18,6 +18,15 @@ import { CATALOG_CONTRATOS } from './extra/contratos';
 import { CATALOG_ESTADO } from './extra/estado';
 import { CATALOG_PESSOAL_RH } from './extra/pessoal-rh';
 import { CATALOG_SOCIEDADES } from './extra/sociedades';
+import { CATALOG_PROCESSO_CIVIL } from './extra/processo-civil';
+import { CATALOG_PROCESSO_PENAL } from './extra/processo-penal';
+import { CATALOG_FAMILIA } from './extra/familia';
+import { CATALOG_FINANCAS } from './extra/financas';
+import { CATALOG_DIGITAL } from './extra/digital';
+import { CATALOG_RH_POLITICAS } from './extra/rh-politicas';
+import { CATALOG_SAUDE_EDUCACAO } from './extra/saude-educacao';
+import { CATALOG_CIDADAO } from './extra/cidadao';
+import { CATALOG_CONTRATACAO } from './extra/contratacao';
 
 export type TemplateMeta = {
   id: string;
@@ -914,6 +923,15 @@ export const CATALOG: TemplateMeta[] = [
   ...CATALOG_CONSTRUCAO,
   ...CATALOG_EVENTOS,
   ...CATALOG_COMERCIO,
+  ...CATALOG_PROCESSO_CIVIL,
+  ...CATALOG_PROCESSO_PENAL,
+  ...CATALOG_FAMILIA,
+  ...CATALOG_FINANCAS,
+  ...CATALOG_DIGITAL,
+  ...CATALOG_RH_POLITICAS,
+  ...CATALOG_SAUDE_EDUCACAO,
+  ...CATALOG_CIDADAO,
+  ...CATALOG_CONTRATACAO,
 ];
 
 export const catalogById = new Map(CATALOG.map((m) => [m.id, m]));

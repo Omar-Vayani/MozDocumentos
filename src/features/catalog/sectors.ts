@@ -37,7 +37,7 @@ export const SECTORS: Sector[] = [
     icon: 'building',
     title: { pt: 'Empresa ou negócio', en: 'Business' },
     hint: { pt: 'Trabalhadores, clientes, fornecedores, sociedade.', en: 'Employees, clients, suppliers, company.' },
-    categories: [...HR, 'empresa', 'contratos', 'comercio'],
+    categories: [...HR, 'empresa', 'contratos', 'comercio', 'financas', 'digital', 'turismo', 'contratacao'],
     profile: 'empresa',
   },
   {
@@ -45,7 +45,7 @@ export const SECTORS: Sector[] = [
     icon: 'user',
     title: { pt: 'Particular ou trabalhador', en: 'Individual or employee' },
     hint: { pt: 'Família, casa, dinheiro, emprego, eventos.', en: 'Family, home, money, job, events.' },
-    categories: ['pessoal', 'contratos', 'eventos'],
+    categories: ['pessoal', 'contratos', 'eventos', 'cidadao', 'financas'],
     profile: 'pessoa',
   },
   {
@@ -53,7 +53,7 @@ export const SECTORS: Sector[] = [
     icon: 'gavel',
     title: { pt: 'Advogado ou jurista', en: 'Lawyer' },
     hint: { pt: 'Peças processuais, contratos, sociedades.', en: 'Court filings, contracts, companies.' },
-    categories: ['advocacia', 'contratos', 'empresa', 'pessoal'],
+    categories: ['advocacia', 'contratos', 'empresa', 'pessoal', 'cidadao', 'financas'],
     profile: 'pessoa',
   },
   {
@@ -69,7 +69,7 @@ export const SECTORS: Sector[] = [
     icon: 'landmark',
     title: { pt: 'Entidade pública', en: 'Public body' },
     hint: { pt: 'Ministérios, governos provinciais, municípios, institutos.', en: 'Ministries, provincial governments, municipalities, institutes.' },
-    categories: ['estado'],
+    categories: ['estado', 'contratacao'],
     profile: 'publica',
   },
   {
@@ -101,7 +101,7 @@ export const SECTORS: Sector[] = [
     icon: 'hardhat',
     title: { pt: 'Construção e imobiliário', en: 'Construction and real estate' },
     hint: { pt: 'Engenheiros, empreiteiros, mediadores, condomínios.', en: 'Engineers, contractors, estate agents, condominiums.' },
-    categories: ['construcao', 'contratos', ...HR],
+    categories: ['construcao', 'contratos', 'contratacao', ...HR],
     profile: 'empresa',
   },
 ];
