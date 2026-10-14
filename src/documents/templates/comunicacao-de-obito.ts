@@ -107,7 +107,7 @@ export default defineTemplate({
       rows: 3,
       label: l('Anexos', 'Enclosures'),
       help: l('Um por linha.', 'One per line.'),
-      default: 'Cópia da certidão de óbito\nCópia do meu documento de identificação\nDocumento que prova o parentesco (certidão de nascimento ou de casamento)',
+      default: 'Cópia da certidão de óbito\nCópia do meu documento de identificação\nCertidão de nascimento ou de casamento (prova do parentesco)',
     },
   ],
 
@@ -162,10 +162,12 @@ export default defineTemplate({
       },
     ];
     if (refs.length) {
-      blocks.push(
-        { type: 'paragraph', id: 'referencias', text: `${fF ? 'A falecida' : 'O falecido'} tinha com V. Ex.as as seguintes relações, entre outras de que possa não ter conhecimento:`, en: 'The deceased had the following accounts or contracts with you:' },
-        { type: 'list', style: 'bullet', items: itensLista(refs) },
-      );
+      blocks.push({
+        type: 'paragraph',
+        id: 'referencias',
+        text: `${fF ? 'A falecida' : 'O falecido'} tinha com V. Ex.as, entre outras relações de que possa não ter conhecimento: ${refs.map((r) => semPonto(r)).join('; ')}.`,
+        en: 'The deceased had the following accounts or contracts with you.',
+      });
     }
     if (pedidos.length) {
       blocks.push(

@@ -1,5 +1,5 @@
 // Preview samples for the "processo-civil" documents.
-import { lawyer, person, type Sample } from './_profiles';
+import { lawyer, type Sample } from './_profiles';
 
 const adv = {
   advogadoNome: 'Helena Mabote Tembe',
@@ -375,34 +375,6 @@ export const SAMPLES: Sample[] = [
       valorCausa: '1500000',
       documentos: 'Certidão de casamento\nCertidão de nascimento de Lucas Mondlane\nCertidão de nascimento de Ana Mondlane\nRelatório clínico do Hospital Central de Maputo\nAuto de denúncia',
       testemunhas: 'Rosa Maria Cossa, doméstica, residente no Bairro do Jardim, Matola\nPedro Luís Macamo, vizinho, residente no Bairro da Coop, Maputo',
-      data: '2026-10-14',
-    },
-  },
-  {
-    id: 'divorcio-mutuo-consentimento',
-    who: person,
-    values: {
-      destino: 'conservatoria',
-      conservatoriaNome: '1.ª Conservatória do Registo Civil de Maputo',
-      conservadorGenero: 'M',
-      modalidade: 'divorcio',
-      ...party('conjuge1', pessoaM),
-      ...party('conjuge2', pessoaF),
-      dataCasamento: '2012-12-15',
-      localCasamento: '1.ª Conservatória do Registo Civil de Maputo',
-      assento: '1452/2012',
-      regime: 'comunhão de adquiridos',
-      filhos: [{ nome: 'Lucas Mondlane', nascimento: '2014-05-03' }],
-      residenciaFilhos: 'a mãe, Teresa Lurdes Cossa',
-      alimentosFilhos: '12000',
-      alimentosConjuges: 'dispensa',
-      casaMorada: 'fica atribuída à requerente, que nela reside com o filho menor, até à partilha',
-      bensComuns: [
-        { descricao: 'Casa de habitação no Bairro da Coop, Rua C, n.º 14, Maputo', valor: '3500000' },
-        { descricao: 'Viatura ligeira Toyota Corolla, matrícula ADF 456 MP', valor: '650000' },
-        { descricao: 'Mobiliário e recheio da casa', valor: '250000' },
-      ],
-      temAdvogado: false,
       data: '2026-10-14',
     },
   },

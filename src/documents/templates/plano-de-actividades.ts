@@ -84,15 +84,15 @@ export default defineTemplate({
       type: 'table',
       columns: [
         { label: 'N.º', width: 0.35, align: 'right' },
-        { label: 'Objectivo específico', width: 1.9 },
-        { label: 'Actividade', width: 2.4 },
-        { label: 'Indicador', width: 1.5 },
-        { label: 'Meta', width: 0.8, align: 'center' },
+        { label: 'Objectivo específico', width: 2.2 },
+        { label: 'Actividade', width: 2.7 },
+        { label: 'Indicador', width: 1.6 },
+        { label: 'Meta', width: 0.75, align: 'center' },
         { label: 'I', width: 0.3, align: 'center' },
         { label: 'II', width: 0.3, align: 'center' },
         { label: 'III', width: 0.35, align: 'center' },
         { label: 'IV', width: 0.35, align: 'center' },
-        { label: 'Responsável', width: 1.3 },
+        { label: 'Responsável', width: 1.5 },
         { label: 'Orçamento (MT)', width: 1.2, align: 'right' },
       ],
       rows: (acts.length ? acts : [{}, {}, {}, {}, {}]).map((r, i) => {
@@ -103,9 +103,9 @@ export default defineTemplate({
       grid: true,
     });
     blocks.push(
-      { type: 'paragraph', id: 'local', text: `${ctx.place}, ${dateLong(v.data)}.`, align: 'left', keepWithNext: true, en: 'Place and date.' },
       {
         type: 'signatures',
+        placeDate: `${ctx.place}, ${dateLong(v.data)}`,
         columns: [
           { role: 'Elaborado por', name: str(v.elaboradoNome) || undefined, detail: str(v.elaboradoCargo) || undefined },
           { ...signatarioColumn(v), role: `Aprovado — ${signatarioColumn(v).role}` },

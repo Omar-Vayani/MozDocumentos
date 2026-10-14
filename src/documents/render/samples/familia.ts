@@ -647,7 +647,7 @@ export const SAMPLES: Sample[] = [
         { nome: 'Telma Amélia Nhantumbo', genero: 'F', nascimento: '2014-03-22' },
       ],
       disposicoes: [
-        { tipo: 'legado', beneficiario: 'meu sobrinho Hélio Nhantumbo, BI n.º 110106677889F,', objecto: 'a viatura Toyota RAV4, matrícula AEB 456 MC' },
+        { tipo: 'legado', beneficiario: 'meu sobrinho Hélio Armando Nhantumbo', objecto: 'a viatura Toyota RAV4, matrícula AEB 456 MC' },
         { tipo: 'herdeiro', beneficiario: 'minha filha Telma Amélia Nhantumbo', objecto: 'metade da minha quota disponível' },
       ],
       testamenteiro: 'Paulo Joaquim Mondlane, BI n.º 110201567890P',

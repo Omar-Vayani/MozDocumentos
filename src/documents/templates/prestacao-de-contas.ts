@@ -1,7 +1,7 @@
 import { defineTemplate, type Block, type FieldOption, type Values, type Warning } from '../model';
 import { cite, dateField, dateLong, formatMoney, l, lawyerFields, localField, money } from './_shared';
 import { artigos, courtFields, partyFields } from './_advocacia';
-import { closing, g3, lawyerWarnings, petitionHead, prova, provaFields, sem, str } from './_processo-civil';
+import { closing, g3, lawyerWarnings, petitionHead, prova, provaFields, sem } from './_processo-civil';
 
 const RELACAO_OPTIONS: FieldOption[] = [
   { value: 'mandatario', label: l('Mandatário ou procurador', 'Agent or attorney') },

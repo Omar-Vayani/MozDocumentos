@@ -188,7 +188,7 @@ export default defineTemplate({
           x.documento || BLANK,
           x.data ? formatDateShort(x.data) : '—',
           x.vencimento ? formatDateShort(x.vencimento) : '—',
-          x.valor != null ? formatMoney(x.valor, false) : BLANK,
+          x.valor != null ? formatMoney(x.valor, false) : '__________',
         ]),
         totals: cs.length > 1 ? [['Total', '', '', formatMoney(c.total, false)]] : undefined,
       },

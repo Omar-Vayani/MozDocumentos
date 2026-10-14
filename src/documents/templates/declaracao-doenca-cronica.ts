@@ -110,7 +110,7 @@ export default defineTemplate({
     ];
     if (meds.length) {
       blocks.push(
-        { type: 'paragraph', id: 'medicacao', text: `Para o efeito, ${doente} necessita de ter consigo e de tomar a seguinte medicação, prescrita para uso pessoal:`, en: 'The patient needs to carry and take the following medication, prescribed for personal use:', keepWithNext: true },
+        { type: 'paragraph', id: 'medicacao', text: `Para o efeito, ${doente} necessita de ter consigo e de tomar a seguinte medicação, prescrita para uso pessoal:`, en: 'The patient needs to carry and take the following medication, prescribed for personal use:' },
         {
           type: 'table',
           columns: [{ label: 'Medicamento (DCI) e dosagem', width: 45 }, { label: 'Posologia', width: 35 }, { label: 'Quantidade', width: 20 }],
@@ -122,7 +122,7 @@ export default defineTemplate({
       blocks.push({ type: 'paragraph', id: 'material', text: `${doente.charAt(0).toUpperCase()}${doente.slice(1)} necessita igualmente do seguinte material médico: ${semPonto(v.material)}.`, en: `The patient also needs: ${v.material}.` });
     }
     if (str(v.recomendacoes)) {
-      blocks.push({ type: 'paragraph', id: 'recomendacoes', text: `Recomenda-se: ${semPonto(v.recomendacoes)}.`, en: `Recommended: ${v.recomendacoes}.` });
+      blocks.push({ type: 'paragraph', id: 'recomendacoes', text: `Recomenda-se: ${semPonto(v.recomendacoes)}.`, en: `Recommended: ${str(v.recomendacoes).replace(/\s+/g, ' ')}.` });
     }
     const viagem = v.finalidade === 'viagem' && str(v.viagemPeriodo) ? `, durante a viagem ${semPonto(v.viagemPeriodo)}` : '';
     blocks.push(

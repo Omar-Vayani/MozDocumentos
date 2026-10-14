@@ -72,7 +72,7 @@ export default defineTemplate({
       ],
       default: [],
     },
-    { name: 'linhasBranco', type: 'number', section: 'registos', width: 'half', min: 0, max: 25, default: 8, label: l('Linhas em branco', 'Blank rows') },
+    { name: 'linhasBranco', type: 'number', section: 'registos', width: 'half', min: 0, max: 25, default: 6, label: l('Linhas em branco', 'Blank rows') },
   ],
 
   computed: (v) => {
@@ -110,7 +110,7 @@ export default defineTemplate({
     const lim = ctx.legal.value<{ trimestre: number; semana: number; ano: number }>('rhpTrabalhoExtraordinario');
     const exc = ctx.legal.value<{ compensatorioDias: number; meioDiaHoras: number }>('rhpTrabalhoExcepcional');
     const regs = ctx.computed.regs as Record<string, any>[];
-    const branco = Math.max(0, Math.min(25, Number(v.linhasBranco ?? 8) || 0));
+    const branco = Math.max(0, Math.min(25, Number(v.linhasBranco ?? 6) || 0));
     const [ano, mes] = String(v.mes ?? '').split('-');
     const mesTxt = ano && mes ? `${MESES[Number(mes) - 1] ?? ''} de ${ano}` : BLANK;
     const rows = [
@@ -118,7 +118,7 @@ export default defineTemplate({
         const h = horas(r.inicio, r.fim);
         return [fmt(r.data) || '', str(r.nome), str(r.inicio), str(r.fim), h != null ? numTxt(h) : '', TIPO[r.tipo as string] ?? TIPO.extra, str(r.fundamento), str(r.autorizou), ''];
       }),
-      ...Array.from({ length: branco }, () => ['', '', '', '', '', '', '', '', '']),
+      ...Array.from({ length: branco }, () => ['___/___', '', ':', ':', '', '', '', '', '']),
     ];
     const total = (ctx.computed.porTrab as [string, number][]).map(([n, h]) => `${n}: ${numTxt(Math.round(h * 100) / 100)} h`);
     const blocks: Block[] = [

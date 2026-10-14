@@ -341,7 +341,7 @@ export function movimentosTable(ms: Movimento[]): Block {
       { label: 'Descrição', width: 3.4 },
       { label: 'Valor (MT)', width: 1.3, align: 'right' },
     ],
-    rows: ms.map((m) => [m.data ? formatDateShort(m.data) : BLANK, m.descricao || BLANK, m.valor != null ? formatMoney(m.valor, false) : BLANK]),
+    rows: ms.map((m) => [m.data ? formatDateShort(m.data) : '___/___/____', m.descricao || BLANK, m.valor != null ? formatMoney(m.valor, false) : '__________']),
     totals: ms.length > 1 ? [['', 'Total', formatMoney(total, false)]] : undefined,
   };
 }

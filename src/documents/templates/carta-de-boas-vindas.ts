@@ -5,7 +5,7 @@
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, dateField, dateLong, employerName, employerSignature, l, lineItems, localField, refField, workerFields } from './_shared';
 import { wk } from './_contrato-trabalho';
-import { cartaAoTrabalhador, linhas, str } from './_rh-politicas';
+import { cartaAoTrabalhador, str } from './_rh-politicas';
 
 export default defineTemplate({
   id: 'carta-de-boas-vindas',
@@ -93,7 +93,7 @@ export default defineTemplate({
         en: 'Where and when to report on the first day, whom to ask for and the working hours.',
       },
     ];
-    if (docs.length) blocks.push({ type: 'paragraph', id: 'documentos', text: 'Pedimos que traga os seguintes documentos, necessários ao seu processo individual e à inscrição no INSS:', en: 'Please bring the following documents:', keepWithNext: true }, { type: 'list', items: docs });
+    if (docs.length) blocks.push({ type: 'paragraph', id: 'documentos', text: `Pedimos que traga, para o seu processo individual e a inscrição no INSS: ${docs.map((d) => d.charAt(0).toLowerCase() + d.slice(1).replace(/[.;]$/, '')).join('; ')}.`, en: 'Please bring the documents listed.' });
     if (plano.length) {
       blocks.push(
         { type: 'paragraph', id: 'plano', text: `Para facilitar a sua integração, preparámos o plano seguinte${str(v.mentor) ? `; durante as primeiras semanas será ${W.a('acompanhado', 'acompanhada')} por ${str(v.mentor)}` : ''}:`, en: 'Onboarding plan:', keepWithNext: true },

@@ -160,7 +160,7 @@ export default defineTemplate({
       { type: 'numberedClauses', style: 'clausula', items: clauses },
       ...fechoJunto(
         fecho(ctx, [assinatura(ctx, 'transmitente', T, true), assinatura(ctx, 'adquirente', A)], {
-          extraCols: [conjugeColumn(v, 'transmitente'), { role: 'A Autoridade Comunitária (testemunha)', detail: `Nome e cargo: ${BLANK}` }],
+          extraCols: [conjugeColumn(v, 'transmitente')],
           consentimento: consentimentoTexto(v, 'transmitente', T),
           notario: 'Reconhecimento presencial das assinaturas.',
         }),

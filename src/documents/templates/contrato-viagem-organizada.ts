@@ -147,7 +147,7 @@ export default defineTemplate({
       en: 'The client must hold valid passport or ID, visas, vaccinations and, for unaccompanied minors, travel authorisation; the agency informs of requirements. Travel insurance is recommended.',
     });
     cl.push({
-      id: 'alteracoes',
+      id: 'alteracoesAgencia',
       heading: 'Alterações e cancelamento pela agência',
       text: numerar([
         `${A.O} só pode alterar elementos essenciais da viagem por motivo que não lhe seja imputável, devendo avisar ${V.o} de imediato; ${V.o} pode aceitar a alteração ou desistir, com reembolso integral.`,

@@ -90,15 +90,13 @@ export default defineTemplate({
     if (str(v.urgencia)) blocks.push({ type: 'tags', items: [str(v.urgencia)] });
     blocks.push(
       { type: 'reference', ref: estadoRef(ctx, 'Requisição'), date: dateLong(v.data) },
-      { type: 'title', text: 'Requisição interna', subtitle: `Pedido de aquisição de ${str(v.tipo) === 'servicos' || str(v.tipo) === 'consultoria' ? 'serviços' : str(v.tipo) === 'obras' ? 'obras' : 'bens'}` },
+      { type: 'title', text: 'Requisição interna', subtitle: `Pedido de aquisição de ${str(v.tipo) === 'servicos' || str(v.tipo) === 'consultoria' ? 'serviços' : str(v.tipo) === 'obras' ? 'obras' : 'bens'} à Unidade Gestora Executora das Aquisições` },
       {
         type: 'keyValue',
-        columns: 2,
+        columns: 1,
         items: [
           { label: 'Sector requisitante', value: str(v.sector) || '—' },
-          { label: 'Necessário até', value: v.prazoNecessidade ? dateLong(v.prazoNecessidade) : '—' },
-          { label: 'Local de entrega', value: semPonto(v.localEntrega) || '—' },
-          { label: 'Destinatário', value: 'Unidade Gestora Executora das Aquisições' },
+          { label: 'Necessário até', value: `${v.prazoNecessidade ? dateLong(v.prazoNecessidade) : '—'}${str(v.localEntrega) ? ` — entrega em ${semPonto(v.localEntrega)}` : ''}` },
         ],
       },
       { type: 'paragraph', id: 'justificacao', text: `**Justificação:** ${semPonto(v.finalidade) || '____________________'}.`, en: 'Justification of the need.' },
@@ -106,24 +104,17 @@ export default defineTemplate({
         type: 'table',
         columns: [
           { label: 'N.º', width: 0.4, align: 'right' },
-          { label: 'Descrição e especificação', width: 3.4 },
+          { label: 'Descrição e especificação', width: 4.4 },
           { label: 'Un.', width: 0.6, align: 'center' },
-          { label: 'Qtd.', width: 0.7, align: 'right' },
-          { label: 'Custo unit. est.', width: 1.2, align: 'right' },
-          { label: 'Total est.', width: 1.3, align: 'right' },
+          { label: 'Qtd.', width: 0.65, align: 'right' },
+          { label: 'Custo unit.', width: 1.05, align: 'right' },
+          { label: 'Total', width: 1.25, align: 'right' },
         ],
         rows: (c.its.length ? c.its : [{}, {}, {}, {}]).map((i: Record<string, any>, n: number) => [String(n + 1), i.descricao ? `${i.descricao}${i.especificacao ? ` — ${i.especificacao}` : ''}` : '', i.unidade ?? '', qtd(i.quantidade ?? null), mt(i.preco ?? null), mt(i.total ?? null)]),
         totals: [['', 'Total estimado, em MT', '', '', '', c.total != null ? formatMoney(c.total, false) : '']],
         grid: !c.its.length,
       },
-      {
-        type: 'keyValue',
-        columns: 2,
-        items: [
-          { label: 'Rubrica orçamental', value: semPonto(v.rubrica) || '—' },
-          { label: 'Fonte de recursos', value: semPonto(v.fonte) || '—' },
-        ],
-      },
+      { type: 'paragraph', id: 'orcamento', text: `**Rubrica orçamental:** ${semPonto(v.rubrica) || '____________'}   **Fonte de recursos:** ${semPonto(v.fonte) || '____________'}`, align: 'left', en: 'Budget line and source of funds.' },
       {
         type: 'signatures',
         columns: [

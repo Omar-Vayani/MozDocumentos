@@ -104,7 +104,7 @@ export default defineTemplate({
     const w: Warning[] = [];
     if (c.pessoas.length < 2) w.push({ level: 'error', field: 'interessados', message: l('Indique todos os interessados (pelo menos dois).', 'List all parties (at least two).') });
     if (!c.bens.length) w.push({ level: 'error', field: 'bens', message: l('Indique os bens a partilhar.', 'List the assets.') });
-    if (c.pessoas.length && Math.abs(c.somaQuotas - 100) > 0.5) w.push({ level: 'warning', field: 'interessados', message: l('A soma das quotas não é 100%.', 'The shares do not add up to 100%.') });
+    if (c.pessoas.length && Math.abs(c.somaQuotas - 100) > 0.5) w.push({ level: 'warning', field: 'interessados', message: l('A soma das quotas não é cem por cento.', 'The shares do not add up to one hundred per cent.') });
     const nomes = c.pessoas.map((p: Interessado) => p.nome.toLowerCase());
     if (c.bens.some((b: Record<string, unknown>) => str(b.para) && !nomes.includes(str(b.para).toLowerCase()))) {
       w.push({ level: 'warning', field: 'bens', message: l('Há bens atribuídos a um nome que não consta dos interessados. Escreva o nome exactamente igual.', 'Some assets go to a name not in the list of parties. Use the exact same name.') });
@@ -166,8 +166,8 @@ export default defineTemplate({
         columns: [
           { label: 'Interessado', width: 3.4 },
           { label: 'Quota', width: 1, align: 'right' },
-          { label: 'Valor a que tem direito', width: 1.8, align: 'right' },
-          { label: 'Valor dos bens recebidos', width: 1.8, align: 'right' },
+          { label: 'Direito (MT)', width: 1.8, align: 'right' },
+          { label: 'Recebe em bens (MT)', width: 1.8, align: 'right' },
         ],
         rows: c.resumo.map((r: { nome: string; quota: number; direito: number; recebe: number }) => [r.nome, `${(Math.round(r.quota * 100) / 100).toString().replace('.', ',')} %`, formatMoney(r.direito, false), formatMoney(r.recebe, false)]),
       },

@@ -979,7 +979,7 @@ export function contratoBlocks(ctx: TemplateContext, kind: ContratoKind): Block[
     detail: str(v.signatarioCargo) || undefined,
     image: 'both',
   };
-  const sigC = { ...assinatura(ctx, 'contratado', C), role: `Pel${C.f || isEmpresa(v, 'contratado') ? 'a' : 'o'} ${C.n}` };
+  const sigC = { ...assinatura(ctx, 'contratado', C), role: `Pel${C.f ? 'a' : 'o'} ${C.n}` };
   if (!isEmpresa(v, 'contratado')) sigC.role = `${C.O}`;
 
   const titulo = bens ? 'Contrato de Fornecimento de Bens' : 'Contrato de Prestação de Serviços';
@@ -1015,6 +1015,7 @@ export function contratoBlocks(ctx: TemplateContext, kind: ContratoKind): Block[
       { type: 'pageBreakHint' },
       { type: 'title', text: 'Anexo I — Bens, quantidades e preços' },
       priceTable(c.list, c, str(v.ivaModo), true),
+      { type: 'signatures', columns: [{ ...sigE, image: undefined }, { ...sigC, image: undefined }] },
     );
   }
   return blocks;
@@ -1364,7 +1365,7 @@ export function condicoesItems(v: Values, opts: { cotacao?: boolean } = {}): str
   const out = [
     `**Entrega das ${nome}:** em envelope fechado, identificado com a referência do procedimento, até ${horaDia(v.entregaHora, v.entregaData)}, em ${semPonto(v.entregaLocal) || BLANK}. Não são aceites ${nome} entregues fora do prazo.`,
     v.aberturaData ? `**Abertura:** em acto público, ${horaDia(v.aberturaHora, v.aberturaData)}, no mesmo local, podendo assistir os representantes dos concorrentes devidamente credenciados.` : '',
-    docs.length ? `**Documentos a apresentar:** ${docs.map((d, i) => `${String.fromCharCode(97 + i)}) ${semPonto(d)}`).join('; ')}.` : '',
+    docs.length ? `**Documentos a apresentar:** ${docs.map((d, i) => `${i + 1}) ${semPonto(d)}`).join('; ')}.` : '',
     v.validadeDias ? `**Validade:** as ${nome} são válidas por ${diasTexto(v.validadeDias)}, contados da data-limite de entrega.` : '',
     str(v.prazoExecucao) || str(v.localExecucao) ? `**Prazo e local de entrega:** ${[semPonto(v.prazoExecucao), str(v.localExecucao) ? `em ${semPonto(v.localExecucao)}` : ''].filter(Boolean).join(', ')}.` : '',
     `**Critério de avaliação:** ${CRITERIO_TEXTO[str(v.criterio)] ?? CRITERIO_TEXTO.preco}.`,

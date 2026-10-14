@@ -225,7 +225,7 @@ export const SAMPLES: Sample[] = [
         { descricao: 'Gerador a diesel 100 kVA', identificacao: 'Perkins 1104C, n.º PK-99812', valor: '1250000' },
         { descricao: 'Camião basculante', identificacao: 'Matrícula AFG 512 MC', valor: '2100000' },
       ],
-      depositario: 'estaleiro do devedor na Avenida das FPLM, n.º 3120, Maputo',
+      depositario: 'o estaleiro do devedor na Avenida das FPLM, n.º 3120, Maputo',
       foro: 'Tribunal Judicial da Cidade de Maputo',
     },
   },

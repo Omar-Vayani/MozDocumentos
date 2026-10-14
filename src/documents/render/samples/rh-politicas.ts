@@ -253,10 +253,7 @@ export const SAMPLES: Sample[] = [
       dataFim: '2027-01-31',
       classeEmpregador: 'medio',
       sector: 'Construção',
-      trabalhadores: [
-        { nome: 'Armando José Sitoe', genero: 'M', cargo: 'Pedreiro de 1.ª', salario: '14200' },
-        { nome: 'Lurdes Ernesto Macamo', genero: 'F', cargo: 'Armadora de Ferro', salario: '12800' },
-      ],
+      ...operario,
     },
   },
   {
@@ -306,7 +303,7 @@ export const SAMPLES: Sample[] = [
         { data: '2026-10-07', nome: 'Armando José Sitoe', inicio: '16:00', fim: '18:00', tipo: 'extra', fundamento: 'Descofragem urgente', autorizou: 'Eng. Celso Tivane' },
         { data: '2026-10-11', nome: 'Armando José Sitoe', inicio: '07:00', fim: '12:00', tipo: 'descanso', fundamento: 'Reparação da betoneira avariada', autorizou: 'Eng. Celso Tivane' },
       ],
-      linhasBranco: 8,
+      linhasBranco: 5,
     },
   },
   {

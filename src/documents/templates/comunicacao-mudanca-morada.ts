@@ -7,7 +7,8 @@ const entidades = (v: Record<string, unknown>) => lineItems(v.entidades).filter(
 
 export default defineTemplate({
   id: 'comunicacao-mudanca-morada',
-  // One letter per entity listed.
+  // One letter per entity listed (each its own page, so no brand line or page numbers).
+  noBrand: true,
   repeat: (v) => {
     const es = entidades(v);
     if (es.length < 2) return undefined;

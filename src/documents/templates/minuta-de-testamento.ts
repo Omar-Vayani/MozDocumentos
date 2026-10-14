@@ -145,7 +145,7 @@ export default defineTemplate({
     if (v.revoga) pontos.push('Revogo todos os testamentos e disposições de última vontade que tenha feito anteriormente.');
     const familia = [
       str(v.conjugeNome) ? `${v.conjugeRelacao === 'uniao' ? 'vivo em união de facto' : f ? 'sou casada' : 'sou casado'} com ${semPonto(v.conjugeNome)}` : '',
-      filhos.length ? `tenho ${filhos.length === 1 ? 'um filho' : `${filhos.length} filhos`}: ${filhos.map((r) => `${str(r.nome)}${str(r.nascimento) ? `, ${isF(r.genero) ? 'nascida' : 'nascido'} a ${dateLong(r.nascimento)}` : ''}`).join('; ')}` : 'não tenho filhos',
+      filhos.length ? `tenho ${filhos.length === 1 ? 'um filho' : `${['', '', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez'][filhos.length] || filhos.length} filhos`}: ${filhos.map((r) => `${str(r.nome)}${str(r.nascimento) ? `, ${isF(r.genero) ? 'nascida' : 'nascido'} a ${dateLong(r.nascimento)}` : ''}`).join('; ')}` : 'não tenho filhos',
     ].filter(Boolean);
     pontos.push(`${familia.join('; ').replace(/^./, (x) => x.toUpperCase())}.`);
     pontos.push('Respeitando a legítima dos meus herdeiros legitimários, disponho da minha quota disponível da forma seguinte:');
@@ -156,14 +156,14 @@ export default defineTemplate({
       items: itensLista(
         (disp.length ? disp : [{ tipo: 'legado', beneficiario: BLANK, objecto: BLANK }]).map((r) =>
           r.tipo === 'herdeiro'
-            ? `Instituo herdeiro(a) ${semPonto(r.beneficiario) || BLANK} de ${semPonto(r.objecto) || BLANK}`
-            : `Lego a ${semPonto(r.beneficiario) || BLANK} ${semPonto(r.objecto) || BLANK}`,
+            ? `Deixo, a título de herança, ${semPonto(r.objecto) || BLANK}, a favor de ${semPonto(r.beneficiario) || BLANK}`
+            : `Lego ${semPonto(r.objecto) || BLANK} a favor de ${semPonto(r.beneficiario) || BLANK}`,
         ),
       ),
     });
     const finais: string[] = [];
-    if (str(v.testamenteiro)) finais.push(`Nomeio testamenteiro(a) ${semPonto(v.testamenteiro)}, a quem peço que cumpra este testamento.`);
-    if (str(v.tutor)) finais.push(`Para o caso de os meus filhos menores ficarem sem quem exerça o poder parental, indico para tutor(a) ${semPonto(v.tutor)}.`);
+    if (str(v.testamenteiro)) finais.push(`Designo ${semPonto(v.testamenteiro)} para o cargo de testamenteiro, a quem peço que cumpra este testamento.`);
+    if (str(v.tutor)) finais.push(`Para o caso de os meus filhos menores ficarem sem quem exerça o poder parental, indico ${semPonto(v.tutor)} para o cargo de tutor.`);
     finais.push(...outras.map((s) => `${semPonto(s)}.`));
     if (finais.length) blocks.push({ type: 'list', style: 'bullet', items: finais });
 

@@ -156,7 +156,7 @@ export const CATALOG_EVENTOS: TemplateMeta[] = [
       pt: 'Cartão A6 para agradecer depois de um funeral, casamento, aniversário ou evento.',
       en: 'A6 card to say thank you after a funeral, wedding, birthday or event.',
     },
-    tags: ['agradecimento', 'obrigado', 'cartao', 'agradecer', 'thank you', 'thank-you card', 'gratidao'],
+    tags: ['agradecimento', 'obrigado', 'cartao', 'agradecer', 'thank you', 'thank-you card', 'gratidao', 'cartão de agradecimento', 'cartao de agradecimento', 'thank you card'],
     legalRefs: [],
     related: ['participacao-de-falecimento', 'convite-de-casamento', 'carta-pessoal'],
     lastReviewed: R,

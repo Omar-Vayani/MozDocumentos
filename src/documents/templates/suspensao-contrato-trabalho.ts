@@ -6,20 +6,19 @@
 
 import { MINIMUM_WAGES_2026, type MinimumWage } from '@/legal/mz-legal';
 import { defineTemplate, type Block, type Values, type Warning } from '../model';
-import { BLANK, cite, dateField, dateLong, formatMoney, g, GENERO_OPTIONS, l, lineItems, localField, money, refField } from './_shared';
+import { BLANK, cite, dateField, dateLong, formatMoney, g, l, localField, money, refField, workerFields } from './_shared';
 import { moneyExt } from './_contrato-trabalho';
 import { cartaAoTrabalhador, fechoEmpregador, linhas, nosTermos, ponto, str } from './_rh-politicas';
 
 type S = { mes1: number; mes2: number; mes3: number; pmeMinimoPercent: number; meses: number };
 
-/** The employee this letter is for: the repeated values, or the first row. */
+/** The employee this letter is for. */
 function trabalhador(v: Values) {
-  const first = lineItems(v.trabalhadores).find((r) => str(r.nome)) ?? {};
   return {
-    nome: str(v.trabalhadorNome) || str(first.nome),
-    genero: (v.trabalhadorGenero as string) || (first.genero as string) || 'M',
-    cargo: str(v.trabalhadorCargo) || str(first.cargo),
-    salario: money(v.trabalhadorSalario ?? first.salario),
+    nome: str(v.trabalhadorNome),
+    genero: (v.trabalhadorGenero as string) || 'M',
+    cargo: str(v.trabalhadorCargo),
+    salario: money(v.trabalhadorSalario),
   };
 }
 
@@ -29,7 +28,7 @@ export default defineTemplate({
     { id: 'documento', title: l('Documento', 'Document') },
     { id: 'suspensao', title: l('Suspensão', 'Suspension') },
     { id: 'remuneracao', title: l('Remuneração durante a suspensão', 'Pay during the suspension') },
-    { id: 'trabalhadores', title: l('Trabalhadores abrangidos', 'Employees concerned') },
+    { id: 'trabalhador', title: l('Trabalhador', 'Employee'), personRole: 'trabalhador' },
   ],
   fields: [
     refField(),
@@ -68,30 +67,12 @@ export default defineTemplate({
       options: [{ value: '', label: l('Não indicar', 'Not stated') }, ...MINIMUM_WAGES_2026.map((w) => ({ value: w.sector, label: l(w.sector, w.sector) }))],
     },
     { name: 'pagamentoForcaMaior', type: 'text', section: 'remuneracao', label: l('Remuneração durante a suspensão (força maior)', 'Pay during the suspension (force majeure)'), showIf: (v) => v.motivo === 'forcaMaior', placeholder: l('Ex.: metade do salário base, por decisão da empresa', 'E.g. half the base pay, by company decision'), help: l('A lei não fixa a remuneração na suspensão por força maior; indique o que a empresa vai pagar, se pagar.', 'The law sets no pay for a force-majeure suspension; state what the company will pay, if anything.') },
-    {
-      name: 'trabalhadores',
-      type: 'lines',
-      section: 'trabalhadores',
-      label: l('Trabalhadores (uma carta para cada)', 'Employees (one letter each)'),
-      addLabel: l('Adicionar trabalhador', 'Add employee'),
-      columns: [
-        { name: 'nome', type: 'text', label: l('Nome', 'Name') },
-        { name: 'genero', type: 'select', label: l('Tratamento', 'Form of address'), options: GENERO_OPTIONS, default: 'M' },
-        { name: 'cargo', type: 'text', label: l('Cargo', 'Position') },
-        { name: 'salario', type: 'money', label: l('Salário base', 'Base salary') },
-      ],
-      default: [],
-    },
+    ...workerFields(['nome', 'genero', 'cargo', 'departamento', 'salario']),
   ],
-
-  repeat: (v) => {
-    const rows = lineItems(v.trabalhadores).filter((r) => str(r.nome));
-    return rows.length > 1 ? rows.map((r) => ({ trabalhadorNome: str(r.nome), trabalhadorGenero: r.genero || 'M', trabalhadorCargo: str(r.cargo), trabalhadorSalario: r.salario ?? '' })) : undefined;
-  },
 
   warnings: (v) => {
     const w: Warning[] = [];
-    if (!lineItems(v.trabalhadores).some((r) => str(r.nome))) w.push({ level: 'warning', field: 'trabalhadores', message: l('Acrescente os trabalhadores abrangidos: é feita uma carta para cada um.', 'Add the employees concerned: one letter is made for each.') });
+    if (!str(v.trabalhadorNome)) w.push({ level: 'warning', field: 'trabalhadorNome', message: l('Indique o trabalhador. A lei exige uma comunicação escrita a cada trabalhador abrangido: faça uma carta para cada um (pode duplicar este documento).', 'Name the employee. Each employee must receive a written notice: make one letter per employee.') });
     if (!str(v.fundamentos)) w.push({ level: 'warning', field: 'fundamentos', message: l('Indique os fundamentos da suspensão.', 'State the grounds for the suspension.') });
     w.push({
       level: 'info',
@@ -102,7 +83,7 @@ export default defineTemplate({
     });
     return w;
   },
-  personName: (v) => trabalhador(v).nome || 'trabalhadores',
+  personName: (v) => trabalhador(v).nome || undefined,
   documentDate: (v) => v.data,
 
   blocks: (ctx) => {

@@ -62,7 +62,7 @@ export default defineTemplate({
       default: [{ especie: 'Bovinos', quantidade: '', descricao: '', marca: '' }],
     },
     { name: 'valorEstimado', type: 'money', section: 'animais', width: 'half', label: l('Valor estimado do efectivo (opcional)', 'Estimated value (optional)') },
-    { name: 'local', type: 'text', section: 'animais', label: l('Local de pasto e curral', 'Grazing area and kraal'), placeholder: l('Ex.: curral do criador em Chicualacuala-sede; pastagens comunitárias', 'E.g. keeper’s kraal; communal grazing') },
+    { name: 'localPasto', type: 'text', section: 'animais', label: l('Local de pasto e curral', 'Grazing area and kraal'), placeholder: l('Ex.: curral do criador em Chicualacuala-sede; pastagens comunitárias', 'E.g. keeper’s kraal; communal grazing') },
 
     { name: 'pctCrias', type: 'number', section: 'condicoes', width: 'half', min: 0, max: 100, default: 50, label: l('Parte das crias para o criador (%)', 'Keeper’s share of offspring (%)'), showIf: parceria },
     { name: 'leite', type: 'select', section: 'condicoes', width: 'half', label: l('Leite e estrume', 'Milk and manure'), options: [{ value: 'criador', label: l('Ficam para o criador', 'Go to the keeper') }, { value: 'divididos', label: l('Divididos na mesma proporção', 'Shared in the same proportion') }], default: 'criador', showIf: parceria },
@@ -106,7 +106,7 @@ export default defineTemplate({
         par
           ? `Pelo presente contrato, ${D.o} entrega ${C.ao} os animais descritos no quadro seguinte, para que ${C.f ? 'esta' : 'este'} os crie, apascente e vigie, repartindo entre si as crias e os produtos, nos termos das cláusulas seguintes.`
           : `Pelo presente contrato, ${D.o} entrega ${C.ao} os animais descritos no quadro seguinte, para que ${C.f ? 'esta' : 'este'} os guarde e apascente, mediante pagamento, restituindo-os com as crias que nascerem.`,
-        `Os animais são mantidos em ${semPonto(v.local) || BLANK}${money(v.valorEstimado) != null ? ` e têm o valor estimado de ${valorTexto(money(v.valorEstimado))}` : ''}. ${D.O} continua a ser ${D.f ? "dona" : "dono"} dos animais entregues.`,
+        `Os animais são mantidos em ${semPonto(v.localPasto) || BLANK}${money(v.valorEstimado) != null ? ` e têm o valor estimado de ${valorTexto(money(v.valorEstimado))}` : ''}. ${D.O} continua a ser ${D.f ? "dona" : "dono"} dos animais entregues.`,
       ]),
       en: par ? 'The owner hands the listed animals to the keeper to raise, sharing offspring and produce.' : 'The owner hands the listed animals to the herder to keep for a fee, to be returned with any offspring.',
     });

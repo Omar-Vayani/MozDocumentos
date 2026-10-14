@@ -68,7 +68,7 @@ export const CATALOG_CONSTRUCAO: TemplateMeta[] = [
       pt: 'Acordo escrito do dono da obra e do empreiteiro sobre trabalhos não previstos, o seu preço e a prorrogação do prazo, antes de serem executados.',
       en: 'Written agreement between owner and contractor on unforeseen works, their price and any time extension, before they are carried out.',
     },
-    tags: ['trabalhos a mais', 'trabalhos extra', 'alteracao da obra', 'adicional', 'variation order', 'change order', 'extra works'],
+    tags: ['trabalhos a mais', 'trabalhos extra', 'alteracao da obra', 'adicional', 'variation order', 'change order', 'extra works', 'ordem de trabalhos a mais', 'trabalhos adicionais', 'alteração da obra'],
     legalRefs: ['empreitadaAlteracoes'],
     related: ['auto-de-medicao'],
     lastReviewed: REVIEWED,

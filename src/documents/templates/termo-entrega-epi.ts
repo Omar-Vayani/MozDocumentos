@@ -67,7 +67,7 @@ export default defineTemplate({
     const branco = Math.max(0, Math.min(15, Number(v.linhasBranco ?? 6) || 0));
     const rows = [
       ...itens.map((r) => [str(r.equipamento), str(r.referencia) || '—', r.quantidade != null && r.quantidade !== '' ? String(r.quantidade) : '1', fmt(r.data) || fmt(v.data) || '___/___/____', MOTIVO[r.motivo as string] ?? MOTIVO.primeira, '']),
-      ...Array.from({ length: branco }, () => ['', '', '', '', '', '']),
+      ...Array.from({ length: branco }, () => ['', '', '', '___/___/______', '', '']),
     ];
     const blocks: Block[] = [
       { type: 'title', text: 'Ficha de Entrega de Equipamento de Protecção Individual', subtitle: str(v.ref) ? `N.º ${str(v.ref)}` : undefined },

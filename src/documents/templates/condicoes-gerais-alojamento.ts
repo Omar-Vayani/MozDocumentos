@@ -174,6 +174,7 @@ export default defineTemplate({
 
     const blocks: Block[] = [
       ...politicaHeader(ctx, 'Condições gerais de reserva e alojamento', v.versaoData, nome !== BLANK ? nome : undefined),
+      { type: 'paragraph', id: 'intro', text: `Leia estas condições antes de fazer a sua reserva no ${nome}. Ao confirmar a reserva, o hóspede aceita-as.`, en: 'Please read these terms before booking; confirming a booking means accepting them.' },
       { type: 'numberedClauses', style: 'numeric', items },
     ];
     if (v.linhaAceitacao) {

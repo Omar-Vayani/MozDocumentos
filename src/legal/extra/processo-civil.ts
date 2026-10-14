@@ -359,17 +359,6 @@ export const LEGAL_PROCESSO_CIVIL = {
     confidence: 'confirm',
     note: { pt: 'Lido em sínteses da Lei n.º 22/2019; confirme os fundamentos, o período de separação de facto e o artigo no texto do Boletim da República.', en: 'Read in summaries of Law 22/2019; confirm the grounds, the separation period and the article in the Gazette.' },
   },
-  pcDivorcioNaoLitigioso: {
-    title: { pt: 'Divórcio e separação por mútuo consentimento', en: 'Divorce and separation by consent' },
-    summary: {
-      pt: 'O divórcio não litigioso é requerido por ambos os cônjuges, de comum acordo, sem necessidade de revelar a causa, e é instruído com a relação dos bens comuns e os acordos sobre o exercício do poder parental e alimentos dos filhos menores, alimentos entre os cônjuges e o destino da casa de morada de família. A Lei da Família atribui a sua tramitação à Conservatória do Registo Civil, com os requisitos de duração do casamento previstos na lei.',
-      en: 'A non-contested divorce is requested by both spouses, without stating a cause, with a list of common property and agreements on the children, maintenance and the family home. The Family Law sends it to the Civil Registry, subject to the minimum length of marriage set by law.',
-    },
-    law: 'pcLeiFamilia',
-    lastVerified: V,
-    confidence: 'confirm',
-    note: { pt: 'Lido em sínteses da Lei n.º 22/2019; confirme no Boletim da República a entidade competente (conservatória ou tribunal), o tempo mínimo de casamento e o regime da separação provisória.', en: 'Read in summaries of Law 22/2019; confirm the competent body, minimum length of marriage and provisional separation rules.' },
-  },
   pcAlimentos: {
     title: { pt: 'Obrigação de alimentos', en: 'Maintenance obligation' },
     summary: {

@@ -179,7 +179,7 @@ export const CATALOG_CONTRATOS: TemplateMeta[] = [
       pt: 'Para comunicar por escrito a intenção de comprar, arrendar, contratar ou fazer uma parceria, com termos indicativos e sem obrigação de contratar.',
       en: 'To state in writing the intention to buy, rent, hire or partner, with indicative terms and no obligation to contract.',
     },
-    tags: ['carta de intencao', 'intencao', 'manifestacao de interesse', 'proposta', 'loi', 'letter of intent', 'expression of interest'],
+    tags: ['carta de intencao', 'intencao', 'manifestacao de interesse', 'proposta', 'loi', 'letter of intent', 'expression of interest', 'carta de intenção', 'intenção de negócio', 'pré-acordo'],
     legalRefs: ['negociacoesBoaFe'],
     related: ['memorando-de-entendimento', 'contrato-promessa-compra-venda'],
     lastReviewed: REVIEWED,

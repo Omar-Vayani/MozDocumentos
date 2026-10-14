@@ -5,7 +5,7 @@ import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, cite, dateField, l, localField, money, moneyText, placeDate } from './_shared';
 import { quantos } from './_contratos';
 import {
-  anexosField, anexosList, assinaturaFiscal, clienteFields, clienteWarnings, destinatarioFiscalFields, endDot, IMPOSTO_OPTIONS, linhas, mandatarioFields, nomeCliente,
+  anexosField, anexosList, assinaturaFiscal, clienteFields, clienteWarnings, contrair, destinatarioFiscalFields, endDot, IMPOSTO_OPTIONS, linhas, mandatarioFields, nomeCliente,
   requerenteTexto, requerimentoInicio, s, semPonto,
 } from './_financas';
 
@@ -77,7 +77,7 @@ export default defineTemplate({
     const imposto = v.imposto === 'outro' ? s(v.impostoOutro) || BLANK : s(v.imposto) || BLANK;
     const motivos = linhas(v.motivos);
     const anexos = anexosList(v);
-    const divida = `a dívida de ${imposto}${s(v.periodo) ? ` relativa ao período de ${semPonto(v.periodo)}` : ''}${s(v.documentoDivida) ? `, constante ${v.execucao ? 'do processo de execução fiscal' : 'da nota de cobrança'} n.º ${s(v.documentoDivida)}` : ''}, no valor total de **${c.total != null ? moneyText(c.total) : `${BLANK} MT`}**`;
+    const divida = `a dívida de ${imposto}${s(v.periodo) ? ` relativa ${/^(o|a|os|as)\s/i.test(semPonto(v.periodo)) ? contrair('a', semPonto(v.periodo)) : `ao período de ${semPonto(v.periodo)}`}` : ''}${s(v.documentoDivida) ? `, constante ${v.execucao ? 'do processo de execução fiscal' : 'da nota de cobrança'} n.º ${s(v.documentoDivida)}` : ''}, no valor total de **${c.total != null ? moneyText(c.total) : `${BLANK} MT`}**`;
     const blocks: Block[] = [
       ...requerimentoInicio(v, `Pedido de pagamento em prestações — ${imposto}`),
       {

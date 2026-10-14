@@ -136,7 +136,7 @@ export const CATALOG_SAUDE: TemplateMeta[] = [
       pt: 'Para registar que o doente foi informado dos riscos e recusa um tratamento, um internamento ou uma transferência.',
       en: 'To record that the patient was told the risks and refuses a treatment, admission or transfer.',
     },
-    tags: ['recusa de tratamento', 'alta a pedido', 'alta contra parecer medico', 'termo de responsabilidade', 'refusal of treatment', 'against medical advice', 'AMA'],
+    tags: ['recusa de tratamento', 'alta a pedido', 'alta contra parecer medico', 'termo de responsabilidade', 'refusal of treatment', 'against medical advice', 'AMA', 'termo de recusa de tratamento', 'contra parecer médico', 'recusa informada'],
     legalRefs: ['consentimentoInformadoUtente', 'maioridade'],
     related: ['consentimento-informado'],
     lastReviewed: REVIEWED,

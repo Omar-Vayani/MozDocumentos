@@ -84,7 +84,7 @@ export default defineTemplate({
       ],
       default: [],
     },
-    { name: 'depositario', type: 'text', section: 'bens', label: l('Local onde ficam os bens', 'Where the goods are kept'), placeholder: l('Ex.: armazém do devedor na Machava, Matola', 'E.g. the debtor’s warehouse') },
+    { name: 'depositario', type: 'text', section: 'bens', label: l('Local onde ficam os bens', 'Where the goods are kept'), placeholder: l('Ex.: o armazém do devedor na Machava, Matola', 'E.g. the debtor’s warehouse'), help: l('Comece com o artigo: «o armazém…», «a oficina…».', 'Start with the article.') },
     { name: 'devedorCredito', type: 'text', section: 'bens', label: l('Devedor do crédito empenhado / banco do saldo', 'Debtor of the pledged receivable / bank'), showIf: (v) => v.modalidade === 'creditos' },
     { name: 'seguro', type: 'toggle', section: 'bens', default: true, label: l('Os bens devem estar seguros, com o credor como beneficiário', 'Goods must be insured with the creditor as beneficiary'), showIf: (v) => v.modalidade !== 'creditos' },
     { name: 'vendaExtrajudicial', type: 'toggle', section: 'clausulas', default: true, label: l('Permitir venda extrajudicial dos bens em caso de incumprimento', 'Allow out-of-court sale on default'), help: l('Pelo valor fixado por avaliação independente, devolvendo ao dono o excedente.', 'At an independently appraised value, returning any surplus to the owner.') },
@@ -151,7 +151,7 @@ export default defineTemplate({
         id: 'entrega',
         heading: 'Entrega e guarda dos bens',
         text: numerar([
-          `Os bens são entregues ${C.ao} nesta data${str(v.depositario) ? `, ficando depositados em ${semPonto(v.depositario)}` : ''}, valendo a assinatura do presente contrato como termo de entrega.`,
+          `Os bens são entregues ${C.ao} nesta data${str(v.depositario) ? `, ficando depositados ${contrairEm(semPonto(v.depositario))}` : ''}, valendo a assinatura do presente contrato como termo de entrega.`,
           `${C.O} obriga-se a guardar e conservar os bens com diligência, a não os usar sem autorização ${dono.de} e a restituí-los logo que a obrigação garantida se extinga.`,
         ]),
         en: 'The goods are delivered to the creditor today; the creditor must keep them carefully, not use them and return them once the debt is paid.',
@@ -161,7 +161,7 @@ export default defineTemplate({
         id: 'deposito',
         heading: 'Bens em poder do dono',
         text: numerar([
-          `Os bens permanecem em poder ${dono.de}${str(v.depositario) ? `, em ${semPonto(v.depositario)}` : ''}, que os detém na qualidade de ${dono.f ? 'fiel depositária' : 'fiel depositário'} e responde pela sua guarda e conservação.`,
+          `Os bens permanecem em poder ${dono.de}${str(v.depositario) ? `, ${contrairEm(semPonto(v.depositario))}` : ''}, que os detém na qualidade de ${dono.f ? 'fiel depositária' : 'fiel depositário'} e responde pela sua guarda e conservação.`,
           `${dono.O} não pode vender, onerar, ceder ou retirar os bens do local indicado sem autorização escrita ${C.de}, e deve permitir a sua inspecção sempre que ${C.o} o solicite com aviso razoável.`,
           `${C.O} pode registar o penhor na Central de Registo de Garantias Mobiliárias, obrigando-se ${dono.o} a prestar a colaboração necessária (${cite('finGarantiasMobiliariasRegisto')}).`,
         ]),
@@ -232,7 +232,7 @@ export default defineTemplate({
           { label: 'Identificação', width: 2.2 },
           { label: 'Valor (MT)', width: 1.3, align: 'right' },
         ],
-        rows: (lista.length ? lista : [{ descricao: '', identificacao: '', valor: null }]).map((b, i) => [String(i + 1), b.descricao || BLANK, b.identificacao || '—', b.valor != null ? formatMoney(b.valor, false) : BLANK]),
+        rows: (lista.length ? lista : [{ descricao: '', identificacao: '', valor: null }]).map((b, i) => [String(i + 1), b.descricao || BLANK, b.identificacao || '—', b.valor != null ? formatMoney(b.valor, false) : '__________']),
         totals: lista.length > 1 ? [['', 'Total', '', formatMoney(totalBens, false)]] : undefined,
       },
       { type: 'numberedClauses', style: 'clausula', items: clauses.slice(1), start: 2 },
@@ -241,3 +241,10 @@ export default defineTemplate({
     return blocks;
   },
 });
+
+/** "no armazém…", "na oficina…", or "em …" when there is no article. */
+function contrairEm(x: string): string {
+  const m = x.match(/^(o|a|os|as)\s+(.*)$/i);
+  if (!m) return `em ${x}`;
+  return `${({ o: 'no', a: 'na', os: 'nos', as: 'nas' } as Record<string, string>)[m[1].toLowerCase()]} ${m[2]}`;
+}

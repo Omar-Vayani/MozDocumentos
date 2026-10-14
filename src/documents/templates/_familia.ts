@@ -157,7 +157,7 @@ export function filhos(v: unknown): Filho[] {
 }
 
 /** "**Ana**, nascida a 3 de Maio de 2015, titular do BI n.º …" */
-export function filhoTexto(f: Filho, docLabel = 'assento de nascimento / BI n.º'): string {
+export function filhoTexto(f: Filho, docLabel = 'documento de identificação n.º'): string {
   const fem = isF(f.genero);
   return [`**${f.nome}**`, f.nascimento ? `${fem ? 'nascida' : 'nascido'} a ${dateLong(f.nascimento)}` : '', f.documento ? `${docLabel} ${f.documento}` : ''].filter(Boolean).join(', ');
 }

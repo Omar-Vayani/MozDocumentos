@@ -5,8 +5,7 @@
 // forms; this letter accompanies them.
 
 import { defineTemplate, type Block, type Warning } from '../model';
-import { BLANK, cite, dateField, dateLong, employerSignature, l, lineItems, localField, refField, workerFields } from './_shared';
-import { moneyExt } from './_contrato-trabalho';
+import { BLANK, cite, dateField, dateLong, employerSignature, formatMoney, l, money, lineItems, localField, refField, workerFields } from './_shared';
 import { deOrgao, linhas, nosTermos, str } from './_rh-politicas';
 
 const CIRC: Record<string, string> = {
@@ -121,7 +120,7 @@ export default defineTemplate({
       { label: 'Departamento', value: str(v.trabalhadorDepartamento) || BLANK },
       { label: 'Admissão', value: dateLong(v.trabalhadorDataAdmissao) },
       { label: 'Beneficiário INSS n.º', value: str(v.trabalhadorInss) || BLANK },
-      { label: 'Salário base', value: v.trabalhadorSalario ? moneyExt(v.trabalhadorSalario) : BLANK },
+      { label: 'Salário base', value: v.trabalhadorSalario ? formatMoney(money(v.trabalhadorSalario)) : BLANK },
       { label: 'Telefone', value: str(v.trabalhadorTelefone) || BLANK },
     ];
     const acidente = [

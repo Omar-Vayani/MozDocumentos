@@ -56,6 +56,13 @@ export function CatalogPage() {
   };
 
   const grouped = !q.trim() && !cat;
+  // While searching, the category chips show only categories with results, and how many.
+  const searchCounts = useMemo(() => {
+    if (!q.trim()) return null;
+    const counts = new Map<CategoryId, number>();
+    for (const m of searchCatalog(q)) counts.set(m.category, (counts.get(m.category) ?? 0) + 1);
+    return counts;
+  }, [q]);
 
   return (
     <div className="container-page py-8 sm:py-10">
@@ -86,7 +93,12 @@ export function CatalogPage() {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label={t('catalog.category')}>
-        {[{ id: null as CategoryId | null, label: t('catalog.all') }, ...[...myCats, ...otherCats].map((c) => ({ id: c.id as CategoryId | null, label: L(c.title) }))].map((c) => {
+        {[
+          { id: null as CategoryId | null, label: t('catalog.all') },
+          ...[...myCats, ...otherCats]
+            .filter((c) => !searchCounts || searchCounts.has(c.id) || cat === c.id)
+            .map((c) => ({ id: c.id as CategoryId | null, label: searchCounts ? `${L(c.title)} (${searchCounts.get(c.id) ?? 0})` : L(c.title) })),
+        ].map((c) => {
           const on = cat === c.id;
           return (
             <button

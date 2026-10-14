@@ -83,7 +83,7 @@ export default defineTemplate({
       default: 'nenhum',
     },
     { name: 'alimentosValor', type: 'money', section: 'alimentos', width: 'half', label: l('Valor mensal', 'Monthly amount'), showIf: (v) => v.alimentos !== 'nenhum' },
-    { name: 'alimentosAte', type: 'text', section: 'alimentos', width: 'half', label: l('Durante', 'For'), placeholder: l('Ex.: 24 meses; até voltar a casar', 'E.g. 24 months; until remarriage'), showIf: (v) => v.alimentos !== 'nenhum' },
+    { name: 'alimentosAte', type: 'text', section: 'alimentos', width: 'half', label: l('Durante', 'For'), placeholder: l('Ex.: dois anos; até voltar a casar', 'E.g. 24 months; until remarriage'), showIf: (v) => v.alimentos !== 'nenhum' },
     { name: 'alimentosForma', type: 'select', section: 'alimentos', width: 'half', label: l('Forma de pagamento', 'Payment method'), options: FORMA_PAGAMENTO_OPTIONS, default: 'transferência bancária', showIf: (v) => v.alimentos !== 'nenhum' },
     {
       name: 'casaTipo',

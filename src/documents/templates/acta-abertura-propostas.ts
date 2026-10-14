@@ -5,6 +5,7 @@
 import { defineTemplate, type Block, type SignatureColumn, type Warning } from '../model';
 import { cite, dateField, entityName, formatMoney, l, lineItems, localField, money } from './_shared';
 import { dataPorExtenso, hora } from './_estado';
+import { quantos } from './_contratos';
 import { entidadeProfileWarning, juriField, juriSignatures, juriTexto, objectoComArtigo, procedimentoFields, procedimentoNome, semPonto, str } from './_contratacao';
 
 const GARANTIA_OPTIONS = [
@@ -95,7 +96,7 @@ export default defineTemplate({
         type: 'paragraph',
         id: 'recebidas',
         text: props.length
-          ? `O Presidente do júri declarou aberta a sessão e informou que, até ${hora(v.entregaHora, 'às')} do mesmo dia, hora-limite fixada para a entrega, foram recebidas ${props.length === 1 ? 'uma proposta' : `${props.length} propostas`}, que se encontravam fechadas e foram abertas e rubricadas pelos membros do júri, tendo sido lidos em voz alta o nome dos concorrentes, os preços e a existência de garantia provisória, conforme o quadro seguinte:`
+          ? `O Presidente do júri declarou aberta a sessão e informou que, até ${hora(v.entregaHora, 'às')} do mesmo dia, hora-limite fixada para a entrega, foram recebidas ${quantos(props.length, 'proposta', 'propostas', true)}, que se encontravam fechadas e foram abertas e rubricadas pelos membros do júri, tendo sido lidos em voz alta o nome dos concorrentes, os preços e a existência de garantia provisória, conforme o quadro seguinte:`
           : `O Presidente do júri declarou aberta a sessão e informou que, até ${hora(v.entregaHora, 'às')} do mesmo dia, hora-limite fixada para a entrega, foram recebidas as propostas constantes do quadro seguinte:`,
         keepWithNext: true,
         en: 'Bids received by the deadline were opened, initialled and read out:',
