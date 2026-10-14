@@ -91,7 +91,7 @@ export default defineTemplate({
     for (let start = 0; start < nPer; start += MAX_COLS) {
       const cols = datas.slice(start, start + MAX_COLS);
       const last = start + MAX_COLS >= nPer;
-      const extra = rot && last ? [{ label: 'Recebeu em', width: 1.3 }, { label: 'Assinatura', width: 2.2 }] : [];
+      const extra = rot && last ? [{ label: 'Recebe em', width: 1.3 }, { label: 'Assinatura', width: 2.2 }] : [];
       blocks.push({
         type: 'table',
         caption: nPer > MAX_COLS ? `Períodos ${start + 1} a ${Math.min(nPer, start + MAX_COLS)}` : undefined,

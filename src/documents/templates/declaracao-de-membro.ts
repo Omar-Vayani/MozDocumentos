@@ -48,7 +48,7 @@ export default defineTemplate({
     const partes = [
       `Para os devidos efeitos, declara-se que **${str(v.membroNome) || BLANK}**${str(v.membroNacionalidade) ? `, de nacionalidade ${str(v.membroNacionalidade)}` : ''}${doc}, é ${cat} ${deNome(n, nome)} desde ${dateLong(v.desde)}${str(v.numeroMembro) ? `, com o n.º de membro ${str(v.numeroMembro)}` : ''}`,
       str(v.quotasAte) ? `, encontrando-se com as quotas regularizadas até ${formatMonthYear(`${v.quotasAte}-01`)}` : '',
-      str(v.cargo) ? `, e exerce actualmente o cargo de ${semPonto(v.cargo)}` : '',
+      str(v.cargo) ? `, exercendo actualmente o cargo de ${semPonto(v.cargo)}` : '',
       v.participacao !== false ? `, participando regularmente nas ${igreja ? 'actividades e nos cultos da igreja' : 'actividades'} ${daEntidade(n)}` : '',
       '.',
     ];

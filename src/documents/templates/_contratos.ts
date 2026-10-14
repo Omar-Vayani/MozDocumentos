@@ -253,7 +253,10 @@ export function conjugeColumn(v: Values, p: string): SignatureColumn | null {
 export function consentimentoTexto(v: Values, p: string, role: Papel): string | undefined {
   if (!conjugeColumn(v, p)) return undefined;
   const doc = str(v[`${p}ConjugeDoc`]);
-  return `${str(v[`${p}ConjugeNome`])}${doc ? `, portador(a) do Bilhete de Identidade n.º ${doc}` : ''}, cônjuge ${role.de}, declara prestar o seu consentimento ao presente contrato.`;
+  // Marriage under the Family Law is between a man and a woman: the spouse takes the other gender.
+  const genero = str(v[`${p}Genero`]);
+  const portador = genero === 'M' ? 'portadora' : genero === 'F' ? 'portador' : 'portador(a)';
+  return `**${str(v[`${p}ConjugeNome`])}**${doc ? `, ${portador} do Bilhete de Identidade n.º ${doc}` : ''}, cônjuge ${role.de}, declara prestar o seu consentimento ao presente contrato.`;
 }
 
 // ---------------------------------------------------------------- Common fields
@@ -366,7 +369,7 @@ export function fecho(
   }
   const extra = (opts.extraCols ?? []).filter((c): c is SignatureColumn => Boolean(c));
   if (extra.length) {
-    if (opts.consentimento) blocks.push({ type: 'paragraph', id: 'consentimento', text: opts.consentimento, en: 'The spouse consents to this contract.', keepWithNext: true });
+    if (opts.consentimento) blocks.push({ type: 'spacer', size: 'small' }, { type: 'paragraph', id: 'consentimento', text: opts.consentimento, en: 'The spouse consents to this contract.', keepWithNext: true });
     blocks.push({ type: 'signatures', columns: extra.slice(0, 3) });
   }
   if (v.testemunhas) {

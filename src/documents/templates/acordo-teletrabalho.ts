@@ -200,9 +200,8 @@ export default defineTemplate({
         id: 'equipamentos',
         heading: 'Equipamentos',
         text: equip.length
-          ? `1. A Entidade Empregadora fornece ${w.ao} os seguintes equipamentos, que continuam a ser sua propriedade:\n2. ${w.O} utiliza os equipamentos apenas para fins profissionais, zela pela sua boa conservação e devolve-os no termo do presente acordo ou quando lhe forem pedidos.`
+          ? `1. A Entidade Empregadora fornece ${w.ao} os seguintes equipamentos, que continuam a ser sua propriedade: ${enumerate(equip.map((r) => `${str(r.item)}${str(r.serie) ? ` (n.º ${str(r.serie)})` : ''}`)).map((t, i) => `${String.fromCharCode(97 + i)}) ${t}`).join(' ')}\n2. ${w.O} utiliza os equipamentos apenas para fins profissionais, zela pela sua boa conservação e devolve-os no termo do presente acordo ou quando lhe forem pedidos.`
           : `${w.O} utiliza equipamento próprio, devendo a Entidade Empregadora assegurar as aplicações informáticas e os acessos necessários ao trabalho.`,
-        items: equip.length ? enumerate(equip.map((r) => `${str(r.item)}${str(r.serie) ? ` (n.º ${str(r.serie)})` : ''}`)) : undefined,
         en: equip.length ? 'The Employer provides the listed equipment, which remains its property; it is for work use only and must be returned at the end.' : 'The Employee uses their own equipment; the Employer provides the software and access needed.',
       },
       {

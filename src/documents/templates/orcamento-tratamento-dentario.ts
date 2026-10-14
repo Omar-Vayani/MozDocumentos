@@ -120,7 +120,7 @@ export default defineTemplate({
         rows.push([`§ Fase ${i.fase}`, '', '', '', '']);
         last = i.fase;
       }
-      rows.push([i.dente || '—', i.procedimento, String(i.qtd), i.preco != null ? formatMoney(i.preco, false) : '—', formatMoney(i.total, false)]);
+      rows.push([i.dente, i.procedimento, String(i.qtd), i.preco != null ? formatMoney(i.preco, false) : '—', formatMoney(i.total, false)]);
     }
     const totals: string[][] = [['', 'Subtotal', '', '', formatMoney(c.subtotal, false)]];
     if (c.desconto > 0) totals.push(['', 'Desconto', '', '', `− ${formatMoney(c.desconto, false)}`]);
@@ -155,8 +155,8 @@ export default defineTemplate({
       {
         type: 'table',
         columns: [
-          { label: 'Dente', width: 12 },
-          { label: 'Procedimento', width: 46 },
+          { label: 'Dente', width: 9 },
+          { label: 'Procedimento', width: 49 },
           { label: 'Qtd.', width: 8, align: 'right' },
           { label: 'Preço unit.', width: 16, align: 'right' },
           { label: 'Total', width: 18, align: 'right' },

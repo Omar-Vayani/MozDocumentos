@@ -76,7 +76,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'informacao',
-        text: `${eu}${v.doenteProcesso ? ` (processo clínico n.º ${v.doenteProcesso})` : ''}, declaro que ${clinicianRole(v).toLowerCase()} **${clin}** me informou, em linguagem que compreendi, de que é clinicamente recomendado **${v.proposto || '____________________'}** e dos riscos da sua não realização, designadamente: ${riscos}.`,
+        text: `${eu}${v.doenteProcesso ? ` (processo clínico n.º ${v.doenteProcesso})` : ''}, declaro que ${clinicianRole(v).toLowerCase()} **${clin}** me informou, em linguagem que compreendi, de que é clinicamente recomendado **${v.proposto || '____________________'}** e me explicou os riscos da sua não realização, designadamente: ${riscos}.`,
         en: `I declare that ${v.clinicoNome || 'the doctor'} told me in language I understood that ${v.proposto || '___'} is recommended, and of the risks of refusing: ${riscos}.`,
       },
       {

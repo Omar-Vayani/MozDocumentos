@@ -183,7 +183,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'convite',
-        text: `Eu, ${identificacao(v, 'anfitriao')}${prof}${contacto ? `, contacto ${contacto}` : ''}, venho **convidar** ${plural ? `${o} abaixo identificados` : `${o} ${lista[0] ? convidadoDesc(lista[0]) : `**${BLANK}**`}`} a visitar a República de Moçambique, no período de ${dateLong(v.dataEntrada)} a ${dateLong(v.dataSaida)}, para fins de ${finalidade}${plural ? ':' : '.'}`,
+        text: `Eu, ${identificacao(v, 'anfitriao')}${prof}${contacto ? `, contacto ${contacto}` : ''}, venho **convidar** ${plural ? `as pessoas abaixo identificadas` : lista[0] ? convidadoDesc(lista[0]) : `**${BLANK}**`} a visitar a República de Moçambique, no período de ${dateLong(v.dataEntrada)} a ${dateLong(v.dataSaida)}, para fins de ${finalidade}${plural ? ':' : '.'}`,
         en: `The host identified above invites the guest(s) named to visit Mozambique from ${v.dataEntrada || '—'} to ${v.dataSaida || '—'} for ${finalidade}.`,
       },
     ];

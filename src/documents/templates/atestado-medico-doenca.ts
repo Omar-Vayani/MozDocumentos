@@ -226,7 +226,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'fecho',
-        text: 'Por ser verdade e me ter sido solicitado, passo o presente atestado, que vai por mim assinado e autenticado com o carimbo em uso.',
+        text: 'Por ser verdade e lhe ter sido solicitado, passa o presente atestado, que assina e autentica com o carimbo em uso.',
         en: 'Issued at the patient’s request, signed and stamped.',
         keepWithNext: true,
       },

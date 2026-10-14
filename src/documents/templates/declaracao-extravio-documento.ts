@@ -169,7 +169,7 @@ export default defineTemplate({
       blocks.push({
         type: 'paragraph',
         id: 'participacao',
-        text: `O facto foi participado ${/^(a|à|na)\s/i.test(str(v.participacaoEsquadra)) ? '' : 'na '}${str(v.participacaoEsquadra)}${v.participacaoData ? ` em ${dateLong(v.participacaoData)}` : ''}${str(v.participacaoNumero) ? `, sob o n.º ${str(v.participacaoNumero)}` : ''}.`,
+        text: `O facto foi participado ${/^(a|à|na)\s/i.test(str(v.participacaoEsquadra)) ? '' : 'na '}${str(v.participacaoEsquadra)}${v.participacaoData ? `, em ${dateLong(v.participacaoData)}` : ''}${str(v.participacaoNumero) ? `, sob o n.º ${str(v.participacaoNumero)}` : ''}.`,
         en: 'The matter was reported to the police as stated.',
       });
     }

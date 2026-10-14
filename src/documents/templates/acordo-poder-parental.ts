@@ -3,7 +3,7 @@
 // approval (homologação) by the juvenile section of the court.
 
 import { defineTemplate, type Block, type ClauseItem, type Values, type Warning } from '../model';
-import { BLANK, cite, dateField, dateLong, FORMA_PAGAMENTO_OPTIONS, isF, l, lineItems, localField, money, placeDate, splitLines } from './_shared';
+import { BLANK, cite, dateField, dateLong, FORMA_PAGAMENTO_OPTIONS, isF, l, lineItems, localField, money, splitLines } from './_shared';
 import { moneyExt, nExt } from './_contrato-trabalho';
 import { ageOn, identificacao, notaryBox, PARENTESCO_OPTIONS, pessoaFields, qualidadeParental, RECONHECIMENTO_FIELD, str } from './_pessoal-rh';
 
@@ -335,7 +335,7 @@ export default defineTemplate({
     );
 
     const blocks: Block[] = [
-      { type: 'title', text: 'Acordo de Regulação do Exercício do Poder Parental e de Alimentos' },
+      { type: 'title', text: 'Acordo de Regulação do Exercício do Poder Parental' },
       { type: 'paragraph', id: 'entre', text: '**Entre:**', align: 'left', editable: false },
       { type: 'paragraph', id: 'parte1', text: `${identificacao(v, 'progenitor1')}, adiante ${isF(v.progenitor1Genero) ? 'designada' : 'designado'} por **${designacao(v, 'progenitor1')}**;`, en: 'The first parent, identified above;' },
       { type: 'paragraph', id: 'e', text: '**e**', align: 'left', editable: false },
@@ -363,13 +363,12 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'exemplares',
-        text: 'Feito em três exemplares de igual valor, um para cada progenitor e outro para instruir o pedido de homologação.',
+        text: `Feito em ${ctx.place}, aos ${dateLong(v.data)}, em três exemplares de igual valor, um para cada progenitor e outro para instruir o pedido de homologação.`,
         en: 'Made in three counterparts of equal value: one for each parent and one for the court application.',
         keepWithNext: true,
       },
       {
         type: 'signatures',
-        placeDate: placeDate(ctx, v.data),
         columns: ['progenitor1', 'progenitor2'].map((p) => ({
           role: `${artigo(v, p) === 'a' ? 'A' : 'O'} ${designacao(v, p)}`,
           name: str(v[`${p}Nome`]) || undefined,

@@ -70,7 +70,7 @@ export default defineTemplate({
     { name: 'antecedenciaEncomendaDias', type: 'number', section: 'encomendas', width: 'half', min: 0, max: 60, default: 3, label: l('Antecedência das encomendas (dias)', 'Order lead time (days)') },
     { name: 'confirmacaoHoras', type: 'number', section: 'encomendas', width: 'half', min: 1, max: 120, default: 24, label: l('Prazo para confirmar a encomenda (horas)', 'Order confirmation time (hours)') },
     { name: 'quantidadeMinima', type: 'text', section: 'encomendas', label: l('Quantidade mínima mensal (opcional)', 'Minimum monthly quantity (optional)') },
-    { name: 'entregaLocal', type: 'text', section: 'encomendas', label: l('Local de entrega', 'Delivery place') },
+    { name: 'entregaLocal', type: 'text', section: 'encomendas', label: l('Local de entrega', 'Delivery place'), placeholder: l('Ex.: no armazém central do Cliente, na Machava', 'E.g. at the Customer’s central warehouse') },
     {
       name: 'transporte',
       type: 'radio',
@@ -195,7 +195,7 @@ export default defineTemplate({
       id: 'entrega',
       heading: 'Entrega e risco',
       text: numerar([
-        `Os produtos são entregues em ${semPonto(v.entregaLocal) || BLANK}, por conta ${v.transporte === 'cliente' ? C.de : F.de}, acompanhados de guia de remessa.`,
+        `Os produtos são entregues ${/^(n[oa]s?|em|à|ao)\s/i.test(semPonto(v.entregaLocal)) ? '' : 'em '}${semPonto(v.entregaLocal) || BLANK}, por conta ${v.transporte === 'cliente' ? C.de : F.de}, acompanhados de guia de remessa.`,
         `O risco de perda ou deterioração dos produtos transfere-se para ${C.o} com a entrega.`,
       ]),
       en: `Delivery at ${v.entregaLocal || '—'}, transport paid by the ${v.transporte === 'cliente' ? 'Customer' : 'Supplier'}, with a delivery note. Risk passes on delivery.`,

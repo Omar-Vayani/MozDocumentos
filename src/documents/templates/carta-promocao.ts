@@ -135,7 +135,12 @@ export default defineTemplate({
         ? `Durante a substituição, V. Ex.ª aufere a remuneração base mensal de **${moneyExt(v.novoSalario)}**, correspondente às funções exercidas, regressando à remuneração actual${antes != null ? ` de ${formatMoney(antes)}` : ''} quando a substituição terminar.`
         : `Em consequência, a sua remuneração base mensal passa${antes != null ? ` de ${formatMoney(antes)}` : ''} para **${moneyExt(v.novoSalario)}**${
             subs.length
-              ? `, acrescida ${subs.length === 1 ? 'do seguinte subsídio' : 'dos seguintes subsídios'}: ${subs.map((x) => `${lowerFirst(str(x.descricao))} de ${moneyExt(x.valor)} por mês`).join('; ')}.`
+              ? `, acrescida ${subs.length === 1 ? 'de' : 'de:'} ${subs
+                  .map((x) => {
+                    const d = lowerFirst(str(x.descricao));
+                    return `${/^subs[ií]dio\b/i.test(d) ? d : `subsídio de ${d}`} de ${moneyExt(x.valor)} por mês`;
+                  })
+                  .join('; ')}.`
               : ', mantendo-se os demais subsídios e regalias.'
           }`;
 

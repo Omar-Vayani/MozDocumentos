@@ -126,7 +126,7 @@ export default defineTemplate({
     ];
     const rest = String(v.restricoes ?? '').trim();
     if (v.conclusao !== 'apto' && rest) {
-      blocks.push({ type: 'paragraph', id: 'restricoes', text: `**Restrições / recomendações:** ${rest}`, en: `Restrictions / recommendations: ${rest}` });
+      blocks.push({ type: 'paragraph', id: 'restricoes', align: 'left', text: `**Restrições / recomendações:** ${rest}`, en: `Restrictions / recommendations: ${rest}` });
     }
     const datas: string[] = [];
     if (v.conclusao === 'inapto-temporario' && v.reavaliarEm) datas.push(`**Reavaliação em:** ${dateLong(v.reavaliarEm)}`);
@@ -135,7 +135,7 @@ export default defineTemplate({
     blocks.push({
       type: 'signatures',
       placeDate: placeDate(ctx, v.data),
-      columns: [clinicianSignature(ctx, v.clinicoGenero === 'F' ? 'A Médica do Trabalho' : 'O Médico do Trabalho'), { role: 'Tomei conhecimento', name: v.trabalhadorNome || undefined }],
+      columns: [clinicianSignature(ctx, v.clinicoGenero === 'F' ? 'A Médica do Trabalho' : 'O Médico do Trabalho'), { role: g(v.trabalhadorGenero, 'O Trabalhador', 'A Trabalhadora'), name: v.trabalhadorNome || undefined, detail: 'Tomei conhecimento' }],
     });
     return blocks;
   },

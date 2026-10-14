@@ -73,32 +73,32 @@ export default defineTemplate({
     if (v.simbolo === 'cruz') out.push({ type: 'ornament', style: 'cross' });
     if (v.tipo === 'saudade') {
       const n = Math.max(1, Math.round(Number(v.anos) || 1));
-      out.push(disp(`${n} ${n === 1 ? 'ano' : 'anos'} de eterna saudade`, 'sm', { uppercase: true, after: 6 }));
-      out.push(disp(nome, 'lg', { weight: 'bold', fit: true, after: 1 }));
-      if (datas) out.push(disp(datas, 'xs', { tone: 'muted', after: 1 }));
+      out.push(disp(`${n} ${n === 1 ? 'ano' : 'anos'} de eterna saudade`, 'md', { uppercase: true, after: 6 }));
+      out.push(disp(nome, 'xl', { weight: 'bold', fit: true, after: 1 }));
+      if (datas) out.push(disp(datas, 'sm', { tone: 'muted', after: 1 }));
       out.push({ type: 'ornament', style: 'rule' });
-      out.push(disp(clip(str(v.mensagem).replace(/\s*\n\s*/g, ' '), 240) || 'Partiste, mas continuas presente em cada um de nós.', 'sm', { italic: true, after: 6 }));
-      out.push(disp(clip(str(v.quemConvida), 80) || 'A tua família', 'xs', { tone: 'muted', after: 0 }));
+      out.push(disp(clip(str(v.mensagem).replace(/\s*\n\s*/g, ' '), 240) || 'Partiste, mas continuas presente em cada um de nós.', 'md', { italic: true, after: 6 }));
+      out.push(disp(clip(str(v.quemConvida), 80) || 'A tua família', 'sm', { tone: 'muted', after: 0 }));
       return cardScale(out);
     }
     const t = TIPOS[str(v.tipo)] ?? TIPOS.setimo;
     const titulo = v.tipo === 'cerimonia' && str(v.cerimoniaNome) ? str(v.cerimoniaNome) : t.titulo;
     const acto = v.tipo === 'cerimonia' && str(v.cerimoniaNome) ? `a cerimónia de ${str(v.cerimoniaNome).toLowerCase()}` : t.acto;
     const quem = clip(str(v.quemConvida), 80) || 'A família';
-    out.push(disp(titulo, 'sm', { uppercase: true, fit: true, after: 6 }));
-    out.push(disp(nome, 'lg', { weight: 'bold', fit: true, after: 1 }));
-    if (datas) out.push(disp(datas, 'xs', { tone: 'muted', after: 1 }));
+    out.push(disp(titulo, 'md', { uppercase: true, fit: true, after: 6 }));
+    out.push(disp(nome, 'xl', { weight: 'bold', fit: true, after: 1 }));
+    if (datas) out.push(disp(datas, 'sm', { tone: 'muted', after: 1 }));
     out.push({ type: 'ornament', style: 'rule' });
     out.push(
       disp(
         `${quem} ${plural(quem) ? 'convidam' : 'convida'} os familiares, amigos e conhecidos para ${acto} em memória de ${nome}, ${g(v.falecidoGenero, 'falecido', 'falecida')} no dia ${dateLong(v.dataFalecimento)}.`,
-        'xs',
+        'sm',
         { after: 5 },
       ),
     );
-    out.push(disp(linhaData(v.dataEvento, v.horaEvento), 'xs', { uppercase: true, weight: 'bold', fit: true, after: 1 }));
-    out.push(disp(str(v.localEvento) || '____________________', 'xs', { weight: 'bold', fit: true, after: 5 }));
-    out.push(disp(`${quem} ${plural(quem) ? 'agradecem' : 'agradece'} a todos os que se dignarem participar neste acto de fé.`, 'xs', { italic: true, tone: 'muted', after: 0 }));
+    out.push(disp(linhaData(v.dataEvento, v.horaEvento), 'sm', { uppercase: true, weight: 'bold', fit: true, after: 1 }));
+    out.push(disp(str(v.localEvento) || '____________________', 'sm', { weight: 'bold', fit: true, after: 5 }));
+    out.push(disp(`${quem} ${plural(quem) ? 'agradecem' : 'agradece'} a todos os que se dignarem participar neste acto de fé.`, 'sm', { italic: true, tone: 'muted', after: 0 }));
     return cardScale(out);
   },
   warnings: (v) => {

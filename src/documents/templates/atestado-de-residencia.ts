@@ -7,7 +7,7 @@ import { isCommunityAuthority, isPublicBody } from '@/lib/storage/types';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, dateField, dateLong, g, l, localField, moneyText, officialRef } from './_shared';
 import { numeroField, signatarioColumn, signatarioFields } from './_estado';
-import { enderecoBairro, finalidadeField, finalidadeFrase, identificacao, pessoaFields, str, testemunhas, testemunhasField } from './_comunidade';
+import { enderecoBairro, finalidadeField, finalidadeFrase, identificacao, pessoaFields, residenteEm, str, testemunhas, testemunhasField } from './_comunidade';
 
 const mesAno = (ym: unknown) => {
   const s = str(ym);
@@ -83,7 +83,7 @@ export default defineTemplate({
     const circ = str(v.circunscricao);
     const ts = testemunhas(v);
     const tsTxt = (ts.length ? ts : [{ nome: '', documento: '' }, { nome: '', documento: '' }])
-      .map((t) => `**${t.nome || BLANK}**${t.documento ? `, portador(a) do BI n.º ${t.documento}` : ''}`)
+      .map((t) => `**${t.nome || BLANK}**${t.documento ? ` (BI n.º ${t.documento.replace(/^(BI\s*)?n\.?\s*º\s*/i, '')})` : ''}`)
       .join(' e ');
     const decl = `declaração da estrutura do bairro n.º ${str(v.declaracaoBairroNumero) || BLANK}${v.declaracaoBairroData ? `, de ${dateLong(v.declaracaoBairroData)}` : ''}`;
 
@@ -92,7 +92,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'atestado',
-        text: `Atesta-se, ${finalidadeFrase(v)}, que ${identificacao(v)}, reside em ${end || BLANK}${circ ? `, na área ${/^(Posto|Distrito|Bairro|Município|Conselho)/i.test(circ) ? 'do' : 'da'} ${circ}` : ''}, desde ${mesAno(v.desde) || BLANK}.`,
+        text: `Atesta-se, ${finalidadeFrase(v)}, que ${identificacao(v)}, ${end ? residenteEm(end).replace(/^residente/, 'reside') : `reside em ${BLANK}`}${circ ? `, na área ${/^(Posto|Distrito|Bairro|Município|Conselho)/i.test(circ) ? 'do' : 'da'} ${circ}` : ''}, desde ${mesAno(v.desde) || BLANK}.`,
         en: 'It is certified that the applicant lives at the address stated, within this area, since the date given.',
       },
       {

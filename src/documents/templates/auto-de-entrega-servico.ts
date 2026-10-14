@@ -182,6 +182,8 @@ export default defineTemplate({
     }
 
     const ex = Math.max(1, Math.min(6, Number(v.exemplares) || 3));
+    // Keep the last section with the closing and the signatures.
+    (blocks[blocks.length - 1] as { keepWithNext?: boolean }).keepWithNext = true;
     blocks.push(
       {
         type: 'paragraph',

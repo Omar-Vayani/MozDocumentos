@@ -188,7 +188,7 @@ export default defineTemplate({
       },
       {
         type: 'keyValue',
-        title: 'Documento de identificação',
+        title: 'Identificação, NUIT e INSS',
         columns: 2,
         items: [
           { label: 'Tipo', value: doc },
@@ -196,15 +196,8 @@ export default defineTemplate({
           { label: 'Data de emissão', value: dateVal(v.trabalhadorDocEmissao) },
           { label: 'Local de emissão', value: val(v.trabalhadorDocLocal) },
           { label: 'Válido até', value: dateVal(v.trabalhadorDocValidade) },
-        ],
-      },
-      {
-        type: 'keyValue',
-        title: 'Dados fiscais e de segurança social',
-        columns: 2,
-        items: [
           { label: 'NUIT', value: val(v.trabalhadorNuit) },
-          { label: 'N.º de beneficiário do INSS', value: val(v.trabalhadorInss) },
+          { label: 'N.º do INSS', value: val(v.trabalhadorInss) },
         ],
       },
       {

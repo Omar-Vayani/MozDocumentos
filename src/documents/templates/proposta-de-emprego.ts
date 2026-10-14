@@ -297,9 +297,11 @@ export default defineTemplate({
       }
     }
 
-    const items: { label: string; value: string }[] = [{ label: 'Cargo', value: cargo || BLANK }];
-    if (trim(v.trabalhadorCategoria)) items.push({ label: 'Categoria profissional', value: trim(v.trabalhadorCategoria) });
-    if (trim(v.trabalhadorDepartamento)) items.push({ label: 'Departamento', value: trim(v.trabalhadorDepartamento) });
+    // Position, grade and department on one row; allowances on one row: the offer stays on one page.
+    const cargoExtra = [trim(v.trabalhadorCategoria) && `categoria: ${trim(v.trabalhadorCategoria)}`, trim(v.trabalhadorDepartamento) && `departamento: ${trim(v.trabalhadorDepartamento)}`]
+      .filter(Boolean)
+      .join('; ');
+    const items: { label: string; value: string }[] = [{ label: 'Cargo', value: `${cargo || BLANK}${cargoExtra ? ` (${cargoExtra})` : ''}` }];
     items.push(
       { label: 'Local de trabalho', value: trim(v.localTrabalho) || BLANK },
       { label: 'Tipo de contrato', value: tipoTexto[c.tipo as TipoContrato] },
@@ -308,9 +310,15 @@ export default defineTemplate({
     );
     if (trim(v.horario)) items.push({ label: 'Horário de trabalho', value: trim(v.horario) });
     items.push({ label: 'Salário base mensal', value: moneyExt(v.trabalhadorSalario) });
-    for (const s of lineItems(v.subsidios)) {
-      if (!s.descricao && money(s.valor) == null) continue;
-      items.push({ label: trim(s.descricao) || 'Subsídio', value: `${formatMoney(money(s.valor))} por mês` });
+    const subs = lineItems(v.subsidios).filter((s) => s.descricao || money(s.valor) != null);
+    if (subs.length) {
+      items.push({
+        label: subs.length === 1 ? trim(subs[0].descricao) || 'Subsídio' : 'Subsídios mensais',
+        value:
+          subs.length === 1
+            ? `${formatMoney(money(subs[0].valor))} por mês`
+            : subs.map((s) => `${trim(s.descricao).replace(/^subs[ií]dio de /i, '') || 'subsídio'}: ${formatMoney(money(s.valor))}`).join('; '),
+      });
     }
     const beneficios = splitLines(v.beneficios);
     if (beneficios.length) items.push({ label: 'Outros benefícios', value: beneficios.join('; ') });
@@ -342,8 +350,8 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'iliquido',
-        text: 'Os valores indicados são ilíquidos e estão sujeitos aos descontos obrigatórios por lei, designadamente a contribuição para o INSS e a retenção na fonte do IRPS.',
-        en: 'The amounts are gross and subject to statutory deductions (INSS and IRPS withholding).',
+        text: 'Os valores indicados são ilíquidos e estão sujeitos aos descontos obrigatórios por lei, designadamente a contribuição para o INSS e a retenção na fonte do IRPS. As condições definitivas da relação de trabalho constarão do contrato de trabalho escrito a celebrar entre as partes até à data de início de funções, nos termos da Lei do Trabalho.',
+        en: 'The amounts are gross and subject to statutory deductions (INSS and IRPS withholding). The final terms will be set out in the written employment contract, to be signed by the start date under the Labour Law.',
       },
     ];
     if (condicoes.length) {
@@ -358,43 +366,24 @@ export default defineTemplate({
         { type: 'list', style: 'alpha', items: condicoes.map((s, i) => `${s.replace(/[.;]$/, '')}${i === condicoes.length - 1 ? '.' : ';'}`) },
       );
     }
+    const contacto = trim(v.contactoNome)
+      ? ` Para qualquer esclarecimento, V. Ex.ª pode dirigir-se a ${trim(v.contactoNome)}${trim(v.contactoMeio) ? ` (${trim(v.contactoMeio)})` : ''}.`
+      : '';
+    const contactoEn = trim(v.contactoNome) ? ` For any questions, contact ${trim(v.contactoNome)}${trim(v.contactoMeio) ? ` (${trim(v.contactoMeio)})` : ''}.` : '';
     blocks.push(
-      {
-        type: 'paragraph',
-        id: 'contrato',
-        text: 'As condições definitivas da relação de trabalho constarão do contrato de trabalho escrito a celebrar entre as partes até à data de início de funções, nos termos da Lei do Trabalho.',
-        en: 'The final terms will be set out in the written employment contract, to be signed by the start date under the Labour Law.',
-      },
       {
         type: 'paragraph',
         id: 'prazo',
-        text: `Solicitamos que V. Ex.ª nos comunique a sua decisão até **${dateLong(v.dataLimite)}**, devolvendo uma cópia desta carta assinada. Na falta de resposta até essa data, a presente proposta considera-se retirada.`,
-        en: `Please reply by ${v.dataLimite || '—'} by returning a signed copy of this letter. Without a reply by then, the offer lapses.`,
+        text: `Solicitamos que V. Ex.ª nos comunique a sua decisão até **${dateLong(v.dataLimite)}**, devolvendo uma cópia desta carta assinada no espaço destinado à aceitação. Na falta de resposta até essa data, a presente proposta considera-se retirada.${contacto}`,
+        en: `Please reply by ${v.dataLimite || '—'} by returning a copy of this letter signed in the acceptance box. Without a reply by then, the offer lapses.${contactoEn}`,
       },
-    );
-    if (trim(v.contactoNome)) {
-      blocks.push({
-        type: 'paragraph',
-        id: 'contacto',
-        text: `Para qualquer esclarecimento, V. Ex.ª pode dirigir-se a ${trim(v.contactoNome)}${trim(v.contactoMeio) ? ` (${trim(v.contactoMeio)})` : ''}.`,
-        en: `For any questions, contact ${trim(v.contactoNome)}${trim(v.contactoMeio) ? ` (${trim(v.contactoMeio)})` : ''}.`,
-      });
-    }
-    blocks.push(
       { type: 'paragraph', id: 'fecho', text: 'Com os melhores cumprimentos,', align: 'left', keepWithNext: true },
       { type: 'signatures', columns: [employerSignature(ctx, 'Pela Entidade Empregadora')] },
-      { type: 'heading', text: 'Aceitação da proposta', keepWithNext: true },
       {
-        type: 'paragraph',
-        id: 'aceitacao',
-        text: `Eu, **${v.trabalhadorNome || BLANK}**, declaro que aceito a presente proposta de emprego, nas condições nela descritas, e que me apresentarei ao serviço em ${dateLong(inicio)}.`,
-        en: `I, ${v.trabalhadorNome || '—'}, accept this job offer on the terms described and will report for work on ${inicio || '—'}.`,
-        keepWithNext: true,
-      },
-      {
-        type: 'signatures',
-        placeDate: '____________________, ___ de __________ de ______',
-        columns: [{ role: g(ge, 'O Candidato', 'A Candidata'), name: v.trabalhadorNome || undefined }],
+        type: 'box',
+        label: 'Aceitação da proposta',
+        dashed: true,
+        text: `Eu, **${v.trabalhadorNome || BLANK}**, declaro que aceito a presente proposta de emprego, nas condições nela descritas, e que me apresentarei ao serviço em ${dateLong(inicio)}.\n\nData: ____/____/________${'\u00a0'.repeat(10)}${g(ge, 'O Candidato', 'A Candidata')}: ________________________________`,
       },
     );
     return blocks;

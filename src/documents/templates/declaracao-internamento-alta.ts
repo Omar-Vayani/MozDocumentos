@@ -2,7 +2,7 @@ import { diffDays } from '@/lib/format';
 import { defineTemplate, type Block, type SignatureColumn, type Warning } from '../model';
 import { cite, dateField, dateLong, DOC_TIPO_OPTIONS, g, isF, l, localField, placeDate } from './_shared';
 import {
-  clinicianFields, clinicianSignature, clinicianWarnings, countText, establishmentName, patientFields, patientIdent,
+  clinicianFields, clinicianSignature, clinicianWarnings, countText, establishmentName, patientFields, patientIdent, senhor,
 } from './_saude';
 
 const QUALIDADE = [
@@ -76,17 +76,17 @@ export default defineTemplate({
     const fd = isF(v.doenteGenero);
     const pat = patientIdent(v);
     const est = establishmentName(ctx);
-    const onde = `${est ? `em ${est}` : 'nesta unidade sanitária'}${v.servico ? `, no serviço de ${v.servico}` : ''}`;
+    const onde = `${est ? `nesta unidade sanitária (${est})` : 'nesta unidade sanitária'}${v.servico ? `, no serviço de ${v.servico}` : ''}`;
     const periodo = v.aindaInternado
-      ? `desde **${dateLong(v.dataAdmissao)}**, continuando ${fd ? 'internada' : 'internado'} à presente data`
-      : `de **${dateLong(v.dataAdmissao)}** a **${dateLong(v.dataAlta)}**, data em que teve alta`;
+      ? `se encontra ${fd ? 'internada' : 'internado'} ${onde} desde **${dateLong(v.dataAdmissao)}**, à presente data`
+      : `esteve ${fd ? 'internada' : 'internado'} ${onde} de **${dateLong(v.dataAdmissao)}** a **${dateLong(v.dataAlta)}**, data em que teve alta`;
     const semInfo = ' A presente declaração não contém informação clínica.';
     const blocks: Block[] = [
       { type: 'title', text: v.aindaInternado ? 'Declaração de Internamento' : 'Declaração de Internamento e Alta' },
       {
         type: 'paragraph',
         id: 'internamento',
-        text: `Declara-se, para os devidos efeitos, que ${pat.pt}, esteve ${fd ? 'internada' : 'internado'} ${onde}, ${periodo}.${v.temAcompanhante ? '' : semInfo}`,
+        text: `Declara-se, para os devidos efeitos, que ${senhor(v)} ${pat.pt}, ${periodo}.`,
         en: `${v.doenteNome || '___'} was admitted from ${v.dataAdmissao || '___'}${v.aindaInternado ? ' and remains in hospital' : ` to ${v.dataAlta || '___'}`}.`,
       },
     ];
@@ -97,7 +97,7 @@ export default defineTemplate({
       blocks.push({
         type: 'paragraph',
         id: 'acompanhante',
-        text: `Durante o internamento, ${g(v.doenteGenero, 'o doente', 'a doente')} foi ${fd ? 'acompanhada' : 'acompanhado'} por ${rel}, **${v.acompNome || '____________________'}**${v.acompDocNumero ? `, ${fa ? 'portadora' : 'portador'} do ${v.acompDocTipo || 'BI'} n.º ${v.acompDocNumero}` : ''}, cuja presença junto ${g(v.doenteGenero, 'do doente', 'da doente')} foi necessária.${semInfo}`,
+        text: `Durante o internamento, ${g(v.doenteGenero, 'o doente', 'a doente')} foi ${fd ? 'acompanhada' : 'acompanhado'} por ${rel}, **${v.acompNome || '____________________'}**${v.acompDocNumero ? `, ${fa ? 'portadora' : 'portador'} do ${v.acompDocTipo || 'BI'} n.º ${v.acompDocNumero}` : ''}, cuja presença junto ${g(v.doenteGenero, 'do doente', 'da doente')} foi necessária.`,
         en: `During the stay the patient was accompanied by ${v.acompNome || '___'}, whose presence was necessary.`,
       });
     }
@@ -110,9 +110,12 @@ export default defineTemplate({
         en: `After discharge the patient needs ${conv} days of convalescence.`,
       });
     }
-    // The last paragraph stays with the signature.
+    // The last paragraph says the document carries no clinical information and stays with the signature.
     const last = blocks[blocks.length - 1];
-    if (last.type === 'paragraph') last.keepWithNext = true;
+    if (last.type === 'paragraph') {
+      last.text += semInfo;
+      last.keepWithNext = true;
+    }
     blocks.push({ type: 'signatures', placeDate: placeDate(ctx, v.data), columns: [clinicianSignature(ctx) as SignatureColumn] });
     return blocks;
   },

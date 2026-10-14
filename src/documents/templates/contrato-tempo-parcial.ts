@@ -5,10 +5,10 @@
 import { diffDays } from '@/lib/format';
 import type { MinimumWage } from '@/legal/mz-legal';
 import { defineTemplate, type ClauseItem, type Values, type Warning } from '../model';
-import { BLANK, cite, dateLong, formatMoney, l, lineItems, money } from './_shared';
+import { BLANK, cite, dateLong, formatMoney, l, lineItems, money, workerSignature } from './_shared';
 import {
   CONTRATO_SECTIONS, clCessacao, clDeveresEmpregador, clDeveresTrabalhador, clExclusividade, clFerias, clFinais, clLegislacao, clLitigios,
-  clLocal, clObjecto, clRemuneracao, clSigilo, commonWarnings, contratoTitle, contratoWorkerFields, documentoFields, doCite, fechoBlocks,
+  clLocal, clObjecto, clRemuneracao, clSigilo, commonWarnings, contratoTitle, contratoWorkerFields, documentoFields, doCite, employerSig,
   funcoesFields, moneyExt, nExt, num, opcionaisFields, partesBlocks, qty, remuneracaoFields, startDateField, wk,
 } from './_contrato-trabalho';
 import { str } from './_pessoal-rh';
@@ -177,7 +177,7 @@ export default defineTemplate({
     const certo = v.modalidade === 'certo';
     const modalidade = certo ? 'certo' : 'indeterminado';
 
-    const duracao: ClauseItem = certo
+    const duracao: ClauseItem | null = certo
       ? {
           id: 'duracao',
           heading: 'Duração',
@@ -188,12 +188,7 @@ export default defineTemplate({
           ].join('\n'),
           en: `Fixed-term contract from ${v.trabalhadorDataAdmissao || '—'} to ${v.dataFimContrato || '—'}, for the reason stated. Renewal and expiry follow the Labour Law.`,
         }
-      : {
-          id: 'duracao',
-          heading: 'Início',
-          text: `O presente contrato é celebrado por tempo indeterminado e produz efeitos a partir de **${dateLong(v.trabalhadorDataAdmissao)}**.`,
-          en: `Permanent contract, effective from ${v.trabalhadorDataAdmissao || '—'}.`,
-        };
+      : null;
 
     const pctTxt = c.pct != null ? `${nExt(Math.round(c.pct))} por cento` : `${BLANK} por cento`;
     const horario = (c.linhas as Linha[]).map((r) => `${r.dias || BLANK}: das ${r.inicio || '__:__'} às ${r.fim || '__:__'}`);
@@ -218,7 +213,7 @@ export default defineTemplate({
       const prop = ` Esta remuneração é proporcional ao tempo de trabalho contratado, tendo por referência a remuneração de ${moneyExt(v.salarioTI)} da mesma categoria a tempo inteiro.`;
       rem.text = rem.text.replace(/^(1\. [^\n]*)/, (m) => `${m}${prop}`);
     }
-    const clauses: ClauseItem[] = [clObjecto(v, modalidade), clLocal(v), duracao, tempo, extra, rem, clFerias(v, ctx), clDeveresEmpregador(v), clDeveresTrabalhador(v)];
+    const clauses: ClauseItem[] = [clObjecto(v, modalidade), clLocal(v), ...(duracao ? [duracao] : []), tempo, extra, rem, clFerias(v, ctx), clDeveresEmpregador(v), clDeveresTrabalhador(v)];
     if (v.sigilo) clauses.push(clSigilo(v));
     if (v.exclusividade) clauses.push(clExclusividade(v));
     clauses.push(clCessacao(v, ctx, modalidade), clLegislacao(v), clLitigios(), clFinais());
@@ -227,11 +222,18 @@ export default defineTemplate({
       contratoTitle(v, 'Contrato de trabalho a tempo parcial'),
       ...partesBlocks(
         ctx,
-        `É celebrado, de boa-fé, o presente contrato de trabalho a tempo parcial${certo ? ', a prazo certo' : ', por tempo indeterminado'}, que se rege pelas cláusulas seguintes:`,
+        `É celebrado, de boa-fé, o presente contrato de trabalho a tempo parcial${certo ? ', a prazo certo' : `, por tempo indeterminado, com início em **${dateLong(v.trabalhadorDataAdmissao)}**`}, que se rege pelas cláusulas seguintes:`,
         'This part-time employment contract is entered into in good faith and is governed by the following clauses:',
       ),
       { type: 'numberedClauses', style: 'clausula', items: clauses },
-      ...fechoBlocks(ctx),
+      {
+        type: 'paragraph',
+        id: 'exemplares',
+        text: `Feito em ${ctx.place}, aos ${dateLong(v.data)}, em dois exemplares de igual valor, ficando um em poder de cada uma das partes.`,
+        en: 'Made in two counterparts of equal value, one for each party.',
+        keepWithNext: true,
+      },
+      { type: 'signatures', columns: [employerSig(ctx), workerSignature(v)] },
     ];
   },
 });

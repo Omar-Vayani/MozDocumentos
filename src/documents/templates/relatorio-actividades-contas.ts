@@ -1,4 +1,3 @@
-import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, cite, formatMoney, l, lineItems, localField, money, placeDate, splitLines } from './_shared';
 import { daEntidade, entidadeNome, naturezaField, naturezaOf, num, str, deNome } from './_associacoes';
@@ -110,18 +109,7 @@ export default defineTemplate({
     const h = (t: string): Block => ({ type: 'heading', text: `${++sec}. ${t}` });
 
     const blocks: Block[] = [
-      { type: 'title', text: 'Relatório de Actividades e Contas', subtitle: `Exercício de ${ano}` },
-      {
-        type: 'keyValue',
-        columns: 2,
-        items: [
-          { label: 'Entidade', value: nome },
-          ...(p && addressLine(p) ? [{ label: 'Sede', value: addressLine(p) }] : []),
-          ...(p?.licenca ? [{ label: 'Reconhecimento', value: p.licenca }] : []),
-          ...(p?.nuel ? [{ label: 'NUEL', value: p.nuel }] : []),
-          ...(p?.nuit ? [{ label: 'NUIT', value: p.nuit }] : []),
-        ],
-      },
+      { type: 'title', text: 'Relatório de Actividades e Contas', subtitle: p ? `Exercício de ${ano}` : `${nome} — Exercício de ${ano}` },
     ];
     if (str(v.introducao)) {
       blocks.push(h('Introdução'));
@@ -208,8 +196,10 @@ export default defineTemplate({
     });
     if (v.parecer) {
       const cf = splitLines(v.conselhoFiscal);
+      // The audit council's opinion is a separate act, signed by its members on its own sheet.
       blocks.push(
-        { type: 'heading', text: 'Parecer do Conselho Fiscal' },
+        { type: 'pageBreakHint' },
+        { type: 'title', text: 'Parecer do Conselho Fiscal', subtitle: `Relatório de actividades e contas do exercício de ${ano}` },
         {
           type: 'paragraph',
           id: 'parecer',
@@ -220,7 +210,7 @@ export default defineTemplate({
         {
           type: 'signatures',
           placeDate: `${ctx.place}, ___ de ______________ de ______`,
-          columns: (cf.length ? cf.slice(0, 3) : ['', '', '']).map((nm, i) => ({ role: i === 0 ? 'O(A) Presidente do Conselho Fiscal' : 'O(A) Vogal', name: nm || undefined })),
+          columns: (cf.length ? cf.slice(0, 3) : ['', '', '']).map((nm, i) => ({ role: i === 0 ? 'O(A) Presidente' : 'O(A) Vogal', name: nm || undefined })),
         },
       );
     }

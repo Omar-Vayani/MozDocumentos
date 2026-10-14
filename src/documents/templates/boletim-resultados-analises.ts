@@ -14,7 +14,10 @@ const num = (s: unknown): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-type Linha = { parametro: string; resultado: string; unidade: string; ref: string; flag: '' | 'Alto' | 'Baixo' };
+type Linha = { parametro: string; resultado: string; unidade: string; ref: string; flag: '' | 'Alto' | 'Baixo' | 'Alterado' };
+
+const NEGATIVO_RE = /^(negativ|não reactiv|nao reactiv|ausente|não detectad|nao detectad)/i;
+const POSITIVO_RE = /^(positiv|reactiv|presente|detectad)/i;
 
 function linhas(v: Values): Linha[] {
   return lineItems(v.resultados)
@@ -27,6 +30,8 @@ function linhas(v: Values): Linha[] {
       if (res != null && min != null && res < min) flag = 'Baixo';
       if (res != null && max != null && res > max) flag = 'Alto';
       const txt = String(r.refTexto ?? '').trim();
+      // Qualitative result against a negative reference ("Positivo" where "Negativo" is expected).
+      if (!flag && NEGATIVO_RE.test(txt) && POSITIVO_RE.test(String(r.resultado ?? '').trim())) flag = 'Alterado';
       const ref = txt || (min != null && max != null ? `${r.refMin} – ${r.refMax}` : min != null ? `> ${r.refMin}` : max != null ? `< ${r.refMax}` : '');
       return { parametro: String(r.parametro ?? '').trim(), resultado: String(r.resultado ?? '').trim(), unidade: String(r.unidade ?? '').trim(), ref, flag };
     });
@@ -125,13 +130,13 @@ export default defineTemplate({
         type: 'table',
         columns: [
           { label: 'Parâmetro', width: 34 },
-          { label: 'Resultado', width: 16, align: 'right' },
+          { label: 'Resultado', width: 18, align: 'center' },
           { label: 'Unidade', width: 14 },
-          { label: 'Valores de referência', width: 26 },
-          { label: 'Fora do intervalo', width: 12, align: 'center' },
+          { label: 'Valores de referência', width: 24 },
+          { label: 'Alerta', width: 12, align: 'center' },
         ],
         rows: rows.length ? rows : [['____________', '______', '______', '____________', '']],
-        note: ls.some((x) => x.flag) ? 'Alto / Baixo: resultado acima ou abaixo dos valores de referência.' : undefined,
+        note: ls.some((x) => x.flag) ? 'Alerta — Alto / Baixo: resultado acima ou abaixo dos valores de referência; Alterado: resultado qualitativo diferente do esperado.' : undefined,
       },
     ];
     if (v.metodo) blocks.push({ type: 'paragraph', id: 'metodo', size: 'small', text: `**Método:** ${v.metodo}`, en: `Method: ${v.metodo}` });

@@ -141,7 +141,7 @@ export default defineTemplate({
       blocks.push({
         type: 'paragraph',
         id: 'situacao',
-        text: `É do conhecimento desta estrutura que ${g(gen, 'o declarado', 'a declarada')} ${sits.length > 1 ? `${sits.slice(0, -1).join(', ')} e ${sits[sits.length - 1]}` : sits[0]}.`,
+        text: `É do conhecimento desta estrutura que ${g(gen, 'o interessado', 'a interessada')} ${sits.length > 1 ? `${sits.slice(0, -1).join(', ')} e ${sits[sits.length - 1]}` : sits[0]}.`,
         en: 'Circumstances known to the community structure.',
       });
     }

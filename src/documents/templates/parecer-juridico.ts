@@ -32,6 +32,17 @@ export default defineTemplate({
       ],
     },
     { name: 'consulente', type: 'text', section: 'consulta', required: true, label: l('Consulente (quem pede o parecer)', 'Client requesting the opinion'), personKey: 'nome' },
+    {
+      name: 'consulenteGenero',
+      type: 'radio',
+      section: 'consulta',
+      label: l('Tratamento do consulente', 'Form of address of the client'),
+      default: 'F',
+      options: [
+        { value: 'M', label: l('«o Consulente» (homem)', '“o Consulente” (man)') },
+        { value: 'F', label: l('«a Consulente» (mulher, empresa ou instituição)', '“a Consulente” (woman, company or institution)') },
+      ],
+    },
     { name: 'assunto', type: 'text', section: 'consulta', required: true, label: l('Assunto', 'Subject'), placeholder: l('Ex.: Validade da cláusula de não concorrência no contrato de trabalho do Director Comercial', 'E.g. validity of a non-compete clause') },
     {
       name: 'questao',
@@ -40,7 +51,7 @@ export default defineTemplate({
       rows: 3,
       required: true,
       label: l('Questão colocada', 'Question asked'),
-      help: l('Completa «Solicita-nos o Consulente parecer sobre a seguinte questão: …».', 'Completes “The client asks for an opinion on the following question: …”.'),
+      help: l('Completa «Solicita-nos a Consulente parecer sobre a seguinte questão: …».', 'Completes “The client asks for an opinion on the following question: …”.'),
     },
     { name: 'factos', type: 'textarea', section: 'factos', rows: 6, label: l('Factos relevantes (um por linha)', 'Relevant facts (one per line)') },
     { name: 'documentos', type: 'textarea', section: 'factos', rows: 3, label: l('Documentos analisados (um por linha)', 'Documents reviewed (one per line)') },
@@ -69,6 +80,8 @@ export default defineTemplate({
   blocks: (ctx) => {
     const v = ctx.values;
     const nos = v.pessoa !== 'singular';
+    const aC = v.consulenteGenero === 'M' ? 'o Consulente' : 'a Consulente';
+    const aoC = v.consulenteGenero === 'M' ? 'ao Consulente' : 'à Consulente';
     const factos = splitLines(v.factos).map(ponto);
     const docs = splitLines(v.documentos).map((s) => s.replace(/[.;]$/, ''));
     const enquadramento = splitLines(v.enquadramento).map(ponto);
@@ -94,7 +107,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'consulta',
-        text: `Solicita-${nos ? 'nos' : 'me'} o Consulente parecer sobre a seguinte questão: ${ponto(trim(v.questao).replace(/\n+/g, ' ') || BLANK)}`,
+        text: `Solicita-${nos ? 'nos' : 'me'} ${aC} parecer sobre a seguinte questão: ${ponto(trim(v.questao).replace(/\n+/g, ' ') || BLANK)}`,
         en: 'The client asks for an opinion on the following question.',
       },
     );
@@ -129,7 +142,7 @@ export default defineTemplate({
       { type: 'signatures', placeDate: placeDate(ctx, v.data), columns: [lawyerSignature(v)] },
       {
         type: 'note',
-        text: 'O presente parecer destina-se exclusivamente ao Consulente, baseia-se na legislação em vigor e nos factos indicados à data da sua emissão e não pode ser utilizado para outros fins sem autorização.',
+        text: `O presente parecer destina-se exclusivamente ${aoC}, baseia-se na legislação em vigor e nos factos indicados à data da sua emissão e não pode ser utilizado para outros fins sem autorização.`,
         en: 'This opinion is solely for the client, is based on the law in force and the facts stated at its date, and may not be used for other purposes without consent.',
       },
     );

@@ -299,7 +299,8 @@ export default defineTemplate({
     clauses.push(
       clHorario(v, c),
       clRemuneracao(v),
-      clFerias(v, ctx, c.prevista != null && c.prevista < 12),
+      // The per-month leave rule is for fixed-term contracts only; uncertain terms follow the general rule.
+      clFerias(v, ctx),
       clDeveresEmpregador(v),
       clDeveresTrabalhador(v),
     );

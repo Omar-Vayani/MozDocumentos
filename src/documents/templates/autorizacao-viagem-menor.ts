@@ -277,7 +277,9 @@ export default defineTemplate({
 
     const periodo = `no período de ${dateLong(v.dataPartida)} a ${dateLong(v.dataRegresso)}`;
     const destino = str(v.destino) || BLANK;
-    const saida = str(v.localPartida) ? `, com saída por ${str(v.localPartida)}` : '';
+    const partida = str(v.localPartida);
+    const via = /^(aeroporto|posto|porto|terminal)\b/i.test(partida) ? 'pelo' : /^(fronteira|ponte|estação)\b/i.test(partida) ? 'pela' : 'por';
+    const saida = partida ? `, com saída ${via} ${partida}` : '';
     const motivo = str(v.finalidade) ? `, por motivo de ${str(v.finalidade).replace(/\.$/, '')}` : '';
 
     let acompanhamento: string;

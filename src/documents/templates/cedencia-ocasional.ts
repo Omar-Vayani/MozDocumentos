@@ -4,7 +4,7 @@
 
 import { addDays, addMonths, diffDays } from '@/lib/format';
 import { defineTemplate, type ClauseItem, type SignatureColumn, type Warning } from '../model';
-import { BLANK, cite, dateField, dateLong, employerParty, l, localField, money, placeDate, refField, workerFields, workerParty } from './_shared';
+import { BLANK, cite, dateField, dateLong, employerParty, l, localField, money, refField, workerFields, workerParty } from './_shared';
 import { doCite, employerSig, lc, moneyExt, wk } from './_contrato-trabalho';
 import { str } from './_pessoal-rh';
 
@@ -178,11 +178,18 @@ export default defineTemplate({
         text: `Findo o presente acordo ou cessando a actividade da Cessionária, ${w.o} regressa ao Cedente, na categoria e com a remuneração que tinha, acrescidas das actualizações entretanto ocorridas.`,
         en: 'When the agreement ends or the Host ceases activity, the employee returns to the Lender in the same grade and pay, plus any updates.',
       },
+      {
+        id: 'concordancia',
+        heading: `Concordância ${w.do}`,
+        text: `${w.O} declara que foi ${w.a('informado', 'informada')} dos termos do presente acordo e que **concorda** com a sua cedência à Cessionária, nas condições nele estabelecidas, assinando-o para esse efeito.`,
+        en: 'The employee confirms having been informed of this agreement and consents to the secondment on its terms, signing it for that purpose.',
+      },
     ];
 
     const cols: SignatureColumn[] = [
       employerSig(ctx, 'O Cedente'),
       { role: 'A Cessionária', name: str(v.cessionarioRepresentante) || undefined, detail: str(v.cessionarioCargo) || undefined },
+      { role: w.O, name: str(v.trabalhadorNome) || undefined },
     ];
 
     return [
@@ -195,16 +202,8 @@ export default defineTemplate({
       { type: 'paragraph', id: 'parteTrabalhador', text: `${workerParty(v)};`, en: 'The employee (the “Employee”);' },
       { type: 'paragraph', id: 'celebracao', text: 'É celebrado o presente acordo de cedência ocasional, que se rege pelas cláusulas seguintes:', en: 'This secondment agreement is governed by the following clauses:' },
       { type: 'numberedClauses', style: 'clausula', items: clauses },
-      { type: 'paragraph', id: 'exemplares', text: 'O presente acordo é feito em três exemplares de igual valor, ficando um em poder de cada uma das partes.', en: 'Made in three counterparts of equal value, one for each party.', keepWithNext: true },
-      { type: 'signatures', placeDate: placeDate(ctx, v.data), columns: cols },
-      {
-        type: 'paragraph',
-        id: 'concordancia',
-        text: `**Declaração de concordância.** Eu, ${str(v.trabalhadorNome) || BLANK}, declaro que fui ${w.a('informado', 'informada')} dos termos do presente acordo e que **concordo** com a minha cedência à Cessionária, nas condições nele estabelecidas.`,
-        en: 'Consent. I, the employee, confirm that I have been informed of this agreement and consent to my secondment on its terms.',
-        keepWithNext: true,
-      },
-      { type: 'signatures', columns: [{ role: w.O, name: str(v.trabalhadorNome) || undefined }] },
+      { type: 'paragraph', id: 'exemplares', text: `Feito em ${ctx.place}, aos ${dateLong(v.data)}, em três exemplares de igual valor, ficando um em poder de cada uma das partes.`, en: 'Made in three counterparts of equal value, one for each party.', keepWithNext: true },
+      { type: 'signatures', columns: cols },
     ];
   },
 });

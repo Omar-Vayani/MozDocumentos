@@ -101,8 +101,8 @@ export default defineTemplate({
     const lista = [principal, ...outros.map((o) => `**${o.nome}**, titular da Carteira Profissional n.º ${o.carteira || '________'}`)];
     const domicilio = String(v.advogadoDomicilio ?? '').trim() || BLANK;
     const advogados = varios
-      ? `seus bastantes procuradores os Advogados ${lista.slice(0, -1).join(', ')} e ${lista[lista.length - 1]}, todos inscritos na Ordem dos Advogados de Moçambique e com domicílio profissional em ${domicilio}`
-      : `${f ? 'sua bastante procuradora a Senhora Dra.' : 'seu bastante procurador o Senhor Dr.'} **${String(v.advogadoNome ?? '').trim() || BLANK}**, ${f ? 'Advogada' : 'Advogado'}, titular da Carteira Profissional n.º ${String(v.advogadoCarteira ?? '').trim() || '________'} da Ordem dos Advogados de Moçambique, com domicílio profissional em ${domicilio}`;
+      ? `seus bastantes procuradores os Advogados ${lista.slice(0, -1).join(', ')} e ${lista[lista.length - 1]}, todos inscritos na Ordem dos Advogados de Moçambique e com escritório em ${domicilio}`
+      : `${f ? 'sua bastante procuradora a Senhora Dra.' : 'seu bastante procurador o Senhor Dr.'} **${String(v.advogadoNome ?? '').trim() || BLANK}**, ${f ? 'Advogada' : 'Advogado'}, titular da Carteira Profissional n.º ${String(v.advogadoCarteira ?? '').trim() || '________'} da Ordem dos Advogados de Moçambique, com escritório em ${domicilio}`;
     const lhe = varios ? 'lhes' : 'lhe';
     const oOutorgante = papel(v, 'outorgante', 'o', 'a');
 
@@ -138,16 +138,12 @@ export default defineTemplate({
         id: 'especiais',
         text: `Confere-${lhe} ainda os poderes especiais para ${especiais.length === 1 ? especiais[0] : `${especiais.slice(0, -1).join(', ')} e ${especiais[especiais.length - 1]}`}.`,
         en: 'The client also grants the special powers listed (admit, withdraw and settle; receive payments; delegate).',
+        keepWithNext: true,
       });
+    } else {
+      (blocks[blocks.length - 1] as { keepWithNext?: boolean }).keepWithNext = true;
     }
     blocks.push(
-      {
-        type: 'paragraph',
-        id: 'fecho',
-        text: `Por ser verdade, vai a presente procuração ser assinada ${outorgante ? 'pelo representante legal da outorgante' : papel(v, 'outorgante', 'pelo outorgante', 'pela outorgante')}.`,
-        en: 'In witness whereof, this power of attorney is signed by the grantor.',
-        keepWithNext: true,
-      },
       {
         type: 'signatures',
         placeDate: placeDate(ctx, v.data),
@@ -160,7 +156,7 @@ export default defineTemplate({
       {
         type: 'box',
         label: 'Reconhecimento notarial',
-        text: 'Reconhecimento presencial da assinatura do outorgante (reservado ao notário).',
+        text: `Reconhecimento presencial da assinatura ${outorgante ? 'do representante da outorgante' : papel(v, 'outorgante', 'do outorgante', 'da outorgante')} (reservado ao notário).`,
         lines: 4,
         dashed: true,
       },

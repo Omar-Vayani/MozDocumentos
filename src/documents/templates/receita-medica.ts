@@ -185,7 +185,8 @@ export default defineTemplate({
     const rows = list.length ? list : [{ dci: '', forma: '', dosagem: '', quantidade: null, unidade: 'embalagem', posologia: '', duracao: '' }];
     rows.forEach((m, i) => {
       const nome = [m.dci || '____________________', m.forma && m.forma !== 'outra' ? m.forma : '', m.dosagem].filter(Boolean).join(' ');
-      const uso = [m.posologia, m.duracao].filter(Boolean).join(', ');
+      const usoRaw = [m.posologia, m.duracao].filter(Boolean).join(', ');
+      const uso = usoRaw.charAt(0).toUpperCase() + usoRaw.slice(1);
       blocks.push({
         type: 'paragraph',
         id: `medicamento-${i + 1}`,

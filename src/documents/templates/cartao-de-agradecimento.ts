@@ -96,15 +96,15 @@ export default defineTemplate({
     const out: Block[] = [];
     if (formal) {
       if (tipo === 'empresa') out.push({ type: 'logo', size: 'sm' });
-      out.push(disp(titulo, 'md', { uppercase: true, tone: luto ? 'text' : 'accent', after: 4 }));
+      out.push(disp(titulo, 'lg', { uppercase: true, tone: luto ? 'text' : 'accent', after: 4 }));
       out.push({ type: 'ornament', style: luto ? 'cross' : 'rule' });
     } else {
-      out.push(disp(titulo, 'xxl', { italic: true, tone: 'accent', fit: true, after: 2 }));
+      out.push(disp(titulo, 'xxxl', { italic: true, tone: 'accent', fit: true, after: 2 }));
       out.push({ type: 'ornament', style: 'rule' });
     }
-    out.push(disp(msg, 'sm', { italic: !formal, after: 8 }));
-    out.push(disp(str(v.assinatura) || '____________________', 'sm', { italic: true, weight: formal ? 'bold' : 'normal', fit: true, after: 2 }));
-    out.push(disp([str(v.local), formatMonthYear(str(v.data), '')].filter(Boolean).join(', '), 'xs', { tone: 'muted', after: 0 }));
+    out.push(disp(msg, 'md', { italic: !formal, after: 8 }));
+    out.push(disp(str(v.assinatura) || '____________________', 'md', { italic: true, weight: formal ? 'bold' : 'normal', fit: true, after: 2 }));
+    out.push(disp([str(v.local), formatMonthYear(str(v.data), '')].filter(Boolean).join(', '), 'sm', { tone: 'muted', after: 0 }));
     return cardScale(out);
   },
   warnings: (v) => {

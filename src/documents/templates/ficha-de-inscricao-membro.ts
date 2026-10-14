@@ -7,6 +7,7 @@ import { daEntidade, entidadeNome, naturezaField, naturezaOf, str, deNome } from
 // or pre-filled. The board's decision box sits at the bottom.
 
 const LINE = '__________________';
+const LONG = '______________________________________________________';
 
 const CATEGORIAS: Record<string, string[]> = {
   associacao: ['Membro efectivo', 'Membro juvenil', 'Membro honorário'],
@@ -76,21 +77,33 @@ export default defineTemplate({
     const cats = lineItems(v.categorias).map((r) => str(r.categoria)).filter(Boolean);
     const lista = cats.length ? cats : CATEGORIAS[n];
     const nasc = b ? LINE : str(v.candidatoNascimento) ? formatDateShort(v.candidatoNascimento) : LINE;
-    const sexo = b ? '(   ) M      (   ) F' : v.candidatoGenero === 'F' ? 'Feminino' : 'Masculino';
+    const sexo = b ? '☐ M      ☐ F' : v.candidatoGenero === 'F' ? 'Feminino' : 'Masculino';
     const doc = b ? 'BI/DIRE n.º ____________' : str(v.candidatoDocNumero) ? `${str(v.candidatoDocTipo) || 'BI'} n.º ${str(v.candidatoDocNumero)}` : LINE;
     const joia = money(v.joia);
     const quota = money(v.quota);
 
     const blocks: Block[] = [
       { type: 'title', text: 'Ficha de Inscrição de Membro' },
-      { type: 'box', label: 'Reservado aos serviços', text: 'Membro n.º __________\nRecebida em ___/___/______', width: 'half' },
-      { type: 'box', label: 'Fotografia', lines: 2, width: 'half', align: 'right' },
+      {
+        type: 'box',
+        label: 'Categoria pretendida',
+        text: lista.map((c) => `${!b && str(v.categoria).toLowerCase() === c.toLowerCase() ? '☑' : '☐'}  ${c}`).join('\n'),
+        width: 'half',
+      },
+      { type: 'box', label: 'Fotografia', space: 22, width: 'half', align: 'right' },
       {
         type: 'keyValue',
         title: 'Dados pessoais',
+        columns: 1,
+        items: [
+          { label: 'Nome completo', value: b ? LONG : str(v.candidatoNome) || LONG },
+          { label: 'Morada', value: b ? LONG : str(v.candidatoMorada) || LONG },
+        ],
+      },
+      {
+        type: 'keyValue',
         columns: 2,
         items: [
-          { label: 'Nome completo', value: val(v, 'candidatoNome', b) },
           { label: 'Sexo', value: sexo },
           { label: 'Data de nascimento', value: nasc },
           { label: 'Naturalidade', value: val(v, 'candidatoNaturalidade', b) },
@@ -100,25 +113,23 @@ export default defineTemplate({
           { label: 'NUIT', value: val(v, 'candidatoNuit', b) },
           { label: 'Profissão', value: val(v, 'candidatoProfissao', b) },
           { label: 'Telefone', value: val(v, 'candidatoTelefone', b) },
-          { label: 'Morada', value: val(v, 'candidatoMorada', b) },
           { label: 'Email', value: val(v, 'candidatoEmail', b) },
         ],
       },
-      {
-        type: 'paragraph',
-        id: 'categoria',
-        text: `**Categoria pretendida:**   ${lista.map((c) => `(${!b && str(v.categoria).toLowerCase() === c.toLowerCase() ? ' X ' : '   '}) ${c}`).join('     ')}`,
-        en: 'Membership category requested.',
-        align: 'left',
-      },
     ];
+    if (joia != null || quota != null) {
+      blocks.push({
+        type: 'note',
+        text: [joia != null ? `Jóia: ${formatMoney(joia)}` : '', quota != null ? `Quota mensal: ${formatMoney(quota)}` : ''].filter(Boolean).join('  ·  '),
+        en: 'Entry fee and monthly dues.',
+      });
+    }
     if (v.proponentes) {
       blocks.push(
-        { type: 'heading', text: 'Proponentes' },
         {
           type: 'table',
           columns: [
-            { label: 'Nome do membro proponente', width: 5 },
+            { label: 'Proponentes (nome do membro)', width: 5 },
             { label: 'Membro n.º', width: 1.6 },
             { label: 'Assinatura', width: 3.4 },
           ],
@@ -133,25 +144,36 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'declaracao',
-        text: `Declaro que desejo ser admitido(a) como membro ${deNome(n, nome)}, que conheço e aceito os seus estatutos${igreja ? ', a sua confissão de fé' : ''} e o regulamento interno, que me comprometo a ${joia != null || quota != null || !igreja ? 'pagar a jóia e as quotas fixadas e a ' : ''}cumprir as deliberações dos seus órgãos, e que as informações acima prestadas são verdadeiras. Autorizo o tratamento dos meus dados pessoais apenas para a gestão da inscrição e para as comunicações ${daEntidade(n)}.`,
+        text: `Declaro que desejo ser ${b ? 'admitido(a)' : v.candidatoGenero === 'F' ? 'admitida' : 'admitido'} como membro ${deNome(n, nome)}, que conheço e aceito os seus estatutos${igreja ? ', a sua confissão de fé' : ''} e o regulamento interno, que me comprometo a ${joia != null || quota != null || !igreja ? 'pagar a jóia e as quotas fixadas e a ' : ''}cumprir as deliberações dos seus órgãos, e que as informações acima prestadas são verdadeiras. Autorizo o tratamento dos meus dados pessoais apenas para a gestão da inscrição e para as comunicações ${daEntidade(n)}.`,
         en: 'I apply for membership, accept the statutes and rules, undertake to pay the fees, confirm the information is true and consent to the use of my data for membership only.',
       },
     );
-    const last = blocks[blocks.length - 1];
-    last.keepWithNext = true;
-    blocks.push({
-      type: 'signatures',
-      placeDate: `${ctx.place}, ___ de ______________ de ______`,
-      columns: [
-        { role: 'O(A) Candidato(a)', name: b ? undefined : str(v.candidatoNome) || undefined },
-        ...(v.menor ? [{ role: 'O(A) Encarregado(a)', name: undefined }] : []),
-      ],
-    });
-    blocks.push({
-      type: 'box',
-      label: 'Decisão da Direcção',
-      text: `Admitido(a) em ___/___/______    Acta n.º ______    Membro n.º ______    Recibo da jóia n.º ______${joia != null || quota != null ? `\n${[joia != null ? `Jóia: ${formatMoney(joia)}` : '', quota != null ? `Quota mensal: ${formatMoney(quota)}` : ''].filter(Boolean).join('  ·  ')}` : ''}    ${igreja ? 'O Pastor' : 'O Presidente'}: ____________________`,
-    });
+    const candidato = b ? 'O(A) Candidato(a)' : v.candidatoGenero === 'F' ? 'A Candidata' : 'O Candidato';
+    // Applicant's signature and the board's decision side by side, so the form stays on one page.
+    blocks.push(
+      {
+        type: 'box',
+        label: `Assinatura — ${candidato}`,
+        text: [
+          `${ctx.place}, ___/___/______`,
+          '',
+          '',
+          '________________________________',
+          b ? '' : str(v.candidatoNome),
+          v.menor ? '\nO(A) Encarregado(a): ____________________' : '',
+        ]
+          .filter((x, i) => i < 4 || x)
+          .join('\n'),
+        width: 'half',
+      },
+      {
+        type: 'box',
+        label: igreja ? 'Decisão do Conselho da Igreja' : 'Decisão da Direcção',
+        text: `☐ Admitido(a)      ☐ Não admitido(a)\nEm ___/___/______      Acta n.º ______\nMembro n.º ______      Recibo da jóia n.º ______\n\n${igreja ? 'O Pastor' : 'O Presidente'}: ______________________`,
+        width: 'half',
+        align: 'right',
+      },
+    );
     return blocks;
   },
 

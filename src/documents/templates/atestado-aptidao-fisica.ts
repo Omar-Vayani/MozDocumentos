@@ -1,7 +1,7 @@
 import { defineTemplate, type Block, type Values, type Warning } from '../model';
 import { cite, dateField, dateLong, DOC_TIPO_OPTIONS, g, isF, l, localField, placeDate } from './_shared';
 import {
-  clinicianDesc, clinicianFields, clinicianSignature, clinicianWarnings, hivWarning, mentionsHiv, patientFields, senhor,
+  clinicianDesc, clinicianFields, clinicianSignature, clinicianWarnings, countText, hivWarning, mentionsHiv, patientFields, senhor,
 } from './_saude';
 
 const FINALIDADE_OPTIONS = [
@@ -212,7 +212,7 @@ export default defineTemplate({
       });
     }
     const n = Number(v.validadeMeses);
-    const val = v.validadeMeses && Number.isFinite(n) && n > 0 ? `é válido por ${n} ${n === 1 ? 'mês' : 'meses'} e ` : '';
+    const val = v.validadeMeses && Number.isFinite(n) && n > 0 ? `é válido por ${countText(n)} ${n === 1 ? 'mês' : 'meses'} e ` : '';
     blocks.push(
       {
         type: 'paragraph',
@@ -223,7 +223,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'fecho',
-        text: 'Por ser verdade e me ter sido solicitado, passo o presente atestado, que vai por mim assinado e autenticado com o carimbo em uso.',
+        text: 'Por ser verdade e lhe ter sido solicitado, passa o presente atestado, que assina e autentica com o carimbo em uso.',
         en: 'Issued at the request of the person examined, signed and stamped.',
         keepWithNext: true,
       },

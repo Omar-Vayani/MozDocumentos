@@ -227,3 +227,18 @@ export function deNome(n: Natureza, nome: string): string {
   const masc = /^(clube|grupo|xitique)$/i.test(m[1]);
   return `${masc ? 'do' : 'da'} **${nome}**`;
 }
+
+/**
+ * Province name for running text: "Província de Sofala", but "Cidade de
+ * Maputo" (a city with provincial status) without the word "Província".
+ */
+export function provinciaNome(p: unknown): string {
+  const s = str(p).replace(/^prov[ií]ncia d[eao]\s+/i, '');
+  if (!s) return `Província de ${BLANK}`;
+  return /^cidade\b/i.test(s) ? s.replace(/^cidade/i, 'Cidade') : `Província de ${s}`;
+}
+
+/** "da Associação X" / "do Clube X": article for a name used after "Estatutos". */
+export function deNomeSimples(nome: string): string {
+  return /^(clube|grupo|n[uú]cleo|centro|movimento|f[oó]rum|conselho|instituto|xitique)\b/i.test(nome.trim()) ? `do ${nome}` : `da ${nome}`;
+}

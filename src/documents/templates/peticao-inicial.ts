@@ -261,10 +261,11 @@ export default defineTemplate({
     const factos = [...factosPadrao, ...artigos(v.factosAdicionais)];
 
     const taxa = v.taxaJuros === 'convencionada' ? `à taxa acordada de ${String(v.taxaConvencionada ?? '').trim() || '________'}` : 'à taxa legal';
-    const dataMora = v.dataInterpelacao || v.dataVencimento;
+    // A fixed due date puts the debtor in default without a demand; otherwise the demand does.
+    const mora = v.dataVencimento ? `com o vencimento da obrigação, em ${dateLong(v.dataVencimento)}` : `com a interpelação de ${dateLong(v.dataInterpelacao)}`;
     const direito = [
       `O devedor cumpre a obrigação quando realiza a prestação a que está vinculado e, faltando culposamente ao cumprimento, torna-se responsável pelo prejuízo que causa ao credor.`,
-      `${OReu} constituiu-se em mora em ${dateLong(dataMora)}, sendo devidos juros moratórios desde essa data, ${taxa}, até efectivo e integral pagamento (${cite('codigoCivilMora')}).`,
+      `${OReu} constituiu-se em mora ${mora}, sendo devidos juros moratórios desde essa data, ${taxa}, até efectivo e integral pagamento (${cite('codigoCivilMora')}).`,
       ...(juros != null ? [`Os juros de mora vencidos até ${dateLong(v.dataCalculoJuros || v.data)} ascendem a ${formatMoney(juros)}.`] : []),
       ...artigos(v.direitoAdicional),
     ];

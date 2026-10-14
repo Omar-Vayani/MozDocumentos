@@ -173,26 +173,20 @@ export default defineTemplate({
       'As partes pretendem pôr termo ao litígio mediante concessões recíprocas.',
     ];
 
+    const forma = trim(v.formaPagamento) ? `, por ${sem(trim(v.formaPagamento)).replace(/^por\s+/i, '')}` : '';
     const pagamento = ps.length
-      ? `${S('O')} paga ${P('ao')} a quantia de ${moneyExt(v.valorAcordado)}, em ${ps.length} prestações, nas datas e montantes seguintes:`
-      : `${S('O')} paga ${P('ao')} a quantia de ${moneyExt(v.valorAcordado)}, até ${v.dataPagamento ? formatDateShort(v.dataPagamento) : '___/___/______'}${trim(v.formaPagamento) ? `, por ${sem(trim(v.formaPagamento)).replace(/^por\s+/i, '')}` : ''}.`;
+      ? `${S('O')} paga ${P('ao')} a quantia de ${moneyExt(v.valorAcordado)}, em ${ps.length} prestações${forma}, nas datas e montantes seguintes:`
+      : `${S('O')} paga ${P('ao')} a quantia de ${moneyExt(v.valorAcordado)}, até ${v.dataPagamento ? formatDateShort(v.dataPagamento) : '___/___/______'}${forma}.`;
 
+    const reconhece = money(v.valorReconhecido) != null;
     const clauses: ClauseItem[] = [
       {
         id: 'objecto',
-        heading: 'Objecto',
-        text: `Pelo presente acordo, as partes põem termo ao litígio descrito nos considerandos, nos termos das cláusulas seguintes.`,
-        en: 'The parties end the dispute described above on the following terms.',
+        heading: reconhece ? 'Objecto e reconhecimento da dívida' : 'Objecto',
+        text: `Pelo presente acordo, as partes põem termo ao litígio descrito nos considerandos, nos termos das cláusulas seguintes.${reconhece ? ` ${S('O')} reconhece dever ${P('ao')} a quantia de ${moneyExt(v.valorReconhecido)}.` : ''}`,
+        en: 'The parties end the dispute described above on the following terms; the second party acknowledges the debt where stated.',
       },
     ];
-    if (money(v.valorReconhecido) != null) {
-      clauses.push({
-        id: 'reconhecimento',
-        heading: 'Reconhecimento',
-        text: `${S('O')} reconhece dever ${P('ao')} a quantia de ${moneyExt(v.valorReconhecido)}.`,
-        en: 'The second party acknowledges the debt.',
-      });
-    }
     const conc = splitLines(v.concessoes).map(sem);
     clauses.push({
       id: 'concessoes',
@@ -210,9 +204,6 @@ export default defineTemplate({
         : undefined,
       en: 'Payment of the agreed amount.',
     });
-    if (ps.length && trim(v.formaPagamento)) {
-      clauses.push({ id: 'forma', heading: 'Forma de pagamento', text: `Os pagamentos são feitos por ${sem(trim(v.formaPagamento)).replace(/^por\s+/i, '')}.`, en: 'Payment method.' });
-    }
     if (ps.length > 1 && v.vencimentoAntecipado) {
       clauses.push({
         id: 'vencimento',

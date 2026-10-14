@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type ClauseItem, type Warning } from '../model';
 import { BLANK, cite, dateLong, l, lineItems } from './_shared';
-import { ext, fracao, minus, num, quantos, semPonto, str, vezes } from './_associacoes';
+import { deNomeSimples, ext, fracao, minus, num, provinciaNome, quantos, semPonto, str, vezes } from './_associacoes';
 
 // Estatutos de uma associação sem fins lucrativos (Lei n.º 8/91 + Código
 // Civil). Filed with the recognising authority and published in the Boletim
@@ -145,8 +145,8 @@ export default defineTemplate({
       v.ambito === 'nacional'
         ? 'em todo o território nacional'
         : v.ambito === 'distrital'
-          ? `no Distrito de ${str(v.distrito) || BLANK}, Província de ${str(v.provincia) || BLANK}`
-          : `na Província de ${str(v.provincia) || BLANK}`;
+          ? `no Distrito de ${str(v.distrito) || BLANK}, ${provinciaNome(v.provincia)}`
+          : `na ${provinciaNome(v.provincia)}`;
     const vogais = Math.max(0, cf - 1);
 
     const cap = (t: string) => ({ type: 'heading', text: t, align: 'center' }) as Block;
@@ -396,7 +396,7 @@ export default defineTemplate({
     };
 
     const blocks: Block[] = [
-      { type: 'title', text: `Estatutos da ${nome}`, subtitle: sigla ? `(${sigla})` : undefined },
+      { type: 'title', text: `Estatutos ${deNomeSimples(nome)}`, subtitle: sigla ? `(${sigla})` : undefined },
       ...chapter('CAPÍTULO I — Da denominação, natureza, sede, duração e objectivos', c1),
       ...chapter('CAPÍTULO II — Dos membros', c2),
       ...chapter('CAPÍTULO III — Dos órgãos sociais', c3),

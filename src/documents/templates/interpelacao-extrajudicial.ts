@@ -1,3 +1,4 @@
+import { professionalRegistration } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type TemplateContext, type Warning } from '../model';
 import { BLANK, GENERO_OPTIONS, cite, dateField, dateLong, exmo, isF, l, lawyerFields, lawyerSignature, localField, refField } from './_shared';
@@ -11,10 +12,13 @@ const ENVIO_OPTIONS = [
   { value: 'email', label: l('Email', 'Email') },
 ];
 
-/** Sender lines for a lawyer writing with a personal profile (no company letterhead). */
+/**
+ * Sender lines for a lawyer writing with a personal profile that prints no
+ * letterhead (a profile with a bar registration already gets the professional header).
+ */
 function remetente(ctx: TemplateContext): Block[] {
   const p = ctx.profile;
-  if (!p || p.kind !== 'pessoa') return [];
+  if (!p || p.kind !== 'pessoa' || professionalRegistration(p)) return [];
   const v = ctx.values;
   const lines = [
     `**${String(v.advogadoNome ?? '').trim() || p.nome || BLANK}**`,

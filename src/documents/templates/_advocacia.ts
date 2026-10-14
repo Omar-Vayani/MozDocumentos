@@ -156,9 +156,12 @@ export function artigos(text: unknown): string[] {
   return splitLines(text).map((s) => (/[.:;!?]$/.test(s) ? s : `${s}.`));
 }
 
-/** "Documento n.º 1 — Factura n.º 45/2026" lines from a textarea. */
+/**
+ * Attached documents from a textarea, in order. The annex list numbers them
+ * (1., 2.…), which matches "Documento n.º 1, 2…" in the text.
+ */
 export function documentosList(text: unknown): string[] {
-  return splitLines(text).map((s, i) => `Documento n.º ${i + 1} — ${s.replace(/[.;]$/, '')}`);
+  return splitLines(text).map((s) => s.replace(/^documento\s+n\.?\s*º?\s*\d+\s*[—–:-]\s*/i, '').replace(/[.;]$/, ''));
 }
 
 export function plural(n: number, um: string, varios: string): string {

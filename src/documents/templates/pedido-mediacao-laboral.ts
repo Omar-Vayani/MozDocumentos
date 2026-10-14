@@ -2,11 +2,11 @@
 // the Director of the provincial Labour Mediation and Arbitration Centre,
 // stating the disputed matter, the facts, the amount and the parties' contacts.
 
-import { diffDays, formatDateShort } from '@/lib/format';
+import { diffDays } from '@/lib/format';
 import { profileDisplayName } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type DefaultsContext, type Values, type Warning } from '../model';
-import { BLANK, cite, dateField, employerRep, formatMoney, l, lineItems, localField, money, placeDate, splitLines, workerFields } from './_shared';
+import { BLANK, cite, dateField, dateLong, employerRep, formatMoney, l, lineItems, localField, money, placeDate, splitLines, workerFields } from './_shared';
 import { doCite, moneyExt } from './_contrato-trabalho';
 import { endDot, gx, identificacao, lowerFirst, pessoaFields, str } from './_pessoal-rh';
 
@@ -228,13 +228,13 @@ export default defineTemplate({
       .join(', ');
     const relacao = [
       emp && str(v.trabalhadorNome) ? `${str(v.trabalhadorNome)} foi admitido ao serviço da Requerente` : emp ? `O trabalhador foi admitido ao serviço da Requerente` : `${gx(v.requerenteGenero, 'O Requerente foi admitido', 'A Requerente foi admitida')} ao serviço da Requerida`,
-      v.dataAdmissao ? `em ${formatDateShort(v.dataAdmissao)}` : '',
+      v.dataAdmissao ? `em ${dateLong(v.dataAdmissao)}` : '',
       str(v.categoria) ? `com a categoria de ${str(v.categoria)}` : '',
       money(v.salario) != null ? `auferindo o salário mensal de ${formatMoney(money(v.salario))}` : '',
     ]
       .filter(Boolean)
       .join(', ');
-    const relacaoFim = v.situacao === 'cessou' ? `${relacao}. O contrato cessou em ${v.dataCessacao ? formatDateShort(v.dataCessacao) : BLANK}.` : `${relacao}. O contrato mantém-se em vigor.`;
+    const relacaoFim = v.situacao === 'cessou' ? `${relacao}. O contrato cessou em ${v.dataCessacao ? dateLong(v.dataCessacao) : BLANK}.` : `${relacao}. O contrato mantém-se em vigor.`;
     const factos = [relacaoFim, ...splitLines(v.factos).map(endDot)];
     const docs = lineItems(v.documentos).map((r) => str(r.descricao)).filter(Boolean);
     const rep = v.representanteTipo && v.representanteTipo !== 'nenhum' && str(v.representanteNome)

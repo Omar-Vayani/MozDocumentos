@@ -186,20 +186,10 @@ export default defineTemplate({
     const clauses: ClauseItem[] = [
       {
         id: 'objecto',
-        heading: 'Objecto',
-        text: `Pelo presente contrato, ${aA} obriga-se a prestar ao Cliente os seguintes serviços jurídicos: ${trim(v.objecto).replace(/[.;]$/, '') || BLANK}.`,
-        en: 'The lawyer will provide the client with the legal services described.',
+        heading: trim(v.exclusoes) ? 'Objecto e âmbito' : 'Objecto',
+        text: `Pelo presente contrato, ${aA} obriga-se a prestar ao Cliente os seguintes serviços jurídicos: ${trim(v.objecto).replace(/[.;]$/, '') || BLANK}.${trim(v.exclusoes) ? ` Não se incluem no presente contrato ${trim(v.exclusoes).replace(/[.;]$/, '')}, que serão objecto de acordo separado.` : ''}`,
+        en: 'The lawyer will provide the client with the legal services described; any excluded services require a separate agreement.',
       },
-      ...(trim(v.exclusoes)
-        ? [
-            {
-              id: 'exclusoes',
-              heading: 'Âmbito',
-              text: `Não se incluem no presente contrato ${trim(v.exclusoes).replace(/[.;]$/, '')}, que serão objecto de acordo separado.`,
-              en: 'The listed services are excluded and require a separate agreement.',
-            },
-          ]
-        : []),
       { id: 'honorarios', heading: 'Honorários', text: honorarios, en: 'Fees.' },
       ...(money(v.provisao) != null
         ? [
@@ -228,15 +218,9 @@ export default defineTemplate({
       },
       {
         id: 'deveresCliente',
-        heading: 'Deveres do Cliente',
-        text: `O Cliente obriga-se a prestar informações verdadeiras e completas, a entregar atempadamente os documentos necessários e a outorgar a procuração forense, com a assinatura reconhecida por notário.`,
-        en: 'The client must give true and complete information, deliver documents on time and sign the power of attorney before a notary.',
-      },
-      {
-        id: 'sigilo',
-        heading: 'Sigilo profissional',
-        text: `${AA} está ${adv.sociedade ? 'obrigada' : isF(v.advogadoGenero) ? 'obrigada' : 'obrigado'} ao sigilo profissional sobre todos os factos de que tome conhecimento no exercício do mandato, nos termos do Estatuto da Ordem dos Advogados de Moçambique, e declara não ter conflito de interesses no assunto.`,
-        en: 'The lawyer is bound by professional secrecy and declares no conflict of interest.',
+        heading: 'Deveres das partes',
+        text: `O Cliente obriga-se a prestar informações verdadeiras e completas, a entregar atempadamente os documentos necessários e a outorgar a procuração forense, com a assinatura reconhecida por notário. ${AA} está ${adv.sociedade || isF(v.advogadoGenero) ? 'obrigada' : 'obrigado'} ao sigilo profissional sobre todos os factos de que tome conhecimento no exercício do mandato, nos termos do Estatuto da Ordem dos Advogados de Moçambique, e declara não ter conflito de interesses no assunto.`,
+        en: 'The client must give true and complete information, deliver documents on time and sign the power of attorney before a notary. The lawyer is bound by professional secrecy and declares no conflict of interest.',
       },
       {
         id: 'cessacao',

@@ -159,6 +159,8 @@ export default defineTemplate({
       fim,
       conhecida: Boolean(fim || meses),
       mais1Ano,
+      // Leave of 1 day per month: fixed-term contracts shorter than one year
+      menos1Ano: Boolean(fim || meses) && !atLeast(v, inicio, fim, 12),
       prazo,
       excedeMax: longerThan(v, inicio, fim, prazo.duracaoMaxAnos * 12),
       probatorioMax,
@@ -354,7 +356,7 @@ export default defineTemplate({
     clauses.push(
       clHorario(v, c),
       clRemuneracao(v),
-      clFerias(v, ctx, c.conhecida && !c.mais1Ano),
+      clFerias(v, ctx, c.menos1Ano),
       clDeveresEmpregador(v),
       clDeveresTrabalhador(v),
     );

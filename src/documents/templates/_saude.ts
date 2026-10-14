@@ -208,7 +208,7 @@ export function clinicianSignature(ctx: TemplateContext, role?: string): Signatu
   const esp = v.clinicoCategoria === 'especialista' ? cut(v.clinicoEspecialidade, 40) : '';
   const cat = cut(categoriaTexto(v), 40);
   const line1 = esp || cat.charAt(0).toUpperCase() + cat.slice(1);
-  const reg = num ? `Carteira Profissional n.º ${num}${ordem ? ` — ${ordem}` : ''}` : '';
+  const reg = num ? `Carteira Profissional n.º ${num}${ordem ? `\n${ordem}` : ''}` : '';
   const own = fromProfile(ctx.profile).nome.trim();
   const same = !!nome && !!own && nome.toLowerCase() === own.toLowerCase();
   return {

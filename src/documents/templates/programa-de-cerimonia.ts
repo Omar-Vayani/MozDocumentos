@@ -95,11 +95,11 @@ export default defineTemplate({
     out.push(disp(str(v.titulo) || t.titulo, 'sm', { uppercase: true, tone: 'muted', fit: true, after: 3 }));
     out.push(disp(str(v.subtitulo) || '____________________', luto ? 'lg' : 'xl', { italic: !luto, weight: luto ? 'bold' : 'normal', tone, fit: true, after: 3 }));
     const quando = [str(v.dataEvento) ? dataComDia(v.dataEvento) : '', str(v.localEvento)].filter(Boolean).join(' · ');
-    if (quando) out.push(disp(quando, 'xs', { fit: true, after: 2 }));
+    if (quando) out.push(disp(quando, 'sm', { fit: true, after: 2 }));
     out.push(luto ? { type: 'spacer', size: 'small' } : { type: 'ornament', style: 'rule' });
     for (const [i, r] of rows.slice(0, 22).entries()) {
       const line = [str(r.hora) ? hora(r.hora) : '', str(r.actividade)].filter(Boolean).join('  ·  ');
-      out.push(disp(line, 'sm', { fit: line.length > 48, after: str(r.responsavel) ? 0 : i === rows.length - 1 ? 6 : 4 }));
+      out.push(disp(line, rows.length <= 10 ? 'md' : 'sm', { fit: line.length > (rows.length <= 10 ? 40 : 48), after: str(r.responsavel) ? 0 : i === rows.length - 1 ? 6 : 4 }));
       if (str(r.responsavel)) out.push(disp(str(r.responsavel), 'xs', { italic: true, tone: 'muted', after: 4 }));
     }
     if (!rows.length) out.push(disp('____________________', 'sm', { after: 6 }));

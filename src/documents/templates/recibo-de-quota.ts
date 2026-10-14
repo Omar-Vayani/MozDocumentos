@@ -39,17 +39,18 @@ function referente(v: Values): string {
   const fin = semPonto(v.finalidade);
   switch (v.tipo) {
     case 'joia':
-      return 'jóia de admissão';
+      return 'à jóia de admissão';
     case 'contribuicao':
-      return `contribuição extraordinária${fin ? ` para ${fin}` : ''}`;
+      return `à contribuição extraordinária${fin ? ` para ${fin}` : ''}`;
     case 'donativo':
-      return `donativo${fin ? ` para ${fin}` : ''}, concedido sem contrapartida`;
+      return `ao donativo${fin ? ` para ${fin}` : ''}, concedido sem contrapartida`;
     case 'oferta':
-      return fin ? `dízimo / oferta (${fin})` : 'dízimo / oferta';
+      return fin ? `ao dízimo / oferta (${fin})` : 'ao dízimo / oferta';
     case 'xitique':
-      return `contribuição para o grupo de poupança${fin ? ` (${fin})` : ''}, referente ao período ${periodo(v.mesInicio, v.mesFim)}`;
+      return `à contribuição para o grupo de poupança${fin ? ` (${fin})` : ''}, referente ao período ${periodo(v.mesInicio, v.mesFim)}`;
     default:
-      return `quota ${periodo(v.mesInicio, v.mesFim).replace(/^de /, v.mesFim && v.mesFim !== v.mesInicio ? 'dos meses de ' : 'do mês de ')}`;
+      if (!str(v.mesInicio)) return 'à quota do mês de ____________';
+      return `à quota ${periodo(v.mesInicio, v.mesFim).replace(/^de /, v.mesFim && v.mesFim !== v.mesInicio ? 'dos meses de ' : 'do mês de ')}`;
   }
 }
 
@@ -225,7 +226,7 @@ export default defineTemplate({
         {
           type: 'paragraph',
           id: `recebimento${sfx}`,
-          text: `**${nome}** declara ter recebido de ${pagador} a quantia de **${valor != null && valor > 0 ? formatMoney(valor) : '____________ MT'}** referente a ${referente(v)}, paga ${meio}${str(v.referenciaPagamento) && forma !== 'numerário' ? ` (referência ${str(v.referenciaPagamento)})` : ''}.`,
+          text: `**${nome}** declara ter recebido de ${pagador} a quantia de **${valor != null && valor > 0 ? formatMoney(valor) : '____________ MT'}** referente ${referente(v)}, paga ${meio}${str(v.referenciaPagamento) && forma !== 'numerário' ? ` (referência ${str(v.referenciaPagamento)})` : ''}.`,
           en: `${nome} acknowledges receipt of the amount stated, paid ${forma}.`,
         },
         {

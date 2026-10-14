@@ -35,6 +35,19 @@ export default defineTemplate({
     { name: 'mostrarLogo', type: 'toggle', section: 'anfitriao', width: 'half', label: l('Mostrar o logótipo', 'Show the logo'), default: true },
     { name: 'tricolour', type: 'toggle', section: 'anfitriao', width: 'half', label: l('Detalhe nas cores nacionais', 'National colours detail'), help: l('Um pequeno traço verde, amarelo e vermelho, por exemplo para eventos de datas nacionais.', 'A small green-yellow-red mark, e.g. for national days.'), default: false },
     { name: 'tratamento', type: 'select', section: 'anfitriao', width: 'half', label: l('Convidado', 'Guest'), options: TRATAMENTO_OPTIONS, default: 'V. Ex.ª' },
+    {
+      name: 'convidadoTitulo',
+      type: 'select',
+      section: 'anfitriao',
+      width: 'half',
+      label: l('Tratamento do convidado', 'Guest’s form of address'),
+      options: [
+        { value: 'Exmo(a). Sr(a).', label: l('Exmo(a). Sr(a). (neutro)', 'Neutral') },
+        { value: 'Exmo. Senhor', label: l('Exmo. Senhor', 'Mr') },
+        { value: 'Exma. Senhora', label: l('Exma. Senhora', 'Mrs/Ms') },
+      ],
+      default: 'Exmo(a). Sr(a).',
+    },
     { name: 'nomeConvidado', type: 'text', section: 'anfitriao', width: 'half', label: l('Nome do convidado (opcional)', 'Guest name (optional)'), help: l('Vazio: imprime uma linha para escrever à mão.', 'Empty: prints a line to write by hand.') },
     {
       name: 'tipoEvento',
@@ -105,7 +118,8 @@ export default defineTemplate({
       .map((r: Record<string, unknown>) => `${str(r.hora) ? `${hora(r.hora)}  ` : ''}${str(r.actividade)}`);
     const out: Block[] = [];
     if (v.mostrarLogo !== false) out.push({ type: 'logo', size: 'sm' });
-    out.push(disp(str(v.nomeConvidado) ? `Exmo(a). Sr(a). ${str(v.nomeConvidado)}` : 'Exmo(a). Sr(a). ______________________________', 'xs', { tone: 'muted', fit: true, after: 4 }));
+    const titulo = str(v.convidadoTitulo) || 'Exmo(a). Sr(a).';
+    out.push(disp(`${titulo} ${str(v.nomeConvidado) || '______________________________'}`, 'xs', { tone: 'muted', fit: true, after: 4 }));
     out.push(disp(str(v.quemConvida) || '____________________', 'sm', { fit: true, after: 1 }));
     out.push(disp(`tem a honra de convidar ${trat} ${str(v.tipoEvento) || 'para a cerimónia de'}`, 'xs', { italic: true, tone: 'muted', after: 3 }));
     out.push(disp(str(v.evento) || 'Nome do Evento', 'xl', { tone: 'accent', fit: true, after: str(v.descricao) ? 1 : 3 }));

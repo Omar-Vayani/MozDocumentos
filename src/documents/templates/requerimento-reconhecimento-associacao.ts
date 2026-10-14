@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, cite, dateField, dateLong, l, lineItems, localField, placeDate } from './_shared';
-import { ext, pessoaFields, pessoaIdent, semPonto, str } from './_associacoes';
+import { deNomeSimples, ext, pessoaFields, pessoaIdent, provinciaNome, semPonto, str } from './_associacoes';
 
 // Requerimento de reconhecimento de uma associação como pessoa jurídica
 // (Lei n.º 8/91 + Decreto n.º 21/91). Written by the interim committee to the
@@ -71,30 +71,33 @@ export default defineTemplate({
   blocks: (ctx) => {
     const v = ctx.values;
     const nome = str(v.nome) || BLANK;
-    const prov = str(v.provincia) || BLANK;
+    const prov = provinciaNome(v.provincia);
     const destino =
       v.autoridade === 'secretarioEstado'
-        ? ['Sua Excelência', `O Secretário de Estado na Província de ${prov}`]
+        ? ['Sua Excelência', `O Secretário de Estado na ${prov}`]
         : v.autoridade === 'governador'
-          ? ['Sua Excelência', `O Governador da Província de ${prov}`]
+          ? ['Sua Excelência', `O Governador da ${prov}`]
           : ['Sua Excelência', 'O Ministro da Justiça, Assuntos Constitucionais e Religiosos'];
-    const ambito = v.autoridade === 'ministro' ? 'em todo o território nacional' : `na Província de ${prov}`;
+    const ambito = v.autoridade === 'ministro' ? 'em todo o território nacional' : `na ${prov}`;
+    const daNome = deNomeSimples(nome);
+    const oNome = daNome.replace(/^da /, 'A ').replace(/^do /, 'O ');
+    const daNomeB = `${daNome.slice(0, 3)}**${nome}**`;
     const nf = Number(v.numeroFundadores);
     const anexos = lineItems(v.anexos).map((r) => semPonto(r.documento)).filter(Boolean);
     const blocks: Block[] = [
       { type: 'recipient', lines: [...destino, str(v.cidadeDestino) || 'Maputo'] },
-      { type: 'subject', text: `Pedido de reconhecimento da ${nome} como pessoa jurídica` },
+      { type: 'subject', text: `Pedido de reconhecimento ${daNome} como pessoa jurídica` },
       { type: 'salutation', text: 'Excelência,' },
       {
         type: 'paragraph',
         id: 'pedido',
-        text: `${pessoaIdent(v, 'requerente')}, na qualidade de ${semPonto(v.requerenteQualidade) || BLANK} da **${nome}**, mandatado(a) pela Assembleia Constituinte realizada em ${dateLong(v.dataConstituinte)}, vem, nos termos do ${cite('assocReconhecimento')}, conjugado com o ${cite('assocReconhecimentoDecreto')}, requerer a Vossa Excelência o reconhecimento da **${nome}** como pessoa jurídica.`,
+        text: `${pessoaIdent(v, 'requerente')}, na qualidade de ${semPonto(v.requerenteQualidade) || BLANK} ${daNomeB}, ${v.requerenteGenero === 'F' ? 'mandatada' : 'mandatado'} pela Assembleia Constituinte realizada em ${dateLong(v.dataConstituinte)}, vem, nos termos do ${cite('assocReconhecimento')}, conjugado com o ${cite('assocReconhecimentoDecreto')}, requerer a Vossa Excelência o reconhecimento ${daNomeB} como pessoa jurídica.`,
         en: 'The applicant, mandated by the founding meeting, applies for recognition of the association as a legal person.',
       },
       {
         type: 'paragraph',
         id: 'associacao',
-        text: `A ${nome} é uma associação sem fins lucrativos, com sede em ${str(v.sede) || BLANK}, que desenvolve as suas actividades ${ambito} e tem por objectivo geral ${semPonto(v.objectivoGeral) || BLANK}.`,
+        text: `${oNome} é uma associação sem fins lucrativos, com sede em ${str(v.sede) || BLANK}, que desenvolve as suas actividades ${ambito} e tem por objectivo geral ${semPonto(v.objectivoGeral) || BLANK}.`,
         en: 'Description of the association, its seat, area and objective.',
       },
       {

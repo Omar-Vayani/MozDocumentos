@@ -275,6 +275,7 @@ export default defineTemplate({
           id: 'comunicacoes',
           text: 'A presente decisão foi igualmente comunicada, por escrito, ao órgão sindical e ao Ministério que superintende a área do trabalho.',
           en: 'This decision has also been notified in writing to the union body and the Ministry of Labour.',
+          keepWithNext: true,
         },
         { type: 'paragraph', id: 'fecho', text: 'Com os melhores cumprimentos,', en: 'Yours faithfully,', keepWithNext: true },
         { type: 'signatures', columns: [employerSignature(ctx, 'A Entidade Empregadora')] },
@@ -327,6 +328,7 @@ export default defineTemplate({
           ? 'Ficamos ao dispor para prestar os esclarecimentos que forem solicitados.'
           : 'Ficamos ao dispor para prestar os esclarecimentos e fornecer os elementos que forem solicitados pela Inspecção-Geral do Trabalho durante o prazo de aviso prévio.',
         en: 'We remain available to provide any clarification requested' + (sindicato ? '.' : ', including to the Labour Inspectorate during the notice period.'),
+        keepWithNext: true,
       },
       { type: 'paragraph', id: 'fecho', text: 'Com os melhores cumprimentos,', en: 'Yours faithfully,', keepWithNext: true },
       { type: 'signatures', columns: [employerSignature(ctx, 'A Entidade Empregadora')] },

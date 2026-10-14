@@ -1,7 +1,7 @@
 import { inteiroPorExtenso, MESES, parseISODate } from '@/lib/format';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, cite, DOC_TIPO_OPTIONS, g, GENERO_OPTIONS, l, lineItems, localField } from './_shared';
-import { ext, reconhecimentoBox, semPonto, str, valorTexto } from './_associacoes';
+import { deNomeSimples, ext, reconhecimentoBox, semPonto, str, valorTexto } from './_associacoes';
 
 // Acta da assembleia constituinte de uma associação: the founders decide to
 // form the association, approve the statutes, elect the interim committee (or
@@ -121,7 +121,7 @@ export default defineTemplate({
     const sec = str(v.secretarioNome) || BLANK;
     const joiaQuota = str(v.joia) || str(v.quota);
     const pontos = [
-      `Constituição da ${nome}`,
+      `Constituição ${deNomeSimples(nome)}`,
       'Discussão e aprovação dos estatutos',
       comissao ? 'Eleição da Comissão Instaladora' : 'Eleição dos órgãos sociais para o primeiro mandato',
       'Mandato para o pedido de reconhecimento, publicação e registo',
@@ -142,7 +142,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'mesa',
-        text: `Para dirigir os trabalhos foi eleito(a), por unanimidade, Presidente da Mesa ${g(v.presidenteGenero, 'o Senhor', 'a Senhora')} **${pres}**, secretariado(a) por ${g(v.secretarioGenero, 'o Senhor', 'a Senhora')} **${sec}**, ${g(v.presidenteGenero, 'o qual', 'a qual')} apresentou a seguinte ordem de trabalhos:`,
+        text: `Para dirigir os trabalhos foi ${g(v.presidenteGenero, 'eleito', 'eleita')}, por unanimidade, Presidente da Mesa ${g(v.presidenteGenero, 'o Senhor', 'a Senhora')} **${pres}**, ${g(v.presidenteGenero, 'secretariado', 'secretariada')} por ${g(v.secretarioGenero, 'o Senhor', 'a Senhora')} **${sec}**, ${g(v.presidenteGenero, 'o qual', 'a qual')} apresentou a seguinte ordem de trabalhos:`,
         en: 'A chair and a secretary were elected and the chair presented the agenda.',
         keepWithNext: true,
       },
@@ -210,10 +210,10 @@ export default defineTemplate({
         type: 'table',
         columns: [
           { label: 'N.º', width: 0.5, align: 'center' },
-          { label: 'Nome completo', width: 3.4 },
-          { label: 'Documento', width: 2.4 },
-          { label: 'Residência', width: 3 },
-          { label: 'Assinatura', width: 3.2 },
+          { label: 'Nome completo', width: 3.6 },
+          { label: 'Documento', width: 2.9 },
+          { label: 'Residência', width: 2.8 },
+          { label: 'Assinatura', width: 3 },
         ],
         rows: (fund.length ? fund : Array.from({ length: 10 }, () => ({}) as Record<string, any>)).map((r, i) => [
           String(i + 1),

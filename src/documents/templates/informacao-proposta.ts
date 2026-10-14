@@ -199,11 +199,11 @@ export default defineTemplate({
       if (props.length > 1) {
         blocks.push(
           { type: 'paragraph', id: 'proposta', text: 'Face ao exposto, propõe-se:', keepWithNext: true, en: 'In view of the above, it is proposed:' },
-          { type: 'list', style: 'alpha', items: props.map((p, i) => `${p}${i === props.length - 1 ? '.' : ';'}`) },
+          { type: 'list', style: 'alpha', items: props.map((p, i) => `${p}${i === props.length - 1 ? '.' : ';'}`), keepWithNext: true },
         );
       } else {
         const p = props[0] ? props[0].charAt(0).toLowerCase() + props[0].slice(1) : BLANK;
-        blocks.push({ type: 'paragraph', id: 'proposta', text: `Face ao exposto, propõe-se ${p}.`, en: 'In view of the above, the measure stated is proposed.' });
+        blocks.push({ type: 'paragraph', id: 'proposta', text: `Face ao exposto, propõe-se ${p}.`, en: 'In view of the above, the measure stated is proposed.', keepWithNext: true });
       }
     }
     const fecho = str(v.fecho) || 'À consideração superior.';

@@ -12,13 +12,13 @@ const TIPO_OPTIONS = [
 
 /** Relatives whose illness justifies the companion's absence (Labour Law, justified absences). */
 const PARENTESCO = [
-  { value: 'filho', label: l('Filho(a) ou menor a seu cargo', 'Child or minor in their care'), m: 'seu filho', f: 'sua filha' },
-  { value: 'conjuge', label: l('Cônjuge ou companheiro(a)', 'Spouse or partner'), m: 'seu cônjuge', f: 'sua cônjuge' },
-  { value: 'progenitor', label: l('Pai ou mãe', 'Father or mother'), m: 'seu pai', f: 'sua mãe' },
-  { value: 'irmao', label: l('Irmão ou irmã', 'Brother or sister'), m: 'seu irmão', f: 'sua irmã' },
-  { value: 'avo', label: l('Avô ou avó', 'Grandparent'), m: 'seu avô', f: 'sua avó' },
-  { value: 'sogro', label: l('Sogro(a), genro ou nora', 'Parent-in-law, son- or daughter-in-law'), m: 'seu familiar', f: 'sua familiar' },
-  { value: 'enteado', label: l('Enteado(a), padrasto ou madrasta', 'Stepchild or step-parent'), m: 'seu familiar', f: 'sua familiar' },
+  { value: 'filho', label: l('Filho(a) ou menor a seu cargo', 'Child or minor in their care'), m: 'do seu filho', f: 'da sua filha' },
+  { value: 'conjuge', label: l('Cônjuge ou companheiro(a)', 'Spouse or partner'), m: 'do seu cônjuge', f: 'da sua cônjuge' },
+  { value: 'progenitor', label: l('Pai ou mãe', 'Father or mother'), m: 'do seu pai', f: 'da sua mãe' },
+  { value: 'irmao', label: l('Irmão ou irmã', 'Brother or sister'), m: 'do seu irmão', f: 'da sua irmã' },
+  { value: 'avo', label: l('Avô ou avó', 'Grandparent'), m: 'do seu avô', f: 'da sua avó' },
+  { value: 'sogro', label: l('Sogro(a), genro ou nora', 'Parent-in-law, son- or daughter-in-law'), m: 'do seu familiar', f: 'da sua familiar' },
+  { value: 'enteado', label: l('Enteado(a), padrasto ou madrasta', 'Stepchild or step-parent'), m: 'do seu familiar', f: 'da sua familiar' },
   { value: 'outro', label: l('Outra pessoa', 'Someone else'), m: '', f: '' },
 ];
 
@@ -138,7 +138,7 @@ export default defineTemplate({
     } else if (v.tipo === 'acompanhante') {
       const p = PARENTESCO.find((x) => x.value === v.parentesco);
       const rel = p && p.value !== 'outro' ? `${isF(v.acompanhadoGenero) ? p.f : p.m} ` : '';
-      motivo = `como acompanhante de ${rel}**${v.acompanhadoNome || '____________________'}**, que necessitou de assistência médica`;
+      motivo = `como acompanhante ${rel || 'de '}**${v.acompanhadoNome || '____________________'}**, que necessitou de assistência médica`;
       motivoEn = `accompanying ${v.acompanhadoNome || '___'}, who needed medical care`;
     }
     const fimPt =

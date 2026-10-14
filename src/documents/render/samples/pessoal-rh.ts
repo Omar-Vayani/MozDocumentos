@@ -222,7 +222,9 @@ export const SAMPLES: Sample[] = [
       compensacao: '1500',
       compensacaoForma: 'fixo',
       meiosControlo: true,
-      descricaoControlo: 'registo de acessos à rede privada virtual (VPN) da empresa, para segurança da informação',
+      descricaoControlo: 'registo de acessos à rede privada virtual (VPN) da empresa',
+      horasDia: 8,
+      horasSemana: 40,
     },
   },
   {

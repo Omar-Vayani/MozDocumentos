@@ -1,5 +1,14 @@
 // Preview samples for health documents.
-import { clinic, doctor, type Sample } from './_profiles';
+import { clinic as clinicBase, doctor, type Issuer, type Sample } from './_profiles';
+
+/** The clinic without the construction company's logo and stamp that the base profile inherits. */
+function clinic(): Issuer {
+  const { profile, assets } = clinicBase();
+  profile.branding.logoAssetId = undefined;
+  profile.branding.stampAssetId = undefined;
+  const { sig } = assets;
+  return { profile, assets: sig ? { sig } : {} };
+}
 
 const paciente = {
   doenteNome: 'Joaquim Alberto Mussa',

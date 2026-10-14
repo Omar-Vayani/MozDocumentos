@@ -173,7 +173,7 @@ export default defineTemplate({
       blocks.push({
         type: 'paragraph',
         id: 'nada-consta',
-        text: `Durante esse período, nada consta nesta estrutura que desabone o comportamento ${g(gen, 'do declarado', 'da declarada')}.`,
+        text: `Durante esse período, nada consta nesta estrutura que desabone o comportamento ${g(gen, 'do interessado', 'da interessada')}.`,
         en: 'During that period nothing was recorded against the person’s conduct.',
       });
     }

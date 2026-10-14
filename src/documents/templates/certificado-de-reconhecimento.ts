@@ -93,7 +93,7 @@ export default defineTemplate({
     blocks.push(
       { type: 'ornament', style: v.tricolour ? 'tricolour' : 'double' },
       disp(`${entidade} confere a`, 'sm', { italic: true, tone: 'muted', fit: true, after: 4 }),
-      disp(nome, 'xl', { italic: true, fit: true, after: str(v.homenageadoCargo) ? 0 : 2 }),
+      disp(nome, 'xxl', { italic: true, fit: true, after: str(v.homenageadoCargo) ? 1 : 2 }),
     );
     if (str(v.homenageadoCargo)) blocks.push(disp(str(v.homenageadoCargo), 'sm', { tone: 'muted', after: 2 }));
     blocks.push(

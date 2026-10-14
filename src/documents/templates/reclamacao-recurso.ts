@@ -339,9 +339,10 @@ export default defineTemplate({
         id: 'pedido',
         text: `Nestes termos, requer ${sujeito} a V. Ex.ª se digne ${pedidoTxt}.`,
         en: 'The applicant therefore asks Your Excellency to grant the request stated.',
+        keepWithNext: true,
       },
     ];
-    if (docs.length) blocks.push({ type: 'annexList', title: `Junta: ${docs.length} ${docs.length === 1 ? 'documento' : 'documentos'}.`, items: docs });
+    if (docs.length) blocks.push({ type: 'annexList', title: `Junta: ${docs.length} ${docs.length === 1 ? 'documento' : 'documentos'}.`, items: docs, keepWithNext: true });
     blocks.push(
       { type: 'paragraph', id: 'deferimento', text: 'Pede deferimento.', align: 'left', keepWithNext: true, en: 'The applicant asks for the request to be granted.' },
       {

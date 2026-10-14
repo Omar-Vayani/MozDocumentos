@@ -143,7 +143,7 @@ export default defineTemplate({
       {
         id: 'equipa',
         heading: 'Equipa técnica',
-        text: `A Prestadora garante que os médicos ao seu serviço estão inscritos na ${ORDEM_MEDICOS} e os enfermeiros na respectiva Ordem. É médico do trabalho responsável ${v.medicoNome || '____________________'}, carteira profissional n.º ${v.medicoNumero || '________'}.`,
+        text: `${ctx.profile?.licenca ? `A Prestadora exerce a sua actividade ao abrigo da ${String(ctx.profile.licenca).replace(/^./, (c) => c.toLowerCase())}. ` : ''}A Prestadora garante que os médicos ao seu serviço estão inscritos na ${ORDEM_MEDICOS} e os enfermeiros na respectiva Ordem. É médico do trabalho responsável ${v.medicoNome || '____________________'}, carteira profissional n.º ${v.medicoNumero || '________'}.`,
         en: 'All doctors and nurses are registered with their professional orders; the responsible occupational doctor is named.',
       },
       {
@@ -193,6 +193,10 @@ export default defineTemplate({
       },
     );
 
+    const annexes = [
+      ...(v.modeloPreco !== 'capitacao' || v.medicamentos === 'tabela' ? ['Anexo I — Tabela de preços'] : []),
+      ...(v.svPeriodicos && v.periodicidade === 'risco' ? ['Anexo II — Exames por posto de trabalho e periodicidade'] : []),
+    ];
     const blocks: Block[] = [
       { type: 'title', text: 'Contrato de Prestação de Serviços de Medicina no Trabalho' },
       {
@@ -202,7 +206,7 @@ export default defineTemplate({
         en: 'Between the provider and the company, this occupational health services contract is made on the following terms.',
       },
       { type: 'numberedClauses', style: 'clausula', items: clauses },
-      { type: 'annexList', items: ['Anexo I — Tabela de preços', ...(v.periodicidade === 'risco' ? ['Anexo II — Exames por posto de trabalho e periodicidade'] : [])] },
+      ...(annexes.length ? [{ type: 'annexList' as const, items: annexes }] : []),
       { type: 'paragraph', id: 'fecho', text: 'Feito em dois exemplares de igual valor, ficando um em poder de cada parte.', en: 'Made in two copies of equal value, one for each party.', keepWithNext: true },
       {
         type: 'signatures',

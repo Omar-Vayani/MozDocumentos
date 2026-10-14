@@ -82,7 +82,7 @@ export default defineTemplate({
           { label: 'Data', value: dateLong(v.data) + (str(v.hora) ? `, ${str(v.hora)}` : '') },
           { label: 'Local', value: str(v.localReuniao) || BLANK },
           ...(conv ? [{ label: 'Convocação', value: conv.charAt(0).toUpperCase() + conv.slice(1) }] : []),
-          ...(total != null && !outra ? [{ label: soc ? 'Sócios' : 'Membros com direito de voto', value: String(total) }] : []),
+          ...(total != null && !outra ? [{ label: soc ? 'Sócios' : 'Membros com voto', value: String(total) }] : []),
         ],
       },
       {

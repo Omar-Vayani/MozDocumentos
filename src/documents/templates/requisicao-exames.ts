@@ -140,17 +140,18 @@ export default defineTemplate({
   blocks: (ctx) => {
     const v = ctx.values;
     const age = patientAge(v);
+    // One compact identification line: an A5 request has little room.
     const doente = [
-      { label: 'Doente', value: v.doenteNome || '______________' },
-      { label: 'Sexo / idade', value: `${v.doenteGenero === 'F' ? 'F' : 'M'}${age != null ? ` · ${age} anos` : ''}` },
-    ];
-    if (v.doenteProcesso) doente.push({ label: 'Processo n.º', value: String(v.doenteProcesso) });
-    if (v.doenteGenero === 'F' && v.gravidez && v.gravidez !== 'nao') doente.push({ label: 'Gravidez', value: v.gravidez === 'sim' ? 'Sim' : 'Desconhece' });
+      `**Doente:** ${v.doenteNome || '____________________'}`,
+      `${v.doenteGenero === 'F' ? 'sexo feminino' : 'sexo masculino'}${age != null ? `, ${age} ${age === 1 ? 'ano' : 'anos'}` : ''}`,
+      v.doenteProcesso ? `processo n.º ${v.doenteProcesso}` : '',
+      v.doenteGenero === 'F' && v.gravidez && v.gravidez !== 'nao' ? `gravidez: ${v.gravidez === 'sim' ? 'sim' : 'desconhece'}` : '',
+    ].filter(Boolean).join(' · ');
     const tags = [...(v.urgente ? ['URGENTE'] : []), 'CONFIDENCIAL'];
     const blocks: Block[] = [
       { type: 'tags', items: tags },
       { type: 'title', text: 'Requisição de Exames', subtitle: v.ref ? `N.º ${v.ref}` : undefined },
-      { type: 'keyValue', items: doente, columns: 2 },
+      { type: 'paragraph', id: 'doente', align: 'left', text: doente, en: `Patient: ${v.doenteNome || '___'}` },
       {
         type: 'paragraph',
         id: 'informacao',
@@ -169,7 +170,7 @@ export default defineTemplate({
           return label;
         }),
     );
-    if (items.length) blocks.push({ type: 'heading', text: 'Exames pedidos' }, { type: 'list', style: 'bullet', items });
+    if (items.length) blocks.push({ type: 'heading', text: 'Exames pedidos' }, { type: 'checklist', columns: items.length > 3 ? 2 : 1, items: items.map((label) => ({ label, checked: true })) });
     const outros = String(v.outrosExames ?? '').trim();
     if (outros) blocks.push({ type: 'heading', text: 'Outros' }, { type: 'paragraph', id: 'outros', size: 'small', text: outros, en: outros });
     blocks.push({ type: 'signatures', placeDate: placeDate(ctx, v.data), columns: [clinicianSignature(ctx)] });

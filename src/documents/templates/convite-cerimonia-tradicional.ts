@@ -121,18 +121,18 @@ export default defineTemplate({
             .filter(Boolean)
             .join('\n');
     const out: Block[] = [
-      disp(ambas ? `As Famílias ${fN} e ${fM}` : `A Família ${fN}`, 'sm', { uppercase: true, tone: 'accent', fit: true, after: 3 }),
-      disp(`${ambas ? 'têm' : 'tem'} a honra de convidar ${trat}\npara a`, 'xs', { italic: true, tone: 'muted', after: 3 }),
-      disp(cerimonia, 'md', { uppercase: true, fit: true, after: 2 }),
+      disp(ambas ? `As Famílias ${fN} e ${fM}` : `A Família ${fN}`, 'md', { uppercase: true, tone: 'accent', fit: true, after: 3 }),
+      disp(`${ambas ? 'têm' : 'tem'} a honra de convidar ${trat}\npara a`, 'sm', { italic: true, tone: 'muted', after: 3 }),
+      disp(cerimonia, 'lg', { uppercase: true, fit: true, after: 2 }),
       { type: 'ornament', style: 'dots' },
       disp(ambas ? 'de seus filhos' : 'da sua filha', 'xs', { italic: true, tone: 'muted', after: 1 }),
-      disp(str(v.noiva) || 'Nome da Noiva', 'xl', { italic: true, tone: 'accent', fit: true, after: 0 }),
+      disp(str(v.noiva) || 'Nome da Noiva', 'xxl', { italic: true, tone: 'accent', fit: true, after: 0 }),
       disp('com', 'xs', { italic: true, tone: 'muted', after: 0 }),
-      disp(str(v.noivo) || 'Nome do Noivo', 'xl', { italic: true, tone: 'accent', fit: true, after: fM && !ambas ? 0 : 5 }),
+      disp(str(v.noivo) || 'Nome do Noivo', 'xxl', { italic: true, tone: 'accent', fit: true, after: fM && !ambas ? 0 : 5 }),
     ];
     if (fM && !ambas) out.push(disp(`filho da Família ${fM}`, 'xs', { tone: 'muted', after: 5 }));
-    out.push(disp(linhaData(v.dataEvento, v.horaEvento), 'xs', { uppercase: true, weight: 'bold', fit: true, after: 2 }));
-    out.push(disp(lugar || '____________________', 'xs', { after: str(v.referencia) ? 0 : 4 }));
+    out.push(disp(linhaData(v.dataEvento, v.horaEvento), 'sm', { uppercase: true, weight: 'bold', fit: true, after: 2 }));
+    out.push(disp(lugar || '____________________', 'sm', { after: str(v.referencia) ? 0 : 4 }));
     if (str(v.referencia)) out.push(disp(`(${str(v.referencia)})`, 'xs', { tone: 'muted', after: 4 }));
     if (str(v.fraseFinal)) out.push(disp(str(v.fraseFinal), 'xs', { italic: true, after: 4 }));
     out.push(

@@ -102,7 +102,8 @@ export default defineTemplate({
     ];
     if (v.doenteProcesso) ident.push({ label: 'Processo n.º', value: String(v.doenteProcesso) });
     if (v.doenteTelefone) ident.push({ label: 'Contacto', value: String(v.doenteTelefone) });
-    ident.push({ label: 'Transporte', value: `${v.transporte || 'meios próprios'}${v.acompanhado ? ', acompanhado por profissional de saúde' : ''}` });
+    const transp = String(v.transporte || 'meios próprios');
+    const segue = `${v.doenteGenero === 'F' ? 'A doente' : 'O doente'} segue ${transp === 'meios próprios' ? 'por meios próprios' : transp === 'ambulância' ? 'de ambulância' : 'por evacuação aérea'}${v.acompanhado ? `, ${v.doenteGenero === 'F' ? 'acompanhada' : 'acompanhado'} por profissional de saúde` : ''}.`;
 
     const blocks: Block[] = [
       { type: 'tags', items: tags },
@@ -112,7 +113,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'refere',
-        text: `Refere-se a V. Ex.ª ${v.doenteGenero === 'F' ? 'a doente abaixo identificada' : 'o doente abaixo identificado'}, para **${motivo}${esp ? ` em ${esp}` : ''}**, pelos motivos e com os dados clínicos seguintes.`,
+        text: `Refere-se a V. Ex.ª ${v.doenteGenero === 'F' ? 'a doente abaixo identificada' : 'o doente abaixo identificado'}, para **${motivo}${esp ? ` em ${esp}` : ''}**, pelos motivos e com os dados clínicos seguintes. ${segue}`,
         en: `We refer the patient below for ${motivo}${esp ? ` in ${esp}` : ''}, for the reasons and with the clinical data below.`,
       },
       { type: 'keyValue', items: ident, columns: 2 },

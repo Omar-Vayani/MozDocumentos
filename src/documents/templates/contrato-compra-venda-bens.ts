@@ -89,7 +89,7 @@ export default defineTemplate({
       default: true,
     },
 
-    { name: 'entregaLocal', type: 'text', section: 'entrega', width: 'half', label: l('Local de entrega', 'Delivery place') },
+    { name: 'entregaLocal', type: 'text', section: 'entrega', width: 'half', label: l('Local de entrega', 'Delivery place'), placeholder: l('Ex.: no armazém do Comprador, na Matola', 'E.g. at the Buyer’s warehouse in Matola') },
     { name: 'entregaData', type: 'date', section: 'entrega', width: 'half', label: l('Data de entrega', 'Delivery date') },
     {
       name: 'transporte',
@@ -232,7 +232,7 @@ export default defineTemplate({
       id: 'entrega',
       heading: 'Entrega e risco',
       text: numerar([
-        `Os bens são entregues em ${semPonto(v.entregaLocal) || BLANK}, até ${dateLong(v.entregaData)}, sendo o transporte por conta ${v.transporte === 'comprador' ? C.de : V.de}.`,
+        `Os bens são entregues ${/^(n[oa]s?|em|à|ao)\s/i.test(semPonto(v.entregaLocal)) ? '' : 'em '}${semPonto(v.entregaLocal) || BLANK}, até ${dateLong(v.entregaData)}, sendo o transporte por conta ${v.transporte === 'comprador' ? C.de : V.de}.`,
         `No acto da entrega, as partes assinam uma guia ou termo de entrega, e ${C.o} verifica a quantidade e o estado aparente dos bens, devendo reclamar por escrito quaisquer faltas ou defeitos aparentes no prazo de ${quantos(reclamar, 'dia', 'dias')}.`,
         `O risco de perda ou deterioração dos bens transfere-se para ${C.o} com a entrega.`,
       ]),

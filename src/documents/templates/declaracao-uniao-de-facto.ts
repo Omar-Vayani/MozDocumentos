@@ -176,7 +176,7 @@ export default defineTemplate({
       },
     ];
     if (c.filhos.length) {
-      const nomes = c.filhos.map((f: Record<string, string>) => `${str(f.nome)}${f.nascimento ? ` (${dateLong(f.nascimento)})` : ''}`);
+      const nomes = c.filhos.map((f: Record<string, string>) => `${str(f.nome)}${f.nascimento ? `${c.filhos.length === 1 ? ',' : ''} em ${dateLong(f.nascimento)}` : ''}`);
       const lista = nomes.length > 1 ? `${nomes.slice(0, -1).join(', ')} e ${nomes[nomes.length - 1]}` : nomes[0];
       blocks.push({ type: 'paragraph', id: 'filhos', text: `Da sua união ${c.filhos.length === 1 ? 'nasceu' : 'nasceram'} ${lista}.`, en: 'Their children are as named.' });
     }
