@@ -731,6 +731,8 @@ export const CATALOG_FAMILIA: TemplateMeta[] = [
       en: 'Joint application by both spouses to the Civil Registry, with the agreements on spousal maintenance, the family home, the children and the list of joint assets and debts.',
     },
     tags: [
+      'separação por mútuo consentimento',
+      'separacao por mutuo consentimento',
       'divórcio',
       'divorcio',
       'divórcio por mútuo consentimento',

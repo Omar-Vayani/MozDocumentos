@@ -291,7 +291,7 @@ export const CATALOG_PESSOAL_RH: TemplateMeta[] = [
       pt: 'Para o trabalhador ou a empresa pedir ao Centro de Mediação e Arbitragem Laboral que ajude a resolver um conflito.',
       en: 'For an employee or employer to ask the Labour Mediation and Arbitration Centre to help settle a dispute.',
     },
-    tags: ['mediação', 'mediacao', 'COMAL', 'CEMAL', 'conflito laboral', 'salários em atraso', 'queixa', 'labour dispute', 'mediation', 'complaint'],
+    tags: ['mediação', 'mediacao', 'COMAL', 'CEMAL', 'conflito laboral', 'salários em atraso', 'queixa', 'labour dispute', 'mediation', 'complaint', 'requerimento de conciliação laboral', 'conciliação laboral', 'conciliacao laboral'],
     legalRefs: ['mediacaoLaboralProcesso', 'mediacaoPedidoComal', 'prescricaoCreditosLaborais', 'impugnacaoRescisao'],
     related: ['rescisao-pelo-trabalhador', 'certificado-de-trabalho'],
     lastReviewed: REVIEWED,

@@ -255,7 +255,7 @@ export const CATALOG_ESTADO: TemplateMeta[] = [
       pt: 'Para contestar uma decisão ou a falta de resposta de um órgão público: reclamação ao autor, recurso ao superior ou exposição.',
       en: 'To challenge a decision or a lack of reply from a public body: complaint to the author, appeal to the superior, or a representation.',
     },
-    tags: ['recurso hierarquico', 'reclamacao', 'exposicao', 'indeferimento', 'contestar decisao', 'impugnacao', 'appeal', 'complaint', 'administrative appeal'],
+    tags: ['recurso hierarquico', 'reclamacao', 'exposicao', 'indeferimento', 'contestar decisao', 'impugnacao', 'appeal', 'complaint', 'administrative appeal', 'recurso hierárquico', 'reclamação administrativa', 'reclamacao administrativa'],
     legalRefs: ['recursoHierarquicoPrazo', 'recursoHierarquicoForma', 'reclamacaoPrazo', 'indeferimentoTacito', 'requerimentoConteudo'],
     related: ['requerimento'],
     lastReviewed: REVIEWED,

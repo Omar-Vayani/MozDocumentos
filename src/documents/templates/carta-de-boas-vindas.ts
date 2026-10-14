@@ -110,8 +110,10 @@ export default defineTemplate({
     if (str(v.periodoProbatorio)) {
       blocks.push({ type: 'paragraph', id: 'probatorio', text: `Conforme o seu contrato, os primeiros ${str(v.periodoProbatorio).replace(/\.$/, '')} correspondem ao período probatório, durante o qual a sua chefia acompanhará de perto o seu trabalho e estará disponível para esclarecer as dúvidas que surjam.`, en: 'Probation as stated in the contract, with close support from the supervisor.' });
     }
+    {
+      blocks.push({ type: 'paragraph', id: 'votos', text: 'Desejamos-lhe os maiores sucessos nas novas funções.', en: 'We wish you every success.', keepWithNext: true });
+    }
     blocks.push(
-      { type: 'paragraph', id: 'votos', text: 'Desejamos-lhe os maiores sucessos nas novas funções.', en: 'We wish you every success.', keepWithNext: true },
       { type: 'paragraph', id: 'fecho', text: 'Com os melhores cumprimentos,', en: 'Yours sincerely,', align: 'left', keepWithNext: true },
       { type: 'signatures', columns: [employerSignature(ctx, 'Os Recursos Humanos')] },
     );
