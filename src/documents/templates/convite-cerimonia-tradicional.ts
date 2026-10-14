@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type Warning } from '../model';
 import { cite, l } from './_shared';
-import { TRAJE_OPTIONS, TRATAMENTO_OPTIONS, diasEntre, disp, footer, linhaData, rsvpLine, str } from './_eventos';
+import { TRAJE_OPTIONS, TRATAMENTO_OPTIONS, diasEntre, disp, footer, linhaData, str, cardScale } from './_eventos';
 
 // Invitation to a lobolo, traditional wedding or family introduction, A6
 // (four per A4). In the south the lobolo is held at the bride's family home;
@@ -139,10 +139,10 @@ export default defineTemplate({
       ...footer([
         v.festa ? 'Seguir-se-á almoço no local.' : '',
         str(v.traje) ? `Traje: ${str(v.traje)}` : '',
-        rsvpLine(v, 'Contacto'),
+        [str(v.rsvpNome), str(v.rsvpTelefone)].some(Boolean) ? `Contacto: ${[str(v.rsvpNome), str(v.rsvpTelefone)].filter(Boolean).join(' · ')}` : '',
       ]),
     );
-    return out;
+    return cardScale(out);
   },
   warnings: (v, ctx) => {
     const out: Warning[] = [];

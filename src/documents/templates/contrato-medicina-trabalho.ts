@@ -1,6 +1,6 @@
 import { numeroPorExtenso } from '@/lib/format';
 import { defineTemplate, type Block, type ClauseItem, type Values, type Warning } from '../model';
-import { cite, dateField, employerParty, employerSignature, formatMoney, l, localField, money, placeDate } from './_shared';
+import { cite, dateField, dateLong, employerParty, employerSignature, formatMoney, l, localField, money, placeDate } from './_shared';
 import { countText, ORDEM_MEDICOS } from './_saude';
 
 const PERIODICIDADE_OPTIONS = [
@@ -132,7 +132,7 @@ export default defineTemplate({
         heading: 'Objecto',
         text: `Pelo presente contrato, a Prestadora obriga-se a prestar à Empresa serviços de medicina no trabalho${nt ? ` para cerca de ${countText(nt)} trabalhadores` : ''}, designadamente:`,
         en: 'The provider will supply occupational health services to the company, namely the services listed.',
-        items: servicos.length ? servicos : ['____________________'],
+        items: servicos.length ? servicos.map((x, i) => `${x}${i === servicos.length - 1 ? '.' : ';'}`) : ['____________________'],
       },
       {
         id: 'local',
@@ -182,7 +182,7 @@ export default defineTemplate({
       {
         id: 'duracao',
         heading: 'Duração e denúncia',
-        text: `O contrato tem a duração de ${meses ? countText(meses) : '____'} ${meses === 1 ? 'mês' : 'meses'}, com início em ${placeDate({ ...ctx, place: '' } as typeof ctx, v.dataInicio).replace(/^,\s*/, '')}${v.renovacao ? ', e renova-se automaticamente por iguais períodos' : ''}. Qualquer das partes pode denunciá-lo por carta, com a antecedência mínima de ${aviso ? countText(aviso) : '____'} dias em relação ao seu termo.`,
+        text: `O contrato tem a duração de ${meses ? countText(meses) : '____'} ${meses === 1 ? 'mês' : 'meses'}, com início em ${dateLong(v.dataInicio)}${v.renovacao ? ', e renova-se automaticamente por iguais períodos' : ''}. Qualquer das partes pode denunciá-lo por carta, com a antecedência mínima de ${aviso ? countText(aviso) : '____'} dias em relação ao seu termo.`,
         en: 'Term, renewal and notice of termination.',
       },
       {

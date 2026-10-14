@@ -98,7 +98,7 @@ Design blocks:
 | `ornament` | `{ style: 'rule'|'double'|'tricolour'|'dots'|'cross', width?, align? }` — separators; `tricolour` is the app's subtle Mozambican mark; `cross` for religious/funeral notices |
 | `logo` | the issuing profile's logo `{ size, align }` |
 | `envelope` | DL envelope face `{ sender: string[], recipient: string[], note? }` |
-| `box` | add `cut: true` for a tear-off slip ("recortar e devolver") |
+| `box` | add `cut: true` for a tear-off slip ("recortar e devolver"); `space: 60` for a blank area in mm (sketch, stamp) |
 | `checklist` | `columns: 2` for two columns |
 | `table` | a row whose first cell starts with `"§ "` is a chapter row; `"= "` a bold subtotal row |
 | `numberedClauses` | style `'artigo'` prints "Artigo 1.º" |

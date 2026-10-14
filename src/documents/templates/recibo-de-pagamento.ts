@@ -3,7 +3,7 @@ import { profileDisplayName } from '@/lib/storage/types';
 import { defineTemplate, type Block, type SignatureColumn, type Values, type Warning } from '../model';
 import {
   blank, dateField, dateLong, DOC_TIPO_OPTIONS, employerRep, FORMA_PAGAMENTO_OPTIONS, formatMoney, g, GENERO_OPTIONS, l, localField, money,
-  placeDate, refField, splitLines,
+  cite, placeDate, refField, splitLines,
 } from './_shared';
 
 const MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -119,6 +119,29 @@ export default defineTemplate({
       label: l('Valor recebido', 'Amount received'),
     },
     {
+      name: 'natureza',
+      type: 'select',
+      section: 'pagamento',
+      width: 'half',
+      label: l('Natureza do pagamento', 'Nature of the payment'),
+      options: [
+        { value: 'pagamento', label: l('Pagamento', 'Payment') },
+        { value: 'sinal', label: l('Sinal (garante um contrato)', 'Deposit (secures a contract)') },
+        { value: 'adiantamento', label: l('Adiantamento por conta do preço', 'Advance on account of the price') },
+      ],
+      default: 'pagamento',
+      help: l('O sinal tem efeitos legais: perde-o quem desiste; quem o recebeu e não cumpre devolve-o em dobro.', 'A deposit has legal effects: forfeited by the payer who withdraws; returned double by the recipient who defaults.'),
+    },
+    {
+      name: 'contratoReferencia',
+      type: 'text',
+      section: 'pagamento',
+      width: 'half',
+      label: l('Contrato, encomenda ou orçamento', 'Contract, order or quote'),
+      placeholder: l('Ex.: contrato-promessa de 3 de Outubro de 2026; orçamento n.º 45', 'E.g. promise of sale of 3 October 2026; quote no. 45'),
+      showIf: (v) => v.natureza === 'sinal' || v.natureza === 'adiantamento',
+    },
+    {
       name: 'descricao',
       type: 'textarea',
       section: 'pagamento',
@@ -183,6 +206,19 @@ export default defineTemplate({
         message: l('Indique a referência ou o ID da transacção para facilitar a conferência.', 'Enter the reference or transaction ID to make reconciliation easier.'),
       });
     }
+    if ((v.natureza === 'sinal' || v.natureza === 'adiantamento') && v.recebedorTipo === 'empresa') {
+      w.push({
+        level: 'warning',
+        field: 'natureza',
+        message: l(
+          `Se a empresa é sujeito passivo de IVA, o recebimento de um sinal ou adiantamento pode obrigar à emissão de factura (ou factura-recibo) pelo valor recebido, em impresso de tipografia autorizada ou programa certificado (${cite('ivaAdiantamento')}). Este recibo não a substitui. Confirme com o seu contabilista.`,
+          'If the company is VAT-registered, receiving a deposit or advance may require an invoice (or invoice-receipt) for the amount, on authorised forms or certified software. This receipt does not replace it. Check with your accountant.',
+        ),
+      });
+    }
+    if (v.natureza === 'sinal') {
+      w.push({ level: 'info', field: 'natureza', message: l(`O sinal segue o regime do ${cite('contratoPromessaSinal')}: quem o entregou e desiste perde-o; quem o recebeu e não cumpre devolve-o em dobro. Indique o contrato a que respeita.`, 'A deposit is forfeited by the payer who withdraws and returned double by the recipient who defaults. State the contract it relates to.') });
+    }
     if (v.recebedorTipo === 'empresa' && !v.recebedorNuit) {
       w.push({ level: 'warning', field: 'recebedorNuit', message: l('Falta o NUIT da empresa.', 'The company NUIT is missing.') });
     }
@@ -207,10 +243,12 @@ export default defineTemplate({
     ].filter(Boolean).join(', ');
     const pagadorPt = `**${blank(v.pagadorNome)}**${v.pagadorNuit ? `, NUIT ${v.pagadorNuit}` : ''}`;
     const valorPt = valor != null && valor > 0 ? formatMoney(valor) : formatMoney(null);
-    const referente = itens.length > 1 ? 'referente ao seguinte:' : `referente a ${itens[0] || blank('')}.`;
+    const titulo = v.natureza === 'sinal' ? 'a título de sinal' : v.natureza === 'adiantamento' ? 'a título de adiantamento por conta do preço' : '';
+    const contrato = titulo && clean(v.contratoReferencia) ? `, no âmbito de ${clean(v.contratoReferencia)}` : '';
+    const referente = `${titulo ? `${titulo}${contrato}, ` : ''}${itens.length > 1 ? 'referente ao seguinte:' : `referente a ${itens[0] || blank('')}.`}`;
 
     const blocks: Block[] = [
-      { type: 'title', text: v.ref ? `Recibo n.º ${v.ref}` : 'Recibo' },
+      { type: 'title', text: `${v.natureza === 'sinal' ? 'Recibo de sinal' : v.natureza === 'adiantamento' ? 'Recibo de adiantamento' : 'Recibo'}${v.ref ? ` n.º ${v.ref}` : ''}` },
     ];
     if (valor != null && valor > 0) blocks.push({ type: 'amount', label: 'Valor recebido', value: valor });
     blocks.push({
@@ -234,8 +272,10 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'quitacao',
-        text: 'Por ser verdade, passa-se o presente recibo, que dá plena quitação da quantia recebida.',
-        en: 'This receipt is issued as full discharge for the amount received.',
+        text: v.natureza === 'sinal' || v.natureza === 'adiantamento'
+          ? 'Por ser verdade, passa-se o presente recibo da quantia recebida, que será imputada no preço.'
+          : 'Por ser verdade, passa-se o presente recibo, que dá plena quitação da quantia recebida.',
+        en: v.natureza === 'sinal' || v.natureza === 'adiantamento' ? 'This receipt is issued for the amount received, which will be credited against the price.' : 'This receipt is issued as full discharge for the amount received.',
         keepWithNext: true,
       },
     );

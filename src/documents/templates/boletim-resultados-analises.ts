@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type SignatureColumn, type Values, type Warning } from '../model';
 import { cite, dateField, dateLong, l, lineItems, localField, placeDate } from './_shared';
-import { CONFIDENCIAL, mentionsHiv, patientAge, patientFields, practitionerHeader, sigiloNote } from './_saude';
+import { CONFIDENCIAL, mentionsHiv, patientAge, patientFields, sigiloNote } from './_saude';
 
 const AMOSTRA_OPTIONS = ['sangue total', 'soro', 'plasma', 'urina', 'fezes', 'expectoração', 'exsudado', 'líquido biológico', 'outra'].map((x) => ({
   value: x,
@@ -114,10 +114,10 @@ export default defineTemplate({
       role: 'Validado por',
       name: v.validadorNome || undefined,
       detail: [v.validadorCargo, v.validadorRegisto ? `Registo n.º ${v.validadorRegisto}` : ''].filter(Boolean).join('\n') || undefined,
-      image: 'both',
+      // The profile's signature image belongs to its representative: use it only when they validate.
+      image: String(v.validadorNome ?? '').trim().toLowerCase() === String(ctx.profile?.representanteNome ?? ctx.profile?.nome ?? '').trim().toLowerCase() ? 'both' : 'stamp',
     };
     const blocks: Block[] = [
-      ...practitionerHeader(ctx),
       CONFIDENCIAL,
       { type: 'title', text: 'Boletim de Resultados de Análises Clínicas' },
       { type: 'keyValue', items: amostra, columns: 2 },

@@ -1,6 +1,6 @@
 import { formatDateShort } from '@/lib/format';
 import { defineTemplate, type Block, type ClauseItem, type Warning } from '../model';
-import { BLANK, dateLong, formatMoney, l, lineItems, localField, money } from './_shared';
+import { BLANK, dateLong, formatMoney, l, localField, money } from './_shared';
 import { ext, membrosPoupanca, num, PERIODO_OPTIONS, PERIODO_TXT, quantos, semPonto, str, valorTexto, vezes, type MembroPoupanca } from './_associacoes';
 
 // Regulamento de um grupo de poupança (xitique rotativo ou poupança e
@@ -193,11 +193,11 @@ export default defineTemplate({
       {
         type: 'table',
         columns: [
-          { label: 'N.º', width: 0.5, align: 'center' },
-          { label: 'Nome', width: 3.6 },
-          { label: 'BI n.º', width: 2 },
-          { label: 'Telefone', width: 1.8 },
-          ...(rot ? [{ label: 'Recebe em', width: 1.5 }] : []),
+          { label: 'N.º', width: 0.4, align: 'center' },
+          { label: 'Nome', width: 2.8 },
+          { label: 'BI n.º', width: 2.4 },
+          { label: 'Telefone', width: 2.4 },
+          ...(rot ? [{ label: 'Recebe em', width: 1.6 }] : []),
           { label: 'Assinatura', width: 2.6 },
         ],
         rows,

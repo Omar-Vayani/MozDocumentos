@@ -82,7 +82,7 @@ export default defineTemplate({
       .join(', ');
     const reg = [str(v.livro) ? `Livro n.º ${str(v.livro)}` : '', str(v.folhas) ? `folhas ${str(v.folhas)}` : '', str(v.assento) ? `assento n.º ${str(v.assento)}` : ''].filter(Boolean).join(', ');
     const cols: SignatureColumn[] = [{ role: `O ${str(v.ministroTitulo) || 'Pastor'}`, name: str(v.ministro) || undefined, image: 'both' }];
-    if (str(v.secretarioNome)) cols.push({ role: 'O(A) Secretário(a)', name: str(v.secretarioNome) });
+    cols.push({ role: 'O(A) Secretário(a)', name: str(v.secretarioNome) || undefined });
     const blocks: Block[] = [
       { type: 'logo', size: 'sm' },
       { type: 'display', text: igreja, size: 'xs', uppercase: true, weight: 'bold', tone: 'accent', fit: true, after: 2 },

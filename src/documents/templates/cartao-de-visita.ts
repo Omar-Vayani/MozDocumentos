@@ -2,6 +2,7 @@ import { professionalRegistration, profileDisplayName, titledName } from '@/lib/
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { l } from './_shared';
+import { clip } from './_eventos';
 
 // Business card, 85 × 55 mm, printed ten per A4 sheet with cutting marks.
 // Short lines only: anything longer than a card line is cut, so warnings ask
@@ -96,16 +97,16 @@ export default defineTemplate({
     const align = v.estilo === 'centro' ? 'center' : 'left';
     const phones = [str(v.telefone), str(v.telefone2)].filter(Boolean).join('  ·  ');
     const post = [str(v.morada), str(v.caixaPostal) ? `C.P. ${str(v.caixaPostal).replace(/^C\.?\s*P\.?\s*/i, '')}` : ''].filter(Boolean).join(' · ');
+    // A card has room for about eight lines: header first, then up to four contact lines.
+    const contacts = [phones, str(v.email), str(v.website), post, str(v.nuit) ? `NUIT ${str(v.nuit)}` : ''].filter(Boolean).slice(0, 4);
     const blocks: Block[] = [];
     if (v.mostrarLogo !== false) blocks.push({ type: 'logo', size: 'sm', align });
-    blocks.push({ type: 'display', text: str(v.nome) || 'Nome Apelido', size: 'lg', weight: 'bold', align, fit: true, after: 1 });
-    if (str(v.cargo)) blocks.push({ type: 'display', text: str(v.cargo), size: 'sm', tone: 'accent', align, fit: true, after: 1 });
-    if (str(v.empresa)) blocks.push({ type: 'display', text: str(v.empresa), size: 'sm', weight: 'bold', align, fit: true, after: 1 });
-    if (str(v.registo)) blocks.push({ type: 'display', text: str(v.registo), size: 'xs', tone: 'muted', align, fit: true, after: 1 });
+    blocks.push({ type: 'display', text: clip(str(v.nome) || 'Nome Apelido', 34), size: 'lg', weight: 'bold', align, fit: true, after: 1 });
+    if (str(v.cargo)) blocks.push({ type: 'display', text: clip(str(v.cargo), 50), size: 'sm', tone: 'accent', align, fit: true, after: 1 });
+    if (str(v.empresa)) blocks.push({ type: 'display', text: clip(str(v.empresa), 50), size: 'sm', weight: 'bold', align, fit: true, after: 1 });
+    if (str(v.registo) && contacts.length < 4) blocks.push({ type: 'display', text: clip(str(v.registo), 58), size: 'xs', tone: 'muted', align, fit: true, after: 1 });
     blocks.push({ type: 'ornament', style: v.estilo === 'mocambique' ? 'tricolour' : v.estilo === 'centro' ? 'dots' : 'rule', align });
-    for (const line of [phones, str(v.email), str(v.website), post, str(v.nuit) ? `NUIT ${str(v.nuit)}` : ''].filter(Boolean)) {
-      blocks.push({ type: 'display', text: line, size: 'xs', align, fit: true, after: 0.5 });
-    }
+    for (const line of contacts) blocks.push({ type: 'display', text: clip(line, 58), size: 'xs', align, fit: true, after: 0.5 });
     return blocks;
   },
   warnings: (v) => {

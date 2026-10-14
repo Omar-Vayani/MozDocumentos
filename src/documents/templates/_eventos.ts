@@ -96,7 +96,7 @@ export function rsvpLine(v: Values, lead = 'Agradecemos a confirmação'): strin
   const quem = [str(v.rsvpNome), str(v.rsvpTelefone)].filter(Boolean).join(' · ');
   if (!quem && !str(v.rsvpData)) return '';
   const ate = str(v.rsvpData) ? ` até ${dateLong(v.rsvpData)}` : '';
-  return `${lead}${ate}${quem ? ` — ${quem}` : ''}`;
+  return `${lead}${ate}${quem ? `\n${quem}` : ''}`;
 }
 
 // ---------------------------------------------------------------- Mourning
@@ -176,4 +176,22 @@ export function emLocal(local: unknown): string {
   if (/^(cidade|província|provincia|vila|localidade|aldeia|beira|matola|maxixe|ilha)\b/i.test(s)) return `, na ${s}`;
   if (/^(chimoio|distrito|posto)\b/i.test(s)) return `, no ${s}`;
   return `, em ${s}`;
+}
+
+/** Shortens a line that must stay on one line of a small format (card, envelope). */
+export function clip(s: string, max: number): string {
+  const t = s.trim();
+  return t.length <= max ? t : `${t.slice(0, max - 1).trimEnd()}…`;
+}
+
+const STEP_UP = { xs: 'sm', sm: 'md', md: 'lg', lg: 'xl', xl: 'xxl', xxl: 'xxl', xxxl: 'xxxl' } as const;
+
+/**
+ * Small cards (A6) print at a reduced type scale: this sets every display line
+ * one size up and opens the spacing, so the card is filled and legible.
+ */
+export function cardScale(blocks: Block[]): Block[] {
+  return blocks.map((b) =>
+    b.type === 'display' ? { ...b, size: STEP_UP[b.size ?? 'md'], after: b.after === undefined ? undefined : Math.round(b.after * 1.6 * 10) / 10 } : b,
+  );
 }

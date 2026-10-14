@@ -58,7 +58,7 @@ export default defineTemplate({
       ],
       default: [],
     },
-    { name: 'linhasEmBranco', type: 'number', section: 'presentes', width: 'half', label: l('Linhas em branco', 'Blank rows'), default: 20, min: 1, max: 80 },
+    { name: 'linhasEmBranco', type: 'number', section: 'presentes', width: 'half', label: l('Linhas em branco', 'Blank rows'), default: 16, min: 1, max: 80 },
     { name: 'colunaRepresentacao', type: 'toggle', section: 'presentes', label: l('Coluna «Representado por»', '“Represented by” column'), default: true },
   ],
 
@@ -67,8 +67,8 @@ export default defineTemplate({
     const soc = v.entidadeTipo === 'sociedade';
     const outra = v.entidadeTipo === 'outra';
     const pre = lineItems(v.membros).filter((r) => str(r.nome));
-    const extra = Math.max(0, (num(v.linhasEmBranco) ?? 20) - pre.length);
-    const nRows = pre.length + (pre.length ? Math.min(extra, 5) : Math.min(80, extra || 20));
+    const extra = Math.max(0, (num(v.linhasEmBranco) ?? 16) - pre.length);
+    const nRows = pre.length + (pre.length ? Math.min(extra, 5) : Math.min(80, extra || 16));
     const rep = v.colunaRepresentacao !== false && !outra;
     const conv = v.convocacao === 'segunda' ? 'segunda convocação' : v.convocacao === 'omitir' ? '' : 'primeira convocação';
     const q = ctx.legal.value<{ primeira: number }>('assocQuorum');
@@ -90,7 +90,7 @@ export default defineTemplate({
         columns: [
           { label: 'N.º', width: 0.5, align: 'center' },
           { label: outra ? 'Nome' : soc ? 'Nome do sócio' : 'Nome do membro', width: 4 },
-          ...(outra ? [{ label: 'Instituição / contacto', width: 2.6 }] : [{ label: soc ? 'Quota / acções' : 'Membro n.º', width: 1.4 }]),
+          ...(outra ? [{ label: 'Instituição / contacto', width: 2.6 }] : [{ label: soc ? 'Quota / acções' : 'N.º membro', width: 1.6 }]),
           ...(rep ? [{ label: 'Representado por', width: 2.4 }] : []),
           { label: 'Assinatura', width: 3 },
         ],

@@ -121,6 +121,7 @@ export default defineTemplate({
         { value: 'banco', label: l('Movimentar conta bancária', 'Operate a bank account') },
         { value: 'compraVenda', label: l('Representar numa compra e venda', 'Represent in a purchase or sale') },
         { value: 'viatura', label: l('Vender uma viatura', 'Sell a vehicle') },
+        { value: 'fiscal', label: l('Representar junto da Autoridade Tributária e do INSS (contabilista)', 'Represent before the Tax Authority and INSS (accountant)') },
         { value: 'especificos', label: l('Apenas os poderes específicos que vou indicar', 'Only the specific powers I list') },
         { value: 'geral', label: l('Procuração geral (administração de bens)', 'General power of attorney (managing assets)') },
       ],
@@ -292,6 +293,16 @@ export default defineTemplate({
         ),
       });
     }
+    if (v.finalidade === 'fiscal') {
+      w.push({
+        level: 'info',
+        field: 'finalidade',
+        message: l(
+          'Confirme junto da Direcção de Área Fiscal se exige formulário próprio ou assinatura reconhecida. Para empresas, use a procuração de sociedade, assinada por quem a obriga.',
+          'Check with the tax office whether it requires its own form or a certified signature. For companies, use the company power of attorney signed by those who bind it.',
+        ),
+      });
+    }
     if (v.finalidade === 'viatura' && !v.viaturaMatricula) {
       w.push({ level: 'warning', field: 'viaturaMatricula', message: l('Indique a matrícula da viatura.', 'Enter the vehicle registration plate.') });
     }
@@ -357,6 +368,13 @@ export default defineTemplate({
         );
         break;
       }
+      case 'fiscal':
+        poderes.push(
+          `representar ${oOut} junto da Autoridade Tributária de Moçambique, das Direcções de Área Fiscal e do Instituto Nacional de Segurança Social${entidade ? `, designadamente ${deEntidade(entidade)}` : ''}, podendo preparar, assinar e submeter, em papel ou por via electrónica, as declarações fiscais e contributivas periódicas e anuais`,
+          'requerer e levantar certidões, declarações de situação tributária e contributiva e quaisquer outros documentos, consultar a situação tributária e receber notificações',
+          `praticar todos os demais actos de natureza declarativa necessários ao cumprimento das obrigações fiscais e contributivas ${doOut}, com excepção da apresentação de reclamações, recursos ou impugnações, salvo se expressamente indicados abaixo`,
+        );
+        break;
       case 'geral':
         poderes.push(
           `gerir e administrar todos os bens ${doOut}, receber rendimentos e créditos e dar quitação, pagar dívidas, impostos e encargos, e representar ${oOut} perante quaisquer serviços públicos, instituições e entidades privadas, requerendo e assinando o que for necessário`,

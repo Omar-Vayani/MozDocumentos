@@ -217,6 +217,22 @@ export default defineTemplate({
       default: [],
     },
     {
+      name: 'eleitos',
+      type: 'lines',
+      section: 'ordem',
+      label: l('Órgãos eleitos (se houve eleições)', 'Officers elected (if any)'),
+      help: l('Associações e cooperativas: a acta indica a composição dos órgãos eleitos.', 'Associations and cooperatives: the minutes list the elected officers.'),
+      addLabel: l('Adicionar eleito', 'Add officer'),
+      columns: [
+        { name: 'orgao', type: 'text', label: l('Órgão', 'Body'), placeholder: l('Ex.: Direcção', 'E.g. Board') },
+        { name: 'cargo', type: 'text', label: l('Cargo', 'Position') },
+        { name: 'nome', type: 'text', label: l('Nome', 'Name') },
+      ],
+      default: [],
+    },
+    { name: 'mandato', type: 'text', section: 'ordem', width: 'half', label: l('Mandato (opcional)', 'Term (optional)'), placeholder: l('Ex.: 2027–2029', 'E.g. 2027–2029'), showIf: (v) => lineItems(v.eleitos).some((r) => String(r.nome ?? '').trim()) },
+    { name: 'tomadaPosse', type: 'toggle', section: 'ordem', label: l('Os eleitos tomaram posse no mesmo acto', 'Officers took office at the meeting'), default: true, showIf: (v) => lineItems(v.eleitos).some((r) => String(r.nome ?? '').trim()) },
+    {
       name: 'assinamPresentes',
       type: 'toggle',
       section: 'opcoes',
@@ -247,6 +263,16 @@ export default defineTemplate({
     if (!delib.length) w.push({ level: 'warning', field: 'deliberacoes', message: l('Registe as deliberações tomadas.', 'Record the resolutions passed.') });
     if (delib.length > ordem.length && ordem.length) {
       w.push({ level: 'info', field: 'deliberacoes', message: l('Há mais deliberações do que pontos na ordem de trabalhos.', 'There are more resolutions than agenda items.') });
+    }
+    if (v.entidadeTipo === 'associação' && isAG(v) && [...ordem, ...delib].some((r) => /estatutos|dissolu/i.test(`${r.ponto ?? ''} ${r.deliberacao ?? ''}`))) {
+      w.push({
+        level: 'info',
+        field: 'deliberacoes',
+        message: l(
+          `Numa associação, a alteração dos estatutos exige a maioria qualificada dos associados presentes e a dissolução a de todos os associados (${cite('assocQuorum')}). Registe na acta o número de votos e publique a alteração no Boletim da República (${cite('assocForma')}).`,
+          'In an association, amending the statutes and dissolution need qualified majorities. Record the votes and publish the amendment in the official gazette.',
+        ),
+      });
     }
     const ini = minutos(v.horaInicio);
     const fim = minutos(v.horaFim);
@@ -403,6 +429,39 @@ export default defineTemplate({
         })
       : (ordem.length ? ordem : ['']).map((p, i) => ({ id: `deliberacao-${i + 1}`, heading: p || `Ponto ${i + 1}`, text: BLANK }));
     blocks.push({ type: 'numberedClauses', style: 'numeric', items });
+
+    const eleitos = lineItems(v.eleitos)
+      .map((r) => ({ orgao: String(r.orgao ?? '').trim(), cargo: String(r.cargo ?? '').trim(), nome: String(r.nome ?? '').trim() }))
+      .filter((r) => r.nome);
+    if (eleitos.length) {
+      const mandato = String(v.mandato ?? '').trim();
+      blocks.push(
+        {
+          type: 'paragraph',
+          id: 'eleitos',
+          text: `Em resultado da eleição, os órgãos sociais${mandato ? ` para o mandato ${mandato}` : ''} ficaram assim constituídos:`,
+          en: 'Following the election, the governing bodies are composed as follows:',
+          keepWithNext: true,
+        },
+        {
+          type: 'table',
+          columns: [
+            { label: 'Órgão', width: 3 },
+            { label: 'Cargo', width: 2.5 },
+            { label: 'Nome', width: 4 },
+          ],
+          rows: eleitos.map((r) => [r.orgao, r.cargo, r.nome]),
+        },
+      );
+      if (v.tomadaPosse !== false) {
+        blocks.push({
+          type: 'paragraph',
+          id: 'posse',
+          text: 'Os membros eleitos aceitaram os respectivos cargos e tomaram posse no mesmo acto, perante a Mesa da Assembleia Geral.',
+          en: 'The elected members accepted their positions and took office at the meeting.',
+        });
+      }
+    }
 
     const assinamTodos = Boolean(v.assinamPresentes) && presentes.length > 0;
     blocks.push(

@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type Warning } from '../model';
 import { GENERO_OPTIONS, cite, dateLong, l } from './_shared';
-import { FRASE_LUTO_OPTIONS, SIMBOLO_OPTIONS, TRATAMENTO_FALECIDO_OPTIONS, dataComDia, diasEntre, disp, emLocal, hora, plural, str, vidaDatas } from './_eventos';
+import { FRASE_LUTO_OPTIONS, SIMBOLO_OPTIONS, TRATAMENTO_FALECIDO_OPTIONS, dataComDia, diasEntre, disp, emLocal, hora, plural, str, vidaDatas, cardScale } from './_eventos';
 
 // Death notice ("participação de falecimento"), A5, black and grey only.
 // Mozambican newspaper usage: "FALECEU", the name, the family "comunicam, com
@@ -100,8 +100,8 @@ export default defineTemplate({
     const actos = (Array.isArray(v.cerimonias) ? v.cerimonias : []).filter((r: Record<string, unknown>) => str(r.acto) || str(r.local));
     const out: Block[] = [];
     if (v.simbolo === 'cruz') out.push({ type: 'ornament', style: 'cross' });
-    out.push(disp(str(v.titulo) || 'Faleceu', 'md', { uppercase: true, after: 8 }));
-    out.push(disp(nome, 'xl', { weight: 'bold', fit: true, after: 2 }));
+    out.push(disp(str(v.titulo) || 'Faleceu', 'sm', { uppercase: true, tone: 'muted', after: 6 }));
+    out.push(disp(nome, 'lg', { weight: 'bold', fit: true, after: 2 }));
     if (datas) out.push(disp(datas, 'sm', { tone: 'muted', after: 2 }));
     out.push({ type: 'ornament', style: 'rule' });
     const onde = emLocal(v.localFalecimento);
@@ -116,16 +116,24 @@ export default defineTemplate({
     if (v.aAnunciar) {
       out.push(disp('As cerimónias fúnebres serão anunciadas oportunamente.', 'sm', { italic: true, after: 6 }));
     } else if (actos.length) {
+      // Grouped by day: "Sábado, 10 de Outubro de 2026" then "08h00 · Velório · Capela …".
+      let dia = '';
       for (const [i, r] of actos.entries()) {
-        const quando = [str(r.data) ? dataComDia(r.data) : '', str(r.hora) ? hora(r.hora) : ''].filter(Boolean).join(', ');
-        out.push(disp(str(r.acto) || 'Cerimónia', 'xs', { uppercase: true, weight: 'bold', after: 0 }));
-        out.push(disp([quando, str(r.local)].filter(Boolean).join(' — ') || '____________________', 'sm', { after: i === actos.length - 1 ? 6 : 4 }));
+        const d = str(r.data) ? dataComDia(r.data) : '';
+        if (d && d !== dia) {
+          out.push(disp(d, 'xs', { uppercase: true, weight: 'bold', after: 2 }));
+          dia = d;
+        }
+        const last = i === actos.length - 1;
+        const line = [str(r.hora) ? hora(r.hora) : '', str(r.acto) || 'Cerimónia'].filter(Boolean).join('  ·  ');
+        out.push(disp(line, 'sm', { after: str(r.local) ? 0 : last ? 6 : 3 }));
+        if (str(r.local)) out.push(disp(str(r.local), 'xs', { tone: 'muted', after: last ? 6 : 3 }));
       }
     }
     if (str(v.fraseFinal)) out.push(disp(str(v.fraseFinal), 'sm', { italic: true, after: 6 }));
     const contacto = [str(v.contactoNome), str(v.contactoTelefone)].filter(Boolean).join(' · ');
     if (contacto) out.push(disp(`Contacto: ${contacto}`, 'xs', { tone: 'muted', after: 0 }));
-    return out;
+    return cardScale(out);
   },
   warnings: (v) => {
     const out: Warning[] = [];

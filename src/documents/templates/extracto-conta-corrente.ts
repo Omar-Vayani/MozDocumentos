@@ -177,16 +177,18 @@ export default defineTemplate({
     blocks.push({
       type: 'table',
       columns: [
-        { label: 'Data', width: 1.1, align: 'center' },
-        { label: 'Documento', width: 1.7 },
-        { label: 'Descrição', width: 2.2 },
-        { label: 'Venc.', width: 1.1, align: 'center' },
-        { label: 'Débito', width: 1.3, align: 'right' },
-        { label: 'Crédito', width: 1.3, align: 'right' },
-        { label: aviso ? '' : 'Saldo', width: aviso ? 0.2 : 1.4, align: 'right' },
+        { label: 'Data', width: 1.05, align: 'center' },
+        { label: 'Documento', width: 1.6 },
+        { label: 'Descrição', width: 1.85 },
+        { label: 'Venc.', width: 1.05, align: 'center' },
+        { label: 'Débito', width: 1.5, align: 'right' },
+        { label: 'Crédito', width: 1.5, align: 'right' },
+        ...(aviso ? [] : [{ label: 'Saldo', width: 1.65, align: 'right' as const }]),
       ],
-      rows: tRows,
-      totals: [['', 'Totais', '', '', fm(c.debitos) || '0,00', fm(c.creditos) || '0,00', ''], ['', saldo < 0 ? 'Saldo a favor do cliente' : 'Saldo a pagar', '', '', '', '', moneyText(Math.abs(saldo)).replace(' MT', '')]],
+      rows: aviso ? tRows.map((r) => r.slice(0, 6)) : tRows,
+      totals: aviso
+        ? [['', 'Total', '', '', fm(c.debitos) || '0,00', fm(c.creditos) || '0,00'], ['', saldo < 0 ? 'Saldo a favor do cliente' : 'Valor a pagar', '', '', '', moneyText(Math.abs(saldo)).replace(' MT', '')]]
+        : [['', 'Totais', '', '', fm(c.debitos) || '0,00', fm(c.creditos) || '0,00', ''], ['', saldo < 0 ? 'Saldo a favor do cliente' : 'Saldo a pagar', '', '', '', '', moneyText(Math.abs(saldo)).replace(' MT', '')]],
       note: 'Valores em meticais (MT).',
     });
 

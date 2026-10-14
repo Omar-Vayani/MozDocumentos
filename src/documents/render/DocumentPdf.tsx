@@ -1,8 +1,8 @@
 import { Document, Image, Link, Page, Text, View } from '@react-pdf/renderer';
 import { OWNER } from '@/app/owner';
-import { isPublicBody, profileDisplayName, type Presentation } from '@/lib/storage/types';
+import { isPublicBody, professionalRegistration, profileDisplayName, type Presentation } from '@/lib/storage/types';
 import { renderBlocks, type BlockEnv } from '../blocks';
-import { estimateLines, FaixaBand, footerLines, Letterhead, RepublicaHeader, type LetterheadEnv } from '../layouts';
+import { estimateLines, FaixaBand, footerLines, Letterhead, ProfessionalHeader, RepublicaHeader, type LetterheadEnv } from '../layouts';
 import type { Block } from '../model';
 import type { FullTemplate } from '../registry';
 import type { FontFamilies } from './fonts';
@@ -34,15 +34,20 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
   const small = isSmallFormat(format);
   // Small formats print several per A4 sheet with cutting marks unless the user asks for their own size.
   const imposed = !pageOnly && Boolean(fmt.sheet) && (presentation.imposed ?? (format === 'A6' || format === 'cartao'));
-  const styledBranding = branding && template.style?.font ? { ...branding, font: template.style.font } : branding;
+  const tStyle = typeof template.style === 'function' ? template.style(input.values) : template.style;
+  const frame = typeof template.frame === 'function' ? template.frame(input.values) : template.frame;
+  const styledBranding = branding && tStyle?.font ? { ...branding, font: tStyle.font } : branding;
   const baseTheme = makeTheme(styledBranding, families, presentation, { family, plain: official || publicBody, format });
   // Black-and-grey documents (funeral notices) ignore the profile colour.
-  const theme = template.style?.mono ? { ...baseTheme, accent: '#222222', accentTint: '#ececec', heading: '#111111', wash: '#f3f3f3' } : baseTheme;
+  const theme = tStyle?.mono ? { ...baseTheme, accent: '#222222', accentTint: '#ececec', heading: '#111111', wash: '#f3f3f3' } : baseTheme;
   const PW = theme.page.width;
   const PH = theme.page.height;
   const isCompany = profile?.kind === 'empresa';
-  const showLetterhead = isCompany && template.letterhead !== false;
-  const layout = branding?.layout ?? 'classico';
+  // An individual registered with a professional order (doctor, lawyer…) gets a compact professional header.
+  const professional = profile?.kind === 'pessoa' && Boolean(professionalRegistration(profile));
+  const showLetterhead = (isCompany || professional) && template.letterhead !== false;
+  // A5 and smaller use the compact letterhead (logo and name; details move to the footer).
+  const layout = format === 'A5' || format === 'A5-paisagem' ? 'minimo' : (branding?.layout ?? 'classico');
   // The small Documents MZ line is left off official documents and anything a public body issues.
   const brandLine = !official && !publicBody && !template.noBrand && !small;
   const docId = documentId(template.id, input.values, profile?.id);
@@ -63,11 +68,11 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
   };
 
   // Footer: fixed on every page; its height is reserved in the bottom padding.
-  const fLines = showLetterhead && !small ? footerLines(profile, layout) : [];
+  const fLines = showLetterhead && !small && !professional ? footerLines(profile, layout) : [];
   const footerImg = showLetterhead && !official && !small ? asset(branding?.footerAssetId) : undefined;
   const footerImgH = footerImg ? Math.min((PW * footerImg.height) / Math.max(1, footerImg.width), 30 * MM) : 0;
   // Certificates and other framed or centred single pages carry no page numbers.
-  const pageNumbers = !pageOnly && !small && !imposed && !template.frame && template.verticalAlign !== 'center' && (branding?.pageNumbers ?? true);
+  const pageNumbers = !pageOnly && !small && !imposed && !frame && template.verticalAlign !== 'center' && (branding?.pageNumbers ?? true);
   const lineCount = fLines.reduce((n, l) => n + Math.min(2, estimateLines(l, theme.contentWidth - (pageNumbers ? 95 : 5))), 0);
   const footerTextH = lineCount * 10 + (pageNumbers || lineCount ? 10 : 0);
   const footerBottom = footerImgH + (small ? 3 : 8) * MM;
@@ -141,9 +146,9 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
           </View>
         ) : null}
 
-        {template.frame ? <Frame kind={template.frame} w={PW} h={PH} inset={Math.max(4, fmt.margin * 0.45) * MM} accent={theme.plain ? theme.text : theme.accent} /> : null}
+        {frame ? <Frame kind={frame} w={PW} h={PH} inset={Math.max(4, fmt.margin * 0.45) * MM} accent={theme.plain ? theme.text : theme.accent} /> : null}
 
-        {branding?.pageBorder && !official && !template.frame ? (
+        {branding?.pageBorder && !official && !frame ? (
           <View
             fixed
             style={{
@@ -177,7 +182,8 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
             right: theme.margin.right,
           }}
           render={({ pageNumber }) =>
-            pageNumber > 1 && !small ? (
+            // Not on repeated single-page documents (certificates) or designed pages.
+            pageNumber > 1 && !small && !pageOnly && !frame && template.verticalAlign !== 'center' ? (
               <View
                 style={{
                   // Fixed elements must not inherit the page line height: react-pdf
@@ -201,7 +207,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
           }
         />
 
-        {lhEnv ? publicBody ? <RepublicaHeader env={lhEnv} /> : <Letterhead env={lhEnv} layout={layout} /> : null}
+        {lhEnv ? publicBody ? <RepublicaHeader env={lhEnv} /> : professional ? <ProfessionalHeader env={lhEnv} /> : <Letterhead env={lhEnv} layout={layout} /> : null}
 
         {template.verticalAlign === 'center' ? (
           <View style={{ flexGrow: 1, justifyContent: 'center' }}>{renderBlocks(blocks, blockEnv)}</View>
@@ -343,8 +349,8 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
           justifyContent: template.verticalAlign === 'center' ? 'center' : 'flex-start',
         }}
       >
-        {template.frame ? <Frame kind={template.frame} w={PW} h={PH} inset={Math.max(3, fmt.margin * 0.45) * MM} accent={theme.plain ? theme.text : theme.accent} /> : null}
-        {lhEnv ? publicBody ? <RepublicaHeader env={lhEnv} /> : <Letterhead env={lhEnv} layout={layout === 'faixa' ? 'minimo' : layout} /> : null}
+        {frame ? <Frame kind={frame} w={PW} h={PH} inset={Math.max(3, fmt.margin * 0.45) * MM} accent={theme.plain ? theme.text : theme.accent} /> : null}
+        {lhEnv ? publicBody ? <RepublicaHeader env={lhEnv} /> : professional ? <ProfessionalHeader env={lhEnv} /> : <Letterhead env={lhEnv} layout={layout === 'faixa' ? 'minimo' : layout} /> : null}
         {renderBlocks(blocks, blockEnv)}
       </View>
     );
@@ -369,7 +375,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
         {marks.map((k, i) => (
           <View key={`m${i}`} style={{ position: 'absolute', left: k.x, top: k.y, width: k.w, height: k.h, backgroundColor: '#9aa0a6' }} />
         ))}
-        {!official && !publicBody && oy > 7 * MM ? (
+        {!official && !publicBody && !template.noBrand && oy > 7 * MM ? (
           <Text style={{ position: 'absolute', left: ox, top: SH - oy / 2 - 3, fontSize: 5.6, color: '#8a9089', lineHeight: 1.2 }}>
             {`${OWNER.product}${OWNER.website ? ` · ${OWNER.website}` : ''} · ${docId}`}
           </Text>

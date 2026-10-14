@@ -181,7 +181,6 @@ export default defineTemplate({
       blocks.push({ type: 'signatures', columns: reps.slice(i, i + 3).map((r) => ({ role: str(r.qualidade) || 'Representante da comunidade', name: str(r.nome) })) });
     }
     if (v.listaPresencas) {
-      blocks.push({ type: 'annexList', items: ['Lista de presenças'] });
       const n = Math.min(Math.max(Number(v.linhasEmBranco) || 25, 5), 60);
       blocks.push(
         { type: 'pageBreakHint' },

@@ -4,12 +4,20 @@
 // sensitive: the form collects only what is needed and says it is confidential.
 // Public schools use the Ministry's own enrolment form.
 
+import { formatDateShort } from '@/lib/format';
 import { isPublicBody } from '@/lib/storage/types';
 import { defineTemplate, type Block, type Values, type Warning } from '../model';
 import { dateLong, l } from './_shared';
 import { alunoFields, encarregadoFields, NIVEL_OPTIONS, rows, str } from './_educacao';
 
 const B = '______________________';
+
+/** Key/value pairs in chunks of two rows, so a long section can break across pages. */
+function kv(items: { label: string; value: string }[]): Block[] {
+  const out: Block[] = [];
+  for (let i = 0; i < items.length; i += 4) out.push({ type: 'keyValue', columns: 2, items: items.slice(i, i + 4) });
+  return out;
+}
 const val = (v: Values, k: string, blank = B) => (v.emBranco ? blank : str(v[k]) || blank);
 const pequenos = (v: Values) => ['pre-escolar', 'primario'].includes(str(v.nivel));
 
@@ -112,67 +120,54 @@ export default defineTemplate({
   documentDate: (v) => str(v.inscricaoData) || undefined,
   blocks: (ctx) => {
     const v = ctx.values;
-    const sexo = (g: unknown) => (v.emBranco ? 'M ☐   F ☐' : g === 'F' ? 'Feminino' : g === 'M' ? 'Masculino' : 'M ☐   F ☐');
-    const data = (k: string) => (v.emBranco || !str(v[k]) ? '___/___/______' : dateLong(v[k]));
+    const sexo = (g: unknown) => (v.emBranco ? 'M [   ]   F [   ]' : g === 'F' ? 'Feminino' : g === 'M' ? 'Masculino' : 'M [   ]   F [   ]');
+    const data = (k: string) => (v.emBranco || !str(v[k]) ? '___/___/______' : formatDateShort(v[k]));
     const doc = (t: string, n: string) => (v.emBranco ? `${B}` : [str(v[t]), str(v[n])].filter(Boolean).join(' n.º ') || B);
     const blocks: Block[] = [
       { type: 'title', text: 'Ficha de Inscrição', subtitle: `Ano lectivo ${str(v.anoLectivo) || '______'}` },
       {
         type: 'box',
-        label: 'Inscrição',
-        text: [`N.º: ${val(v, 'inscricaoNumero', '__________')}`, `Data: ${data('inscricaoData')}`, `Classe / curso: ${val(v, 'classe', '______________')}`, `Turno: ${val(v, 'turno', '______________')}`].join('\n'),
+        label: 'Inscrição (a preencher pela Secretaria)',
+        text: [`N.º: ${val(v, 'inscricaoNumero', '__________')}`, `Data: ${data('inscricaoData')}`, `Classe / curso: ${val(v, 'classe', '______________')}`, `Turno: ${val(v, 'turno', '______________')}`, 'Turma atribuída: ________  Processo n.º: ________'].join('\n'),
         width: 'half',
       },
       { type: 'box', label: 'Fotografia', text: ' ', lines: 3, width: 'half', align: 'right' },
       { type: 'heading', text: '1. Dados do aluno' },
-      {
-        type: 'keyValue',
-        columns: 2,
-        items: [
-          { label: 'Nome completo', value: val(v, 'alunoNome') },
+      ...kv([
+          { label: 'Nome', value: val(v, 'alunoNome') },
           { label: 'Sexo', value: sexo(v.alunoGenero) },
-          { label: 'Data de nascimento', value: data('alunoNascimento') },
+          { label: 'Nascimento', value: data('alunoNascimento') },
           { label: 'Naturalidade', value: val(v, 'alunoNaturalidade') },
-          { label: 'Nacionalidade', value: val(v, 'alunoNacionalidade') },
           { label: 'Documento', value: doc('alunoDocTipo', 'alunoDocNumero') },
+          { label: 'Nacionalidade', value: val(v, 'alunoNacionalidade') },
           { label: 'Morada', value: val(v, 'alunoMorada') },
           { label: 'Escola anterior', value: val(v, 'escolaAnterior') },
-          { label: 'Última classe concluída', value: val(v, 'classeConcluida') },
-          { label: 'Língua materna', value: val(v, 'linguaMaterna') },
-          { label: 'Necessidades educativas especiais', value: val(v, 'nee') },
-        ],
-      },
+          { label: 'Classe feita', value: val(v, 'classeConcluida') },
+          { label: 'Necessid. especiais', value: val(v, 'nee') },
+          ...(str(v.linguaMaterna) && !v.emBranco ? [{ label: 'Língua materna', value: str(v.linguaMaterna) }] : []),
+      ]),
       { type: 'heading', text: '2. Filiação e encarregado de educação' },
-      {
-        type: 'keyValue',
-        columns: 2,
-        items: [
+      ...kv([
           { label: 'Pai', value: val(v, 'paiNome') },
-          { label: 'Profissão / telefone', value: v.emBranco ? B : [str(v.paiProfissao), str(v.paiTelefone)].filter(Boolean).join(' · ') || B },
+          { label: 'Profissão / tel.', value: v.emBranco ? B : [str(v.paiProfissao), str(v.paiTelefone)].filter(Boolean).join(', ') || B },
           { label: 'Mãe', value: val(v, 'maeNome') },
-          { label: 'Profissão / telefone', value: v.emBranco ? B : [str(v.maeProfissao), str(v.maeTelefone)].filter(Boolean).join(' · ') || B },
-          { label: 'Encarregado de educação', value: val(v, 'encarregadoNome') },
+          { label: 'Profissão / tel.', value: v.emBranco ? B : [str(v.maeProfissao), str(v.maeTelefone)].filter(Boolean).join(', ') || B },
+          { label: 'Encarregado', value: val(v, 'encarregadoNome') },
           { label: 'Parentesco', value: val(v, 'encarregadoParentesco') },
           { label: 'Documento', value: doc('encarregadoDocTipo', 'encarregadoDocNumero') },
-          { label: 'Telefone', value: val(v, 'encarregadoTelefone') },
-          { label: 'Email', value: val(v, 'encarregadoEmail') },
-          { label: 'Local de trabalho', value: val(v, 'encarregadoTrabalho') },
-        ],
-      },
+          { label: 'Contactos', value: v.emBranco ? B : [str(v.encarregadoTelefone), str(v.encarregadoEmail)].filter(Boolean).join(', ') || B },
+          ...(v.emBranco || str(v.encarregadoTrabalho) ? [{ label: 'Trabalho', value: val(v, 'encarregadoTrabalho') }] : []),
+      ]),
       { type: 'heading', text: '3. Saúde e emergência (informação confidencial)' },
-      {
-        type: 'keyValue',
-        columns: 2,
-        items: [
+      ...kv([
           { label: 'Alergias', value: val(v, 'alergias') },
-          { label: 'Doenças crónicas', value: val(v, 'doencas') },
-          { label: 'Medicação habitual', value: val(v, 'medicacao') },
+          { label: 'Doenças', value: val(v, 'doencas') },
+          { label: 'Medicação', value: val(v, 'medicacao') },
           { label: 'Grupo sanguíneo', value: val(v, 'grupoSanguineo') },
-          { label: 'Contacto de emergência 1', value: val(v, 'emergencia1') },
-          { label: 'Contacto de emergência 2', value: val(v, 'emergencia2') },
+          { label: 'Emergência 1', value: val(v, 'emergencia1') },
+          { label: 'Emergência 2', value: val(v, 'emergencia2') },
           { label: 'Unidade sanitária', value: val(v, 'unidadeSanitaria') },
-        ],
-      },
+      ]),
     ];
     const aut = rows(v.autorizados).filter((r) => str(r.nome));
     let n = 4;
@@ -188,6 +183,7 @@ export default defineTemplate({
       n++;
     }
     const chk = (k: string) => !v.emBranco && Boolean(v[k]);
+    const box = (on: boolean) => (on && !v.emBranco ? '[X]' : '[   ]');
     const docs = [
       { label: 'Cópia do BI / cédula / certidão de nascimento', checked: chk('docIdentificacao') },
       { label: 'Certificado ou declaração da classe anterior', checked: chk('docCertificado') },
@@ -202,20 +198,24 @@ export default defineTemplate({
       { type: 'checklist', columns: 2, items: docs },
       { type: 'heading', text: `${n + 1}. Autorizações do encarregado de educação` },
       {
+        type: 'paragraph',
+        id: 'imagem',
+        text: `Uso da imagem do aluno:   ${box(v.imagem === 'nao')} não autorizo   ${box(v.imagem === 'interno')} só para fins internos e pedagógicos   ${box(v.imagem === 'publico')} também nas publicações e redes sociais da escola`,
+        en: 'Use of the pupil’s image: not authorised / internal use only / also publications and social media.',
+        editable: false,
+      },
+      {
         type: 'checklist',
-        columns: 1,
+        columns: 2,
         items: [
-          { label: 'Uso da imagem do aluno: não autorizo', checked: !v.emBranco && v.imagem === 'nao' },
-          { label: 'Uso da imagem do aluno: só para fins internos e pedagógicos', checked: !v.emBranco && v.imagem === 'interno' },
-          { label: 'Uso da imagem do aluno: também nas publicações e redes sociais da escola', checked: !v.emBranco && v.imagem === 'publico' },
-          { label: 'Saídas curtas para actividades próximas da escola, acompanhadas por professores', checked: chk('saidas') },
-          { label: 'Primeiros socorros e encaminhamento a uma unidade sanitária em caso de urgência', checked: chk('socorros') },
+          { label: 'Saídas curtas acompanhadas por professores', checked: chk('saidas') },
+          { label: 'Primeiros socorros e ida a unidade sanitária em caso de urgência', checked: chk('socorros') },
         ],
       },
       {
         type: 'paragraph',
         id: 'declaracao',
-        text: 'Declaro que as informações prestadas são verdadeiras e que tomei conhecimento do Regulamento Interno e da tabela de propinas em vigor. Comprometo-me a comunicar qualquer alteração.',
+        text: 'Declaro que as informações prestadas são verdadeiras e que tomei conhecimento do Regulamento Interno e da tabela de propinas em vigor.',
         en: 'I declare that the information is true and that I have read the internal rules and the fee schedule. I will report any change.',
         keepWithNext: true,
       },
@@ -227,7 +227,6 @@ export default defineTemplate({
           { role: 'Pela Secretaria' },
         ],
       },
-      { type: 'box', label: 'Para uso dos serviços', text: 'Classe / turma atribuída: ____________   N.º de processo: ____________   Recebido por: ______________________', dashed: true },
     );
     return blocks;
   },

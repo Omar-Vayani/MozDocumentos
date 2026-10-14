@@ -4,8 +4,7 @@
 
 import { inteiroPorExtenso } from '@/lib/format/extenso';
 import { yearsBetween } from '@/lib/format';
-import { professionalRegistration, titledName, type Profile } from '@/lib/storage/types';
-import { addressLine } from '../layouts/address';
+import type { Profile } from '@/lib/storage/types';
 import type { Block, FieldDef, FieldOption, SignatureColumn, TemplateContext, Values, Warning } from '../model';
 import { BLANK, blank, DOC_TIPO_OPTIONS, GENERO_OPTIONS, isF, l } from './_shared';
 
@@ -196,12 +195,18 @@ export function clinicianRole(v: Values): string {
  */
 export function clinicianSignature(ctx: TemplateContext, role?: string): SignatureColumn {
   const v = ctx.values;
-  const nome = String(v.clinicoNome ?? '').trim();
-  const titulo = String(v.clinicoTitulo ?? '').trim();
-  const num = String(v.clinicoNumero ?? '').trim();
-  const ordem = String(v.clinicoOrdem ?? '').trim();
-  const esp = v.clinicoCategoria === 'especialista' ? String(v.clinicoEspecialidade ?? '').trim() : '';
-  const cat = categoriaTexto(v);
+  // A signature line is short: overlong entries are cut so the block keeps its size.
+  const cut = (s: unknown, n: number) => {
+    const t = String(s ?? '').trim();
+    return t.length > n ? `${t.slice(0, n - 1).trimEnd()}…` : t;
+  };
+  const nome = cut(v.clinicoNome, 48);
+  const tituloRaw = String(v.clinicoTitulo ?? '').trim();
+  const titulo = tituloRaw.length <= 8 ? tituloRaw : '';
+  const num = cut(v.clinicoNumero, 16);
+  const ordem = cut(v.clinicoOrdem, 40);
+  const esp = v.clinicoCategoria === 'especialista' ? cut(v.clinicoEspecialidade, 40) : '';
+  const cat = cut(categoriaTexto(v), 40);
   const line1 = esp || cat.charAt(0).toUpperCase() + cat.slice(1);
   const reg = num ? `Carteira Profissional n.º ${num}${ordem ? ` — ${ordem}` : ''}` : '';
   const own = fromProfile(ctx.profile).nome.trim();
@@ -369,25 +374,4 @@ export function horaMin(s: unknown): number | null {
 export function horaText(s: unknown): string {
   const m = typeof s === 'string' ? s.trim().match(HORA_RE) : null;
   return m ? `${m[1].padStart(2, '0')}h${m[2]}` : '____h____';
-}
-
-// ---------------------------------------------------------------- Practitioner header
-
-/**
- * A personal profile has no letterhead, so a doctor practising on their own
- * gets a short centred header: title and name, specialty, registration and
- * contacts. Clinics use their own letterhead and get nothing here.
- */
-export function practitionerHeader(ctx: TemplateContext): Block[] {
-  const p = ctx.profile;
-  if (!p || p.kind !== 'pessoa') return [];
-  const name = titledName(p);
-  if (!name) return [];
-  const detail = [p.especialidade, professionalRegistration(p)].filter(Boolean).join(' · ');
-  const contact = [addressLine(p), p.telefones, p.email].filter(Boolean).join(' · ');
-  const out: Block[] = [{ type: 'display', text: name, size: 'sm', weight: 'bold', tone: 'accent', after: 1 }];
-  if (detail) out.push({ type: 'display', text: detail, size: 'xs', tone: 'text', after: 1 });
-  if (contact) out.push({ type: 'display', text: contact, size: 'xs', tone: 'muted', after: 2 });
-  out.push({ type: 'ornament', style: 'rule', width: 'full' });
-  return out;
 }

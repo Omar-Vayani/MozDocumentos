@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type FieldDef, type Values, type Warning } from '../model';
 import { cite, dateField, l, localField, placeDate, refField } from './_shared';
-import { clinicianFields, clinicianSignature, clinicianWarnings, patientAge, patientFields, practitionerHeader } from './_saude';
+import { clinicianFields, clinicianSignature, clinicianWarnings, patientAge, patientFields } from './_saude';
 
 type Exame = { key: string; pt: string; en: string };
 type Grupo = { id: string; titulo: string; en: string; exames: Exame[] };
@@ -110,8 +110,8 @@ export default defineTemplate({
     ...GRUPOS.flatMap((gr) =>
       gr.exames.map((e): FieldDef => ({ name: fieldName(e.key), type: 'toggle', section: gr.id, label: l(e.pt, e.en), width: 'half' })),
     ),
-    { name: 'rxRegiao', type: 'text', section: 'imagem', width: 'half', label: l('Radiografia de…', 'X-ray of…'), placeholder: l('Ex.: tórax PA', 'E.g. chest PA'), showIf: (v) => Boolean(v.exameRx) },
-    { name: 'ecoRegiao', type: 'text', section: 'imagem', width: 'half', label: l('Ecografia de…', 'Ultrasound of…'), placeholder: l('Ex.: abdominal', 'E.g. abdominal'), showIf: (v) => Boolean(v.exameEco) },
+    { name: 'rxRegiao', type: 'text', section: 'imagem', width: 'half', label: l('Radiografia — região', 'X-ray — region'), placeholder: l('Ex.: tórax PA', 'E.g. chest PA'), showIf: (v) => Boolean(v.exameRx) },
+    { name: 'ecoRegiao', type: 'text', section: 'imagem', width: 'half', label: l('Ecografia — região', 'Ultrasound — region'), placeholder: l('Ex.: abdominal', 'E.g. abdominal'), showIf: (v) => Boolean(v.exameEco) },
     { name: 'outrosExames', type: 'textarea', section: 'imagem', rows: 2, label: l('Outros exames', 'Other tests') },
     ...clinicianFields('clinico'),
   ],
@@ -141,14 +141,13 @@ export default defineTemplate({
     const v = ctx.values;
     const age = patientAge(v);
     const doente = [
-      { label: 'Doente', value: v.doenteNome || '____________________' },
+      { label: 'Doente', value: v.doenteNome || '______________' },
       { label: 'Sexo / idade', value: `${v.doenteGenero === 'F' ? 'F' : 'M'}${age != null ? ` · ${age} anos` : ''}` },
     ];
     if (v.doenteProcesso) doente.push({ label: 'Processo n.º', value: String(v.doenteProcesso) });
     if (v.doenteGenero === 'F' && v.gravidez && v.gravidez !== 'nao') doente.push({ label: 'Gravidez', value: v.gravidez === 'sim' ? 'Sim' : 'Desconhece' });
     const tags = [...(v.urgente ? ['URGENTE'] : []), 'CONFIDENCIAL'];
     const blocks: Block[] = [
-      ...practitionerHeader(ctx),
       { type: 'tags', items: tags },
       { type: 'title', text: 'Requisição de Exames', subtitle: v.ref ? `N.º ${v.ref}` : undefined },
       { type: 'keyValue', items: doente, columns: 2 },
@@ -160,18 +159,17 @@ export default defineTemplate({
         en: `Clinical information: ${v.informacaoClinica || ''}`,
       },
     ];
-    for (const gr of GRUPOS) {
-      const items = gr.exames
+    const items = GRUPOS.flatMap((gr) =>
+      gr.exames
         .filter((e) => v[fieldName(e.key)])
         .map((e) => {
           let label = e.pt;
-          if (e.key === 'rx' && v.rxRegiao) label = `Radiografia de ${v.rxRegiao}`;
-          if (e.key === 'eco' && v.ecoRegiao) label = `Ecografia ${/^(de|do|da|dos|das)\b/i.test(String(v.ecoRegiao)) ? '' : 'de '}${v.ecoRegiao}`.replace(/\s+/g, ' ');
-          return { label, checked: true };
-        });
-      if (!items.length) continue;
-      blocks.push({ type: 'heading', text: gr.titulo }, { type: 'checklist', columns: 2, items });
-    }
+          if (e.key === 'rx' && v.rxRegiao) label = `Radiografia: ${v.rxRegiao}`;
+          if (e.key === 'eco' && v.ecoRegiao) label = `Ecografia: ${v.ecoRegiao}`;
+          return label;
+        }),
+    );
+    if (items.length) blocks.push({ type: 'heading', text: 'Exames pedidos' }, { type: 'list', style: 'bullet', items });
     const outros = String(v.outrosExames ?? '').trim();
     if (outros) blocks.push({ type: 'heading', text: 'Outros' }, { type: 'paragraph', id: 'outros', size: 'small', text: outros, en: outros });
     blocks.push({ type: 'signatures', placeDate: placeDate(ctx, v.data), columns: [clinicianSignature(ctx)] });

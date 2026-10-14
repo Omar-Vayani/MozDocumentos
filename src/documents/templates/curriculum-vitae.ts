@@ -274,7 +274,8 @@ export default defineTemplate({
           align: 'left',
           editable: false,
         });
-      if (skills.length) out.push({ type: 'list', items: skills });
+      if (skills.length)
+        out.push({ type: 'paragraph', id: 'cv-competencias', text: `**Competências:** ${skills.map((x) => x.replace(/[.;]$/, '')).join(' · ')}`, en: 'Skills.', align: 'left', editable: false });
       if (str(v.cartaConducao)) out.push({ type: 'paragraph', id: 'cv-carta', text: `**Carta de condução:** ${str(v.cartaConducao)}`, en: 'Driving licence.', align: 'left', editable: false });
     }
 
@@ -285,9 +286,10 @@ export default defineTemplate({
 
     if (v.referenciasModo !== 'nao') {
       const refs = lineItems(v.referencias).filter((r) => str(r.nome));
-      head('Referências');
-      if (v.referenciasModo === 'listar' && refs.length) out.push({ type: 'list', items: refs.map((r) => [`**${str(r.nome)}**`, str(r.cargo), str(r.telefone)].filter(Boolean).join(' · ')) });
-      else out.push({ type: 'paragraph', id: 'cv-ref', text: 'Disponíveis mediante pedido.', en: 'Available on request.', align: 'left' });
+      if (v.referenciasModo === 'listar' && refs.length) {
+        head('Referências');
+        out.push({ type: 'list', items: refs.map((r) => [`**${str(r.nome)}**`, str(r.cargo), str(r.telefone)].filter(Boolean).join(' · ')) });
+      } else out.push({ type: 'paragraph', id: 'cv-ref', text: '**Referências:** disponíveis mediante pedido.', en: 'References available on request.', align: 'left' });
     }
 
     if (v.declaracao !== false) {
@@ -298,9 +300,19 @@ export default defineTemplate({
         text: 'Declaro, sob compromisso de honra, que as informações constantes do presente curriculum vitae são verdadeiras.',
         en: 'I declare on my honour that the information in this CV is true.',
         align: 'left',
+        size: 'small',
         keepWithNext: true,
       });
-      out.push({ type: 'signatures', placeDate: `${ctx.place}, ${dateLong(v.data)}`, columns: [{ role: ' ', name: str(v.nome) || undefined }] });
+      // A light signature (a line to sign by hand) keeps a one-page CV on one page.
+      out.push({
+        type: 'paragraph',
+        id: 'cv-assinatura',
+        text: `${ctx.place}, ${dateLong(v.data)}\n\n\n______________________________\n${str(v.nome) || ' '}`,
+        en: 'Place, date and signature.',
+        align: 'left',
+        size: 'small',
+        editable: false,
+      });
     }
     return out;
   },

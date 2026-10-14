@@ -3,7 +3,7 @@ import { defineTemplate, type Block, type Values, type Warning } from '../model'
 import { cite, dateField, dateLong, g, isF, l, localField, placeDate } from './_shared';
 import {
   clinicianDesc, clinicianFields, clinicianSignature, clinicianWarnings, countText, hivWarning, mentionsHiv,
-  patientFields, patientIdent, practitionerHeader, senhor,
+  patientFields, patientIdent, senhor,
 } from './_saude';
 
 const FINALIDADE_OPTIONS = [
@@ -188,7 +188,6 @@ export default defineTemplate({
         ? `no dia **${dateLong(v.dataInicio)}**`
         : `no período de **${dateLong(v.dataInicio)} a ${dateLong(v.dataFim)}**${n != null ? `, num total de **${countText(n)} ${n === 1 ? 'dia' : 'dias'}**` : ''}`;
     const blocks: Block[] = [
-      ...practitionerHeader(ctx),
       { type: 'title', text: 'Atestado Médico' },
       {
         type: 'paragraph',

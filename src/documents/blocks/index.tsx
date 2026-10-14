@@ -21,7 +21,7 @@ export type BlockEnv = {
   logo?: RenderAsset;
 };
 
-const DISPLAY_PT = { xxl: 30, xl: 22, lg: 16, md: 13, sm: 10.5, xs: 8.5 } as const;
+const DISPLAY_PT = { xxxl: 44, xxl: 30, xl: 22, lg: 16, md: 13, sm: 10.5, xs: 8.5 } as const;
 
 /** Renders `**bold**` inline markup (single line; see RichText for line breaks). */
 export function rich(text: string): ReactNode[] {
@@ -654,6 +654,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
         >
           <Text style={{ fontSize: theme.smallSize, fontWeight: 700, color: theme.muted }}>{oneLine(block.label).toLocaleUpperCase('pt')}</Text>
           {block.text ? <RichText text={block.text} style={{ fontSize: theme.bodySize - 1, lineHeight: 1.35, marginTop: 3 }} /> : null}
+          {block.space ? <View style={{ height: Math.min(180, block.space) * MM_PT }} /> : null}
           {Array.from({ length: lines }, (_, i) => (
             <Fragment key={i}>
               <View style={{ height: 15 }} />
@@ -682,7 +683,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       if (block.fit) {
         // Shrink so the longest line fits the width (average glyph ≈ 0.55 em; capitals wider).
         const longest = Math.max(...block.text.split(/\r?\n/).map((x) => x.length), 1);
-        const em = block.uppercase ? 0.68 : 0.55;
+        const em = (block.uppercase ? 0.68 : 0.55) + (block.weight === 'bold' ? 0.05 : 0);
         size = Math.max(6.5, Math.min(size, theme.contentWidth / (longest * em)));
       }
       const color = block.tone === 'accent' ? (theme.plain ? theme.text : theme.accent) : block.tone === 'muted' ? theme.muted : theme.text;
@@ -774,7 +775,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       // DL envelope: sender top left, addressee in the window position (lower right).
       const lineStyle = { fontSize: theme.bodySize, lineHeight: 1.35 };
       return (
-        <View key={key} style={{ height: theme.page.height - theme.margin.top - theme.margin.bottom, justifyContent: 'space-between' }}>
+        <View key={key} style={{ flexGrow: 1, justifyContent: 'space-between' }}>
           <View style={{ width: '45%' }}>
             {block.sender.filter(Boolean).map((ln, i) => (
               <Text key={i} style={{ ...lineStyle, fontSize: theme.bodySize - 1.5, fontWeight: i === 0 ? 700 : 400, color: i === 0 ? theme.text : theme.muted }}>
@@ -838,7 +839,8 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
                   justifyContent: 'center',
                 }}
               >
-                {it.checked ? <Text style={{ fontSize: 8, fontWeight: 700, lineHeight: 1 }}>X</Text> : null}
+                {/* Drawn mark (a glyph inside a tiny box can be dropped by the layout). */}
+                {it.checked ? <View style={{ width: 5, height: 5, backgroundColor: theme.text }} /> : null}
               </View>
               <Text style={{ fontSize: theme.bodySize - 0.5, flex: 1 }}>{it.label}</Text>
             </View>
@@ -910,8 +912,11 @@ export function estimateHeight(b: Block, theme: Theme): number {
     case 'amount':
       return 50;
     case 'signatures':
-      // Worst case: images present at the chosen sizes.
-      return Math.max(130, 84 + Math.max(46, 40 * theme.signatureScale + 6, 58 * theme.stampScale * 0.75));
+      // Worst case: images present at the chosen sizes, plus extra lines in names and details.
+      return (
+        Math.max(130, 84 + Math.max(46, 40 * theme.signatureScale + 6, 58 * theme.stampScale * 0.75)) +
+        Math.max(0, ...b.columns.map((c) => (c.detail ?? '').split('\n').length - 1 + (c.role ?? '').split('\n').length - 1)) * 11
+      );
     case 'acknowledgement':
       return 60;
     case 'courtHeader':
@@ -919,7 +924,7 @@ export function estimateHeight(b: Block, theme: Theme): number {
     case 'articulado':
       return b.sections.reduce((h, sec) => h + (sec.heading ? 24 : 0) + sec.items.reduce((x, it) => x + lines(it, 0.88) * lineH + theme.gap, 0), 0);
     case 'box':
-      return 24 + lines(b.text, b.width === 'half' ? 0.45 : 0.95) * lineH + (b.lines ?? 0) * 15.4;
+      return 24 + lines(b.text, b.width === 'half' ? 0.45 : 0.95) * lineH + (b.lines ?? 0) * 15.4 + (b.space ?? 0) * MM_PT;
     case 'tags':
       return 20;
     case 'display':

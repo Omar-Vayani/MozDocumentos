@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type FieldDef, type Warning } from '../model';
 import { cite, l } from './_shared';
-import { TRAJE_OPTIONS, TRATAMENTO_OPTIONS, diasEntre, disp, footer, hora, linhaData, rsvpFields, rsvpLine, str } from './_eventos';
+import { TRAJE_OPTIONS, TRATAMENTO_OPTIONS, diasEntre, disp, footer, hora, linhaData, rsvpFields, rsvpLine, str, cardScale } from './_eventos';
 
 // Wedding invitation, A5 portrait (two per A4), framed, serif.
 // Classic Portuguese formula: "Os pais … têm a honra de convidar V. Ex.ª para a
@@ -172,7 +172,7 @@ export default defineTemplate({
       out.push({ type: 'ornament', style: 'dots' });
       out.push(...footer(notas));
     }
-    return out;
+    return cardScale(out);
   },
   warnings: (v, ctx) => {
     const out: Warning[] = [];

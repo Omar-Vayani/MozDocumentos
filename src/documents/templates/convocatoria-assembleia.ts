@@ -4,6 +4,7 @@ import { profileDisplayName } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type SignatureColumn, type Values, type Warning } from '../model';
 import { BLANK, cite, dateField, dateLong, g, GENERO_OPTIONS, l, lineItems, localField, placeDate } from './_shared';
+import { fracao } from './_associacoes';
 
 // ---------------------------------------------------------------- local helpers
 
@@ -85,6 +86,29 @@ function convocante(v: Values): { quem: string; role: string; plural: boolean } 
 }
 
 const ucFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** Standard agenda items for an association's general meeting, switched on with toggles. */
+function pontosAssociacao(v: Values): string[] {
+  if (tipoOf(v) !== 'associacao') return [];
+  const d = typeof v.dataReuniao === 'string' && v.dataReuniao ? v.dataReuniao : typeof v.data === 'string' ? v.data : '';
+  const ano = Number(d.slice(0, 4)) || new Date().getFullYear();
+  const out: string[] = [];
+  if (v.assocRelatorio) out.push(`Apreciação e votação do relatório de actividades e das contas do exercício de ${ano - 1}, e do parecer do Conselho Fiscal`);
+  if (v.assocPlano) out.push(`Apreciação e votação do plano de actividades e do orçamento para ${ano}`);
+  if (v.assocEleicao) out.push('Eleição dos titulares dos órgãos sociais');
+  if (v.assocQuotas) out.push('Fixação do valor da jóia e das quotas');
+  if (v.assocEstatutos) out.push('Alteração dos estatutos');
+  return out;
+}
+
+/** The full agenda: association presets first, then the items typed by the user. */
+function ordemCompleta(v: Values): string[] {
+  const pre = pontosAssociacao(v);
+  const own = lineItems(v.ordemTrabalhos).map((r) => String(r.ponto ?? '').trim()).filter(Boolean);
+  // The default agenda is written for companies; drop it when association items replace it.
+  const typed = v.assocRelatorio ? own.filter((p) => !/relatório da administração|aplicação de resultados/i.test(p)) : own;
+  return [...pre, ...typed];
+}
 
 export default defineTemplate({
   id: 'convocatoria-assembleia',
@@ -213,6 +237,23 @@ export default defineTemplate({
         ];
       },
     },
+    ...(
+      [
+        ['assocRelatorio', 'Ponto: relatório de actividades e contas', 'Item: annual report and accounts'],
+        ['assocPlano', 'Ponto: plano de actividades e orçamento', 'Item: work plan and budget'],
+        ['assocEleicao', 'Ponto: eleição dos órgãos sociais', 'Item: election of officers'],
+        ['assocQuotas', 'Ponto: fixação da jóia e das quotas', 'Item: entry fee and dues'],
+        ['assocEstatutos', 'Ponto: alteração dos estatutos', 'Item: amendment of the statutes'],
+      ] as const
+    ).map(([name, pt, en]) => ({
+      name,
+      type: 'toggle' as const,
+      section: 'ordem',
+      label: l(pt, en),
+      help: l('Associações: acrescenta este ponto antes dos pontos escritos acima.', 'Associations: adds this item before the items typed above.'),
+      default: false,
+      showIf: (v: Values) => v.tipoEntidade === 'associacao',
+    })),
     {
       name: 'documentos',
       type: 'lines',
@@ -316,7 +357,7 @@ export default defineTemplate({
         }
       }
     }
-    const ordem = lineItems(v.ordemTrabalhos).map((r) => String(r.ponto ?? '').trim()).filter(Boolean);
+    const ordem = ordemCompleta(v);
     if (!ordem.length) {
       w.push({ level: 'error', field: 'ordemTrabalhos', message: l('Sem ordem de trabalhos a assembleia não se considera convocada.', 'Without an agenda the meeting is not validly called.') });
     }
@@ -371,6 +412,17 @@ export default defineTemplate({
         ),
       });
     }
+    if (t === 'associacao' && (v.assocEstatutos || ordem.some((p) => /estatutos|dissolu/i.test(p)))) {
+      const q = ctx.legal.value<{ estatutos: number; dissolucao: number }>('assocQuorum');
+      w.push({
+        level: 'info',
+        field: 'ordemTrabalhos',
+        message: l(
+          `A alteração dos estatutos exige o voto de ${fracao(q.estatutos)} dos associados presentes e a dissolução o de ${fracao(q.dissolucao)} de todos os associados, salvo regra mais exigente dos estatutos (${cite('assocQuorum')}). A alteração só produz efeitos perante terceiros depois de publicada no Boletim da República (${cite('assocForma')}).`,
+          'Amending the statutes needs three quarters of the members present; dissolution three quarters of all members. The amendment binds third parties only after publication in the official gazette.',
+        ),
+      });
+    }
     if (!v.convocanteNome) w.push({ level: 'warning', field: 'convocanteNome', message: l('O aviso deve ser assinado por quem convoca.', 'The notice must be signed by whoever calls the meeting.') });
     return w;
   },
@@ -384,7 +436,7 @@ export default defineTemplate({
     const nome = String(v.entidadeNome || '').trim() || profileDisplayName(ctx.profile) || BLANK;
     const m = membros(t);
     const conv = convocante(v);
-    const ordem = lineItems(v.ordemTrabalhos).map((r) => String(r.ponto ?? '').trim()).filter(Boolean);
+    const ordem = ordemCompleta(v);
     const docs = lineItems(v.documentos).map((r) => String(r.documento ?? '').trim()).filter(Boolean);
     const sociedade = t !== 'associacao';
 

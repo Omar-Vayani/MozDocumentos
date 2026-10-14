@@ -4,7 +4,7 @@
 // violence, child custody or maintenance, or land titling.
 
 import { defineTemplate, type Block, type Warning } from '../model';
-import { BLANK, cite, dateField, dateLong, l, lineItems, localField, money } from './_shared';
+import { BLANK, cite, dateField, l, lineItems, localField, money } from './_shared';
 import { dataPorExtenso, hora } from './_estado';
 import { MAX_EXTENSO, formatMoney, numeroPorExtenso } from '@/lib/format';
 import { assinanteColumn, assinaturaFields, comunidadeWarnings, identificacao, numeroComunidadeField, numeroRef, pessoaFields, str, testemunhas, testemunhasField, unidadeField } from './_comunidade';
@@ -31,8 +31,8 @@ export default defineTemplate({
     dateField('data', 'documento', l('Data da sessão', 'Date of the session')),
     { name: 'hora', type: 'text', section: 'documento', width: 'half', label: l('Hora', 'Time'), placeholder: l('Ex.: 10:00', 'E.g. 10:00') },
     { name: 'localSessao', type: 'text', section: 'documento', width: 'half', label: l('Onde', 'Where'), default: 'na sede da Secretaria' },
-    ...pessoaFields(['nome', 'genero', 'nacionalidade', 'docTipo', 'docNumero', 'quarteirao', 'casa', 'telefone'], 'parte1', 'parte1'),
-    ...pessoaFields(['nome', 'genero', 'nacionalidade', 'docTipo', 'docNumero', 'quarteirao', 'casa', 'telefone'], 'parte2', 'parte2'),
+    ...pessoaFields(['nome', 'genero', 'docTipo', 'docNumero', 'quarteirao', 'casa', 'telefone'], 'parte1', 'parte1'),
+    ...pessoaFields(['nome', 'genero', 'docTipo', 'docNumero', 'quarteirao', 'casa', 'telefone'], 'parte2', 'parte2'),
     {
       name: 'objecto',
       type: 'textarea',
@@ -122,28 +122,27 @@ export default defineTemplate({
         keepWithNext: true,
         en: 'Having heard the parties and explained that conciliation is voluntary and that they may go to court, the parties freely agreed as follows:',
       },
-      { type: 'numberedClauses', style: 'numeric', items: itens.map((t, i) => ({ id: `acordo-${i + 1}`, text: /[.;]$/.test(t) ? t : `${t}.`, en: 'Agreement item.' })) },
+      { type: 'list', style: 'numeric', items: itens.map((t) => (/[.;]$/.test(t) ? t : `${t}.`)) },
       {
         type: 'paragraph',
         id: 'encerramento',
-        text: `As partes declaram que o presente acordo põe termo ao diferendo e que o assinam de livre vontade, depois de lido em voz alta${lingua}. Feita em três exemplares: um para cada parte e um para o arquivo da estrutura.`,
+        text: `As partes declaram que o presente acordo põe termo ao diferendo e que o assinam de livre vontade, depois de lido em voz alta${lingua}. Feita em três exemplares: um para cada parte e um para o arquivo da estrutura. Quem não souber assinar apõe a impressão digital junto do seu nome.`,
         keepWithNext: true,
         en: 'The parties declare the agreement ends the dispute and sign it freely after it was read aloud. Three copies.',
       },
       {
         type: 'signatures',
-        placeDate: `${ctx.place}, ${dateLong(v.data)}`,
+        keepWithNext: ts.length > 0,
         columns: [
           { role: 'A Primeira parte', name: str(v.parte1Nome) || undefined },
           { role: 'A Segunda parte', name: str(v.parte2Nome) || undefined },
-          { ...mediador, role: `${mediador.role} (mediador${/^A /.test(mediador.role) ? 'a' : ''})` },
+          { ...mediador, role: /^A /.test(mediador.role) ? 'A Mediadora' : 'O Mediador', detail: [mediador.role, mediador.detail].filter(Boolean).join('\n') },
         ],
       },
     ];
     if (ts.length) {
       blocks.push({ type: 'signatures', columns: ts.slice(0, 3).map((t, i) => ({ role: `${i + 1}.ª Testemunha`, name: t.nome || undefined })) });
     }
-    blocks.push({ type: 'note', text: 'Quem não souber assinar apõe a impressão digital junto do seu nome. O acordo vincula apenas as partes que o assinam e não constitui decisão judicial.', en: 'Those who cannot sign use a thumbprint. The agreement binds only the signing parties and is not a court decision.' });
     return blocks;
   },
 });

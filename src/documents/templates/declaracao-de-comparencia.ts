@@ -1,7 +1,7 @@
 import { defineTemplate, type Block, type FieldDef, type SignatureColumn, type Values, type Warning } from '../model';
 import { cite, dateField, dateLong, g, isF, l, localField, placeDate } from './_shared';
 import {
-  clinicianFields, clinicianSignature, clinicianWarnings, establishmentName, horaMin, horaText, patientFields, practitionerHeader,
+  clinicianFields, clinicianSignature, clinicianWarnings, establishmentName, horaMin, horaText, patientFields,
 } from './_saude';
 
 const TIPO_OPTIONS = [
@@ -151,7 +151,6 @@ export default defineTemplate({
       ? clinicianSignature(ctx)
       : { role: 'Pelos Serviços', name: v.servicosNome || undefined, image: 'stamp' };
     const blocks: Block[] = [
-      ...practitionerHeader(ctx),
       { type: 'title', text: 'Declaração de Comparência' },
       {
         type: 'paragraph',

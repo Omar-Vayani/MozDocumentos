@@ -38,6 +38,23 @@ export const PARENTESCO_OPTIONS: FieldOption[] = [
   { value: 'outro', label: l('Outra pessoa a cargo', 'Other dependant') },
 ];
 
+/** "filho(a)" → "filha" for a woman; "pai/mãe" → "mãe". */
+export function parentescoG(p: string, genero: unknown): string {
+  const f = isF(genero);
+  if (p === 'pai/mãe') return f ? 'mãe' : 'pai';
+  return p.replace(/(\S+?)o\(a\)/, (_m, r: string) => (f ? `${r}a` : `${r}o`)).replace(/irmão\(ã\)/, f ? 'irmã' : 'irmão');
+}
+
+/** "residente no Quarteirão n.º 12" / "residente em Malhangalene". */
+export function residenteEm(morada: string): string {
+  const m = morada.trim();
+  if (!m) return '';
+  if (/^(no|na|nos|nas|em)\s/i.test(m)) return `residente ${m}`;
+  if (/^(Quarteirão|Bairro|Regulado|Posto|Distrito)\b/i.test(m)) return `residente no ${m}`;
+  if (/^(Povoação|Aldeia|Localidade|Rua|Avenida|Casa)\b/i.test(m)) return `residente na ${m}`;
+  return `residente em ${m}`;
+}
+
 // ---------------------------------------------------------------- Unit of the issuer
 
 /** "Bairro da Malhangalene" from the profile name "Secretaria do Bairro da Malhangalene". */

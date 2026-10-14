@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type Warning } from '../model';
 import { l, lineItems } from './_shared';
-import { dataComDia, disp, str } from './_eventos';
+import { dataComDia, disp, str, cardScale } from './_eventos';
 
 // Event menu, A5 (two per A4): wedding, gala or dinner. Same typography as
 // the wedding invitation so the set matches.
@@ -71,7 +71,7 @@ export default defineTemplate({
       out.push({ type: 'ornament', style: 'dots' });
       out.push(disp(rodape, 'xs', { tone: 'muted', fit: true, after: 0 }));
     }
-    return out;
+    return cardScale(out);
   },
   warnings: (v) => {
     const out: Warning[] = [];

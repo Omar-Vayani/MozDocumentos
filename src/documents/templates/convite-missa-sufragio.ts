@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type Warning } from '../model';
 import { GENERO_OPTIONS, dateLong, g, l } from './_shared';
-import { SIMBOLO_OPTIONS, diasEntre, disp, linhaData, plural, str, vidaDatas } from './_eventos';
+import { SIMBOLO_OPTIONS, diasEntre, disp, linhaData, plural, str, vidaDatas, cardScale, clip } from './_eventos';
 
 // Memorial service notice, A6 (four per A4), black and grey: 7th-day or
 // 30th-day mass, first anniversary, memorial service, other religious
@@ -77,14 +77,14 @@ export default defineTemplate({
       out.push(disp(nome, 'lg', { weight: 'bold', fit: true, after: 1 }));
       if (datas) out.push(disp(datas, 'xs', { tone: 'muted', after: 1 }));
       out.push({ type: 'ornament', style: 'rule' });
-      out.push(disp(str(v.mensagem) || 'Partiste, mas continuas presente em cada um de nós.', 'sm', { italic: true, after: 6 }));
-      out.push(disp(str(v.quemConvida) || 'A tua família', 'xs', { tone: 'muted', after: 0 }));
-      return out;
+      out.push(disp(clip(str(v.mensagem).replace(/\s*\n\s*/g, ' '), 240) || 'Partiste, mas continuas presente em cada um de nós.', 'sm', { italic: true, after: 6 }));
+      out.push(disp(clip(str(v.quemConvida), 80) || 'A tua família', 'xs', { tone: 'muted', after: 0 }));
+      return cardScale(out);
     }
     const t = TIPOS[str(v.tipo)] ?? TIPOS.setimo;
     const titulo = v.tipo === 'cerimonia' && str(v.cerimoniaNome) ? str(v.cerimoniaNome) : t.titulo;
     const acto = v.tipo === 'cerimonia' && str(v.cerimoniaNome) ? `a cerimónia de ${str(v.cerimoniaNome).toLowerCase()}` : t.acto;
-    const quem = str(v.quemConvida) || 'A família';
+    const quem = clip(str(v.quemConvida), 80) || 'A família';
     out.push(disp(titulo, 'sm', { uppercase: true, fit: true, after: 6 }));
     out.push(disp(nome, 'lg', { weight: 'bold', fit: true, after: 1 }));
     if (datas) out.push(disp(datas, 'xs', { tone: 'muted', after: 1 }));
@@ -99,11 +99,14 @@ export default defineTemplate({
     out.push(disp(linhaData(v.dataEvento, v.horaEvento), 'xs', { uppercase: true, weight: 'bold', fit: true, after: 1 }));
     out.push(disp(str(v.localEvento) || '____________________', 'xs', { weight: 'bold', fit: true, after: 5 }));
     out.push(disp(`${quem} ${plural(quem) ? 'agradecem' : 'agradece'} a todos os que se dignarem participar neste acto de fé.`, 'xs', { italic: true, tone: 'muted', after: 0 }));
-    return out;
+    return cardScale(out);
   },
   warnings: (v) => {
     const out: Warning[] = [];
-    if (v.tipo === 'saudade') return out;
+    if (v.tipo === 'saudade') {
+      if (str(v.mensagem).length > 240) out.push({ level: 'warning', field: 'mensagem', message: l('Mensagem longa: só cabem cerca de 240 caracteres no cartão.', 'Long message: about 240 characters fit.') });
+      return out;
+    }
     const d = diasEntre(v.dataFalecimento, v.dataEvento);
     if (!Number.isNaN(d) && d < 0) out.push({ level: 'error', field: 'dataEvento', message: l('A cerimónia não pode ser anterior ao falecimento.', 'The service cannot be before the death.') });
     if (v.tipo === 'setimo' && !Number.isNaN(d) && (d < 5 || d > 10))

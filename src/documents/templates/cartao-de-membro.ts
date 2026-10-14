@@ -40,7 +40,7 @@ export default defineTemplate({
     const blocks: Block[] = [];
     if (v.mostrarLogo !== false) blocks.push({ type: 'logo', size: 'sm' });
     blocks.push(
-      { type: 'display', text: nome, size: 'xs', weight: 'bold', tone: 'accent', uppercase: true, fit: true, after: 1 },
+      { type: 'display', text: nome, size: 'sm', weight: 'bold', tone: 'accent', uppercase: true, fit: true, after: 1 },
       { type: 'ornament', style: 'tricolour', width: 'short' },
       { type: 'display', text: titulo, size: 'xs', tone: 'muted', uppercase: true, after: 2 },
     );
@@ -51,8 +51,8 @@ export default defineTemplate({
       );
     } else {
       blocks.push(
-        { type: 'display', text: str(v.membroNome) || LINHA, size: 'md', weight: 'bold', fit: true, after: 1 },
-        { type: 'display', text: [str(v.numero) ? `N.º ${str(v.numero)}` : 'N.º ______', str(v.categoria)].filter(Boolean).join('   ·   '), size: 'xs', after: 2 },
+        { type: 'display', text: str(v.membroNome) || LINHA, size: 'lg', weight: 'bold', fit: true, after: 1 },
+        { type: 'display', text: [str(v.numero) ? `N.º ${str(v.numero)}` : 'N.º ______', str(v.categoria)].filter(Boolean).join('   ·   '), size: 'sm', after: 3 },
       );
     }
     blocks.push({

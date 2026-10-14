@@ -191,6 +191,8 @@ export type Block =
       align?: 'left' | 'right';
       /** Tear-off slip: a dashed cut line with "recortar e devolver" above the box. */
       cut?: boolean;
+      /** Blank space (mm) with no lines, e.g. for a sketch (croqui) or a stamp. */
+      space?: number;
     })
   /** Small uppercase labels such as URGENTE or CONFIDENCIAL, right-aligned. */
   | (BlockBase & { type: 'tags'; items: string[] })
@@ -201,7 +203,7 @@ export type Block =
   | (BlockBase & {
       type: 'display';
       text: string;
-      size?: 'xxl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs';
+      size?: 'xxxl' | 'xxl' | 'xl' | 'lg' | 'md' | 'sm' | 'xs';
       align?: 'left' | 'center' | 'right';
       tone?: 'accent' | 'text' | 'muted';
       weight?: 'normal' | 'bold';
@@ -286,6 +288,9 @@ export type OfficialUse = 'tribunal' | 'estado' | 'notario' | 'registo';
  * ten per sheet. A5 prints on its own size (any printer scales it) unless the
  * user asks for two per A4 sheet.
  */
+export type FrameKind = 'simple' | 'double' | 'tricolour';
+export type TemplateStyle = { mono?: boolean; font?: 'classico' | 'institucional' | 'moderno' };
+
 export type PageFormat = 'A4' | 'A4-paisagem' | 'A5' | 'A5-paisagem' | 'A6' | 'DL' | 'cartao';
 
 export type DocumentTemplate = {
@@ -303,7 +308,7 @@ export type DocumentTemplate = {
   /** Centre the content vertically on the page (certificates, invitations, cards). */
   verticalAlign?: 'top' | 'center';
   /** Decorative frame around the page (certificates, diplomas, invitations). */
-  frame?: 'simple' | 'double' | 'tricolour';
+  frame?: FrameKind | ((v: Values) => FrameKind | undefined);
   /** Initials line on each page (default: on for the 'contrato' family). */
   rubricas?: boolean;
   /** Never print the app's brand line (cards, invitations, envelopes). */
@@ -312,7 +317,7 @@ export type DocumentTemplate = {
    * Visual overrides: `mono` prints in black and grey only (funeral notices);
    * `font` forces a typeface regardless of the profile (e.g. serif invitations).
    */
-  style?: { mono?: boolean; font?: 'classico' | 'institucional' | 'moderno' };
+  style?: TemplateStyle | ((v: Values) => TemplateStyle);
   /**
    * One page per item from the same form (e.g. a certificate for each
    * participant): returns the values for each page, or undefined for one page.

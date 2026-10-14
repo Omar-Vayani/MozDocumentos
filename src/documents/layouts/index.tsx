@@ -4,7 +4,7 @@
 import { Image, Text, View } from '@react-pdf/renderer';
 import type { ReactNode } from 'react';
 import type { Profile } from '@/lib/storage/types';
-import { profileDisplayName } from '@/lib/storage/types';
+import { professionalRegistration, profileDisplayName, titledName } from '@/lib/storage/types';
 import { EMBLEMA } from '../assets/emblema';
 import type { RenderAsset } from '../render/types';
 import { addressLine, contactsLine, legalLine } from './address';
@@ -79,8 +79,29 @@ function detailLines(p: Profile): string[] {
     p.nomeComercial && p.nomeComercial !== p.firma ? p.nomeComercial : '',
     addressLine(p),
     contactsLine(p),
-    p.nuit ? `NUIT ${p.nuit}` : '',
+    [p.nuit ? `NUIT ${p.nuit}` : '', p.licenca && p.tipoEntidade !== 'comunitaria' ? p.licenca : ''].filter(Boolean).join(' · '),
   ].filter(Boolean);
+}
+
+/**
+ * Letterhead of an individual professional (doctor, lawyer, engineer…):
+ * titled name, specialty, registration and contacts, centred and compact.
+ */
+export function ProfessionalHeader({ env }: { env: LetterheadEnv }): ReactNode {
+  const { profile: p, theme } = env;
+  const name = titledName(p);
+  const reg = professionalRegistration(p);
+  return (
+    <View style={{ marginBottom: 14, alignItems: 'center' }}>
+      <Text style={{ fontSize: 13 * Math.max(0.85, theme.scale), fontWeight: 700, color: theme.heading, textAlign: 'center', lineHeight: 1.25 }}>{name}</Text>
+      {p.especialidade ? <Text style={{ fontSize: 9, color: theme.muted, textAlign: 'center', lineHeight: 1.3 }}>{p.especialidade}</Text> : null}
+      {reg ? <Text style={{ fontSize: 8, color: theme.muted, textAlign: 'center', lineHeight: 1.3 }}>{reg}</Text> : null}
+      <Text style={{ width: '100%', fontSize: 7.8, color: theme.muted, textAlign: 'center', lineHeight: 1.35, marginTop: 2 }}>
+        {[addressLine(p), contactsLine(p)].filter(Boolean).join('  ·  ')}
+      </Text>
+      <View style={{ width: '100%', height: 0.5, backgroundColor: theme.rule, marginTop: 6 }} />
+    </View>
+  );
 }
 
 function Details({ p, theme, align }: { p: Profile; theme: Theme; align: 'left' | 'center' | 'right' }) {

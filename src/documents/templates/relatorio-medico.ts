@@ -1,8 +1,8 @@
+import { formatDateShort } from '@/lib/format';
 import { defineTemplate, type Block, type OfficialUse, type Values, type Warning } from '../model';
 import { cite, dateField, dateLong, g, l, lineItems, localField, refField } from './_shared';
 import {
-  CONFIDENCIAL, clinicianFields, clinicianSignature, clinicianWarnings, hivWarning, mentionsHiv, patientAge, patientFields,
-  practitionerHeader, sigiloNote,
+  CONFIDENCIAL, clinicianFields, clinicianSignature, clinicianWarnings, hivWarning, mentionsHiv, patientAge, patientFields, sigiloNote,
 } from './_saude';
 
 const PEDIDO_OPTIONS = [
@@ -122,7 +122,7 @@ export default defineTemplate({
     const v = ctx.values;
     const age = patientAge(v);
     const dest = String(v.destinatario ?? '').split('\n').map((s) => s.trim()).filter(Boolean);
-    const blocks: Block[] = [...practitionerHeader(ctx), CONFIDENCIAL, { type: 'reference', ref: v.ref || undefined, place: ctx.place, date: v.data }];
+    const blocks: Block[] = [CONFIDENCIAL, { type: 'reference', ref: v.ref || undefined, place: ctx.place, date: dateLong(v.data) }];
     if (dest.length) blocks.push({ type: 'recipient', lines: dest });
     blocks.push({ type: 'title', text: 'Relatório Médico', subtitle: dest.length ? undefined : 'A quem possa interessar' });
     const ident = [
@@ -148,7 +148,7 @@ export default defineTemplate({
           n++;
           blocks.push(
             { type: 'heading', text: `${n}. Exames complementares` },
-            { type: 'table', columns: [{ label: 'Exame', width: 40 }, { label: 'Data', width: 20 }, { label: 'Resultado', width: 40 }], rows: ex.map((r) => [String(r.exame ?? ''), r.data ? dateLong(r.data) : '', String(r.resultado ?? '')]) },
+            { type: 'table', columns: [{ label: 'Exame', width: 40 }, { label: 'Data', width: 20 }, { label: 'Resultado', width: 40 }], rows: ex.map((r) => [String(r.exame ?? ''), r.data ? formatDateShort(r.data) : '', String(r.resultado ?? '')]) },
           );
         }
       }

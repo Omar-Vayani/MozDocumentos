@@ -74,7 +74,7 @@ export default defineTemplate({
         type: 'display',
         text: `contraíram matrimónio religioso no dia ${dateLong(v.dataCasamento)}, na ${igreja}${str(v.local) ? `, em ${str(v.local)}` : ''}, perante o ${tit} ${str(v.ministro) || BLANK}${test.length ? `, sendo testemunhas ${juntar(test)}` : ''}${cap}.`,
         size: 'md',
-        after: 6,
+        after: 4,
       },
     ];
     if (str(v.versiculo)) blocks.push({ type: 'display', text: str(v.versiculo), size: 'sm', italic: true, tone: 'muted', after: 6 });
@@ -82,9 +82,16 @@ export default defineTemplate({
       {
         type: 'signatures',
         columns: [
+          { role: 'O Noivo', name: str(v.noivo) || undefined },
+          { role: 'A Noiva', name: str(v.noiva) || undefined },
+        ],
+      },
+      {
+        type: 'signatures',
+        columns: [
           { role: `O ${tit}`, name: str(v.ministro) || undefined, image: 'both' },
-          { role: 'Os Noivos', name: [str(v.noivo), str(v.noiva)].filter(Boolean).join(' e ') || undefined },
-          { role: 'As Testemunhas', name: test.join(' e ') || undefined },
+          { role: '1.ª Testemunha', name: test[0] || undefined },
+          { role: '2.ª Testemunha', name: test[1] || undefined },
         ],
       },
       { type: 'display', text: [placeDate(ctx, v.data), reg].filter(Boolean).join('   ·   '), size: 'xs', tone: 'muted', after: 2 },

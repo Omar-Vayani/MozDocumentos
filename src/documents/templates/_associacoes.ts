@@ -216,3 +216,14 @@ export function membrosPoupanca(v: Values): MembroPoupanca[] {
     return { nome: str(r.nome), doc: str(r.doc), telefone: str(r.telefone), data };
   });
 }
+
+/**
+ * "da **Associação X**" when the name already starts with the noun, otherwise
+ * "da Associação **X**" (avoids "da Associação Associação X").
+ */
+export function deNome(n: Natureza, nome: string): string {
+  const m = /^(associa[cç][aã]o|igreja|organiza[cç][aã]o|clube|grupo|congrega[cç][aã]o|par[oó]quia|funda[cç][aã]o|xitique)\b/i.exec(nome.trim());
+  if (!m) return `${daEntidade(n)} **${nome}**`;
+  const masc = /^(clube|grupo|xitique)$/i.test(m[1]);
+  return `${masc ? 'do' : 'da'} **${nome}**`;
+}

@@ -23,6 +23,7 @@ export default defineTemplate({
   sections: [
     { id: 'documento', title: l('Orçamento', 'Quote') },
     { id: 'cliente', title: l('Cliente', 'Customer'), personRole: 'cliente' },
+    { id: 'proposta', title: l('Proposta comercial (opcional)', 'Commercial proposal (optional)') },
     { id: 'itens', title: l('Artigos e serviços', 'Items and services') },
     { id: 'valores', title: l('Desconto e IVA', 'Discount and VAT') },
     { id: 'condicoes', title: l('Condições', 'Terms') },
@@ -46,6 +47,17 @@ export default defineTemplate({
     ),
     { name: 'clienteEmail', type: 'email', section: 'cliente', width: 'half', label: l('Email', 'Email'), personKey: 'email' },
     { name: 'clienteAtencao', type: 'text', section: 'cliente', width: 'half', label: l('Ao cuidado de (opcional)', 'Attention of (optional)') },
+    {
+      name: 'proposta',
+      type: 'toggle',
+      section: 'proposta',
+      label: l('Apresentar como proposta comercial', 'Present as a commercial proposal'),
+      help: l('Acrescenta uma introdução, o âmbito dos trabalhos e a equipa, antes dos preços.', 'Adds an introduction, scope of work and team before the prices.'),
+    },
+    { name: 'propostaObjecto', type: 'text', section: 'proposta', label: l('Objecto da proposta', 'Subject of the proposal'), placeholder: l('Ex.: manutenção dos aparelhos de ar condicionado da sede', 'E.g. maintenance of the head office air conditioners'), showIf: (v) => Boolean(v.proposta) },
+    { name: 'propostaPedido', type: 'text', section: 'proposta', width: 'half', label: l('Em resposta a (opcional)', 'In reply to (optional)'), placeholder: l('Ex.: V/ pedido de cotação de 2 de Outubro', 'E.g. your request of 2 October'), showIf: (v) => Boolean(v.proposta) },
+    { name: 'propostaAmbito', type: 'textarea', section: 'proposta', rows: 4, label: l('Âmbito dos trabalhos', 'Scope of work'), help: l('Uma actividade por linha.', 'One activity per line.'), showIf: (v) => Boolean(v.proposta) },
+    { name: 'propostaEquipa', type: 'textarea', section: 'proposta', rows: 2, label: l('Equipa e meios (opcional)', 'Team and resources (optional)'), showIf: (v) => Boolean(v.proposta) },
     {
       name: 'itens',
       type: 'lines',
@@ -227,7 +239,7 @@ export default defineTemplate({
     const fm = (n: number) => formatMoney(n, false);
 
     const blocks: Block[] = [
-      { type: 'title', text: 'Orçamento', subtitle: `N.º ${v.ref || BLANK} · ${ctx.place}, ${dateLong(v.data)}` },
+      { type: 'title', text: v.proposta ? 'Proposta comercial' : 'Orçamento', subtitle: `N.º ${v.ref || BLANK} · ${ctx.place}, ${dateLong(v.data)}` },
     ];
 
     // An individual has no letterhead: identify the issuer.
@@ -259,6 +271,22 @@ export default defineTemplate({
       ].filter((it) => it.value),
     });
 
+    if (v.proposta) {
+      const objecto = String(v.propostaObjecto || '').trim().replace(/[.;]+$/, '');
+      const pedido = String(v.propostaPedido || '').trim().replace(/[.;]+$/, '');
+      blocks.push({
+        type: 'paragraph',
+        id: 'proposta-intro',
+        text: `${pedido ? `Em resposta ao ${pedido.replace(/^(ao|à|a)\s+/i, '')}, apresentamos` : 'Apresentamos'} a nossa proposta${objecto ? ` para ${objecto}` : ''}, nos termos e condições seguintes.`,
+        en: 'We submit our proposal on the terms and conditions below.',
+      });
+      const ambito = splitLines(v.propostaAmbito);
+      if (ambito.length) blocks.push({ type: 'heading', text: 'Âmbito dos trabalhos' }, { type: 'list', items: ambito });
+      const equipa = splitLines(v.propostaEquipa);
+      if (equipa.length) blocks.push({ type: 'heading', text: 'Equipa e meios' }, { type: 'list', items: equipa });
+      blocks.push({ type: 'heading', text: 'Preço' });
+    }
+
     const rows = linhas.length
       ? linhas.map((r, i) => [String(i + 1), r.descricao || '—', `${qtyText(r.quantidade)}${r.unidade ? ` ${r.unidade}` : ''}`, r.preco != null ? fm(r.preco) : '', fm(r.total)])
       : [['1', BLANK, '', '', '']];
@@ -284,7 +312,7 @@ export default defineTemplate({
       totals,
       note: v.iva ? undefined : String(v.ivaNota || '').trim() || 'Os valores indicados não incluem IVA.',
     });
-    if (c.total > 0) blocks.push({ type: 'amount', label: v.iva ? 'Total do orçamento (com IVA)' : 'Total do orçamento', value: c.total });
+    if (c.total > 0) blocks.push({ type: 'amount', label: `Total ${v.proposta ? 'da proposta' : 'do orçamento'}${v.iva ? ' (com IVA)' : ''}`, value: c.total });
 
     const condicoes = [
       {

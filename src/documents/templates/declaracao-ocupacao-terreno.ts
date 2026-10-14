@@ -203,8 +203,9 @@ export default defineTemplate({
       columns: [{ label: 'Nome', width: 3 }, { label: 'BI n.º', width: 1.8 }, { label: 'Lado', width: 0.8, align: 'center' }, { label: 'Assinatura / impressão digital', width: 2.6 }],
       rows: linhas.map((r: Record<string, any>) => [str(r.nome) || ' ', str(r.documento) || ' ', str(r.lado) || ' ', ' ']),
     });
-    if (v.croqui !== false) blocks.push({ type: 'box', label: 'Croqui de localização (indicar o norte, os caminhos e as referências)', lines: 7 });
     blocks.push(...assinaturaBlocks(ctx), ...notaBlocks(v.cidadaoGenero));
+    // Blank area (no ruled lines) for a hand-drawn sketch.
+    if (v.croqui !== false) blocks.push({ type: 'box', label: 'Anexo — Croqui de localização (indicar o norte, os caminhos e as referências)', text: Array.from({ length: 14 }, () => '\u00a0').join('\n') });
     return blocks;
   },
 });

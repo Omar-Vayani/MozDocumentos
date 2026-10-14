@@ -2,7 +2,7 @@ import { formatMonthYear } from '@/lib/format';
 import { profileDisplayName } from '@/lib/storage/types';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { dateLong, g, GENERO_OPTIONS, l } from './_shared';
-import { disp, str } from './_eventos';
+import { clip, disp, str, cardScale } from './_eventos';
 
 // Thank-you card, A6 (four per A4). A large italic "Obrigado" (or a sober
 // "Agradecimento" heading in black for mourning), the message and the names.
@@ -31,7 +31,8 @@ export default defineTemplate({
   verticalAlign: 'center',
   noBrand: true,
   letterhead: false,
-  style: { font: 'classico' },
+  style: (v) => ({ font: 'classico', mono: v.tipo === 'luto' }),
+  frame: 'simple',
   sections: [
     { id: 'cartao', title: l('Cartão', 'Card') },
     { id: 'luto', title: l('Pessoa falecida', 'The deceased') },
@@ -88,7 +89,7 @@ export default defineTemplate({
     const formal = luto || tipo === 'empresa';
     const titulo = str(v.titulo) || (formal ? 'Agradecimento' : 'Obrigado');
     const msg =
-      str(v.mensagem) ||
+      clip(str(v.mensagem).replace(/\s*\n\s*/g, ' '), 420) ||
       (luto
         ? `A família de ${str(v.falecidoNome) || '____________________'}, ${g(v.falecidoGenero, 'falecido', 'falecida')} no dia ${dateLong(v.dataFalecimento)}, profundamente sensibilizada, agradece a todos os que a acompanharam neste momento de dor, estiveram presentes nas cerimónias fúnebres ou, de alguma forma, lhe manifestaram o seu apoio e amizade.`
         : mensagemPadrao(tipo));
@@ -104,14 +105,14 @@ export default defineTemplate({
     out.push(disp(msg, 'sm', { italic: !formal, after: 8 }));
     out.push(disp(str(v.assinatura) || '____________________', 'sm', { italic: true, weight: formal ? 'bold' : 'normal', fit: true, after: 2 }));
     out.push(disp([str(v.local), formatMonthYear(str(v.data), '')].filter(Boolean).join(', '), 'xs', { tone: 'muted', after: 0 }));
-    return out;
+    return cardScale(out);
   },
   warnings: (v) => {
     const out: Warning[] = [];
     if (v.tipo === 'luto' && !str(v.falecidoNome) && !str(v.mensagem))
       out.push({ level: 'warning', field: 'falecidoNome', message: l('Indique o nome da pessoa falecida.', 'Give the name of the deceased.') });
     if (str(v.mensagem).length > 420)
-      out.push({ level: 'warning', field: 'mensagem', message: l('Mensagem longa para um cartão A6: encurte-a.', 'Long message for an A6 card: shorten it.') });
+      out.push({ level: 'warning', field: 'mensagem', message: l('Mensagem longa para um cartão A6: só cabem cerca de 420 caracteres. Encurte-a.', 'Long message for an A6 card: about 420 characters fit. Shorten it.') });
     return out;
   },
   personName: (v) => str(v.assinatura) || undefined,

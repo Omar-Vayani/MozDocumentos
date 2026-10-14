@@ -216,9 +216,8 @@ export const CATALOG_COMUNIDADE: TemplateMeta[] = [
   {
     id: 'declaracao-de-testemunhas',
     category: 'comunidade',
-    audience: 'ambos',
+    audience: 'estado',
     phase: 'A',
-    sectors: ['particular'],
     title: { pt: 'Duas testemunhas confirmam um facto', en: 'Witness statement (two witnesses)' },
     formalTitle: 'Declaração de Testemunhas',
     summary: {

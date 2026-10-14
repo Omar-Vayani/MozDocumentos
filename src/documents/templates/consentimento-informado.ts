@@ -1,7 +1,7 @@
 import { defineTemplate, type Block, type SignatureColumn, type Values, type Warning } from '../model';
 import { cite, dateField, dateLong, DOC_TIPO_OPTIONS, g, isF, l, localField, placeDate } from './_shared';
 import {
-  clinicianFields, clinicianRole, clinicianWarnings, clinicianSignature, mentionsHiv, patientAge, patientFields, patientIdent, practitionerHeader,
+  clinicianFields, clinicianRole, clinicianWarnings, clinicianSignature, mentionsHiv, patientAge, patientFields, patientIdent,
 } from './_saude';
 
 const ANESTESIA_OPTIONS = [
@@ -65,7 +65,19 @@ export default defineTemplate({
     { name: 'alternativas', type: 'textarea', section: 'informacao', rows: 2, label: l('Alternativas e consequências de não fazer', 'Alternatives and consequences of not doing it'), required: true },
     { name: 'interprete', type: 'toggle', section: 'informacao', label: l('Informação prestada com intérprete', 'Information given through an interpreter') },
     { name: 'interpreteLingua', type: 'text', section: 'informacao', width: 'half', label: l('Língua', 'Language'), placeholder: l('Ex.: Changana', 'E.g. Changana'), showIf: (v) => Boolean(v.interprete) },
-    { name: 'transfusao', type: 'toggle', section: 'autorizacoes', label: l('Autoriza transfusão de sangue, se necessária', 'Authorises blood transfusion if needed'), default: true },
+    {
+      name: 'transfusao',
+      type: 'select',
+      section: 'autorizacoes',
+      width: 'half',
+      label: l('Transfusão de sangue', 'Blood transfusion'),
+      options: [
+        { value: 'na', label: l('Não se aplica (não mencionar)', 'Not applicable (omit)') },
+        { value: 'sim', label: l('Autoriza, se necessária', 'Authorised if needed') },
+        { value: 'nao', label: l('Não autoriza', 'Refused') },
+      ],
+      default: 'na',
+    },
     { name: 'imagens', type: 'toggle', section: 'autorizacoes', label: l('Autoriza o registo de imagens para o processo clínico', 'Authorises images for the clinical record') },
     {
       name: 'naoAssina',
@@ -126,7 +138,6 @@ export default defineTemplate({
       ? `Eu, **${v.repNome || '____________________'}**, ${fr ? 'portadora' : 'portador'} do ${v.repDocTipo || 'BI'} n.º ${v.repDocNumero || '__________'}, na qualidade de ${v.repQualidade === 'tutor' ? (fr ? 'tutora' : 'tutor') : v.repQualidade || 'representante'} e representante legal de ${pat.pt}`
       : `Eu, ${pat.pt}`;
     const blocks: Block[] = [
-      ...practitionerHeader(ctx),
       { type: 'title', text: 'Declaração de Consentimento Informado', subtitle: proc },
       {
         type: 'paragraph',
@@ -159,9 +170,12 @@ export default defineTemplate({
       },
     ];
     const extra: string[] = [];
-    extra.push(v.transfusao ? 'Autorizo a transfusão de sangue ou derivados, se necessária.' : 'Não autorizo a transfusão de sangue ou derivados.');
+    if (v.transfusao === 'sim') extra.push('Autorizo a transfusão de sangue ou derivados, se necessária.');
+    if (v.transfusao === 'nao') extra.push('Não autorizo a transfusão de sangue ou derivados.');
     if (v.imagens) extra.push('Autorizo o registo de imagens do procedimento, exclusivamente para o processo clínico.');
-    blocks.push({ type: 'paragraph', id: 'autorizacoes', text: extra.join(' '), en: v.transfusao ? 'I authorise blood transfusion if needed.' : 'I do not authorise blood transfusion.', keepWithNext: true });
+    if (extra.length) blocks.push({ type: 'paragraph', id: 'autorizacoes', text: extra.join(' '), en: 'Specific authorisations (transfusion, images).' });
+    const lastBlock = blocks[blocks.length - 1];
+    if (lastBlock.type === 'paragraph') lastBlock.keepWithNext = true;
     const signer: SignatureColumn = rep
       ? { role: fr ? 'A Representante Legal' : 'O Representante Legal', name: v.repNome || undefined }
       : { role: isF(v.doenteGenero) ? 'A Doente' : 'O Doente', name: v.doenteNome || undefined, detail: v.naoAssina ? 'Impressão digital' : undefined };

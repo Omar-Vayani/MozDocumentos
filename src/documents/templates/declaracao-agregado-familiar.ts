@@ -3,7 +3,7 @@
 // support, employer allowances, dependants' claims).
 
 import { defineTemplate, type Block, type Warning } from '../model';
-import { BLANK, dateField, dateLong, g, l, lineItems, localField } from './_shared';
+import { BLANK, dateField, g, l, lineItems, localField } from './_shared';
 import {
   PARENTESCO_OPTIONS,
   assinaturaBlocks,
@@ -24,6 +24,12 @@ import {
   validadeField,
   validadeTexto,
 } from './_comunidade';
+
+/** "2015-06-20" → "20/06/2015". */
+const dataCurta = (iso: unknown) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(str(iso));
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+};
 
 export default defineTemplate({
   id: 'declaracao-agregado-familiar',
@@ -81,8 +87,8 @@ export default defineTemplate({
     const end = enderecoBairro(v);
     const membros = lineItems(v.membros).filter((r) => str(r.nome));
     const rows = [
-      [`1`, str(v.cidadaoNome) || BLANK, 'Chefe do agregado', '', str(v.cidadaoDocNumero), ''],
-      ...membros.map((r, i) => [String(i + 2), str(r.nome), str(r.parentesco), r.nascimento ? dateLong(r.nascimento) : '', str(r.documento), str(r.ocupacao)]),
+      [`1`, str(v.cidadaoNome) || BLANK, 'Chefe', '', str(v.cidadaoDocNumero), ''],
+      ...membros.map((r, i) => [String(i + 2), str(r.nome), str(r.parentesco), dataCurta(r.nascimento), str(r.documento), str(r.ocupacao)]),
     ];
     const blocks: Block[] = [
       { type: 'title', text: 'Declaração de Agregado Familiar', subtitle: str(v.numero) ? numeroRef(ctx) : undefined },
@@ -97,11 +103,11 @@ export default defineTemplate({
         type: 'table',
         columns: [
           { label: 'N.º', width: 0.4, align: 'center' },
-          { label: 'Nome', width: 3 },
-          { label: 'Parentesco', width: 1.5 },
-          { label: 'Nascimento', width: 1.6 },
-          { label: 'Documento', width: 1.5 },
-          { label: 'Ocupação', width: 1.4 },
+          { label: 'Nome', width: 2.5 },
+          { label: 'Parentesco', width: 1.7 },
+          { label: 'Nascimento', width: 1.4, align: 'center' },
+          { label: 'Documento', width: 1.75 },
+          { label: 'Ocupação', width: 1.3 },
         ],
         rows: rows.map((r) => r.map((c) => c || '—')),
       },

@@ -1,7 +1,7 @@
 import { profileDisplayName } from '@/lib/storage/types';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { dateLong, l } from './_shared';
-import { TRAJE_OPTIONS, TRATAMENTO_OPTIONS, diasEntre, disp, footer, hora, linhaData, str } from './_eventos';
+import { TRAJE_OPTIONS, TRATAMENTO_OPTIONS, diasEntre, disp, footer, hora, linhaData, str, cardScale } from './_eventos';
 
 // Corporate or institutional invitation, A5 landscape: logo, host, event name,
 // presiding guest, date line, venue, R.S.V.P. Mozambican protocol: "Sua
@@ -121,7 +121,7 @@ export default defineTemplate({
       [str(v.traje) ? `Traje: ${str(v.traje)}` : '', v.intransmissivel ? 'Este convite é pessoal e intransmissível e deverá ser apresentado à entrada.' : ''].filter(Boolean).join(' · '),
     ];
     out.push(...footer(notas));
-    return out;
+    return cardScale(out);
   },
   warnings: (v, ctx) => {
     const out: Warning[] = [];

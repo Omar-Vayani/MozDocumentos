@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type Warning } from '../model';
 import { l, lineItems } from './_shared';
-import { dataComDia, disp, hora, str } from './_eventos';
+import { dataComDia, disp, hora, str, cardScale } from './_eventos';
 
 // Ceremony programme, A5 (two per A4): wedding, funeral (exéquias),
 // graduation, opening ceremony or religious service. Each item is a centred
@@ -31,11 +31,11 @@ export default defineTemplate({
   id: 'programa-de-cerimonia',
   family: 'declaracao',
   page: 'A5',
-  frame: 'simple',
   verticalAlign: 'center',
   noBrand: true,
   letterhead: false,
-  style: { font: 'classico' },
+  style: (v) => ({ font: 'classico', mono: v.tipo === 'exequias' }),
+  frame: 'simple',
   sections: [
     { id: 'cerimonia', title: l('Cerimónia', 'Ceremony') },
     { id: 'programa', title: l('Programa', 'Programme') },
@@ -93,7 +93,7 @@ export default defineTemplate({
     const out: Block[] = [];
     if (luto) out.push({ type: 'ornament', style: 'cross' });
     out.push(disp(str(v.titulo) || t.titulo, 'sm', { uppercase: true, tone: 'muted', fit: true, after: 3 }));
-    out.push(disp(str(v.subtitulo) || '____________________', 'xl', { italic: !luto, weight: luto ? 'bold' : 'normal', tone, fit: true, after: 3 }));
+    out.push(disp(str(v.subtitulo) || '____________________', luto ? 'lg' : 'xl', { italic: !luto, weight: luto ? 'bold' : 'normal', tone, fit: true, after: 3 }));
     const quando = [str(v.dataEvento) ? dataComDia(v.dataEvento) : '', str(v.localEvento)].filter(Boolean).join(' · ');
     if (quando) out.push(disp(quando, 'xs', { fit: true, after: 2 }));
     out.push(luto ? { type: 'spacer', size: 'small' } : { type: 'ornament', style: 'rule' });
@@ -109,7 +109,7 @@ export default defineTemplate({
       out.push(luto ? { type: 'spacer', size: 'small' } : { type: 'ornament', style: 'dots' });
       out.push(disp(frase, 'xs', { italic: true, after: 0 }));
     }
-    return out;
+    return cardScale(out);
   },
   warnings: (v) => {
     const out: Warning[] = [];

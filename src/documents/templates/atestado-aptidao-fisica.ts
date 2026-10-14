@@ -1,7 +1,7 @@
 import { defineTemplate, type Block, type Values, type Warning } from '../model';
 import { cite, dateField, dateLong, DOC_TIPO_OPTIONS, g, isF, l, localField, placeDate } from './_shared';
 import {
-  clinicianDesc, clinicianFields, clinicianSignature, clinicianWarnings, hivWarning, mentionsHiv, patientFields, practitionerHeader, senhor,
+  clinicianDesc, clinicianFields, clinicianSignature, clinicianWarnings, hivWarning, mentionsHiv, patientFields, senhor,
 } from './_saude';
 
 const FINALIDADE_OPTIONS = [
@@ -180,7 +180,6 @@ export default defineTemplate({
       conclEn = `is not fit for ${para.en}`;
     }
     const blocks: Block[] = [
-      ...practitionerHeader(ctx),
       { type: 'title', text: 'Atestado Médico', subtitle: 'de aptidão física e mental' },
       {
         type: 'paragraph',

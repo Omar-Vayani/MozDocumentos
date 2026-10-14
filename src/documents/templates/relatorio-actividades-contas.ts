@@ -1,7 +1,7 @@
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, cite, formatMoney, l, lineItems, localField, money, placeDate, splitLines } from './_shared';
-import { daEntidade, entidadeNome, naturezaField, naturezaOf, num, str } from './_associacoes';
+import { daEntidade, entidadeNome, naturezaField, naturezaOf, num, str, deNome } from './_associacoes';
 
 // Relatório de actividades e contas do exercício, presented by the board to
 // the annual general meeting with the audit council's opinion. Simple
@@ -213,7 +213,7 @@ export default defineTemplate({
         {
           type: 'paragraph',
           id: 'parecer',
-          text: `O Conselho Fiscal ${daEntidade(n)} **${nome}** examinou o relatório de actividades e as contas do exercício de ${ano}, bem como os respectivos documentos de suporte, e é de parecer que os mesmos reflectem adequadamente a actividade e a situação financeira ${daEntidade(n)}, pelo que recomenda a sua aprovação pela Assembleia Geral.`,
+          text: `O Conselho Fiscal ${deNome(n, nome)} examinou o relatório de actividades e as contas do exercício de ${ano}, bem como os respectivos documentos de suporte, e é de parecer que os mesmos reflectem adequadamente a actividade e a situação financeira ${daEntidade(n)}, pelo que recomenda a sua aprovação pela Assembleia Geral.`,
           en: 'The audit council examined the report and accounts and recommends their approval by the general meeting.',
           keepWithNext: true,
         },

@@ -56,7 +56,7 @@ export default defineTemplate({
     const destino = str(v.igrejaDestino);
     const titulo = v.tipo === 'recomendacao' ? 'recomendação' : v.tipo === 'desvinculacao' ? 'desvinculação' : 'transferência';
 
-    const blocks: Block[] = [{ type: 'reference', ref: str(v.ref) || undefined, place: ctx.place, date: v.data }];
+    const blocks: Block[] = [{ type: 'reference', ref: str(v.ref) || undefined, place: ctx.place, date: dateLong(v.data) }];
     if (v.tipo !== 'desvinculacao') {
       blocks.push({ type: 'recipient', salutation: 'À', lines: [destino || BLANK, ...(str(v.enderecoDestino) ? [str(v.enderecoDestino)] : [])] });
     }
@@ -105,7 +105,7 @@ export default defineTemplate({
       {
         type: 'signatures',
         columns: [
-          { role: str(v.pastorCargo) || 'O Pastor', name: str(v.pastorNome) || undefined, image: 'both' },
+          { role: /^(o|a|os|as) /i.test(str(v.pastorCargo)) ? str(v.pastorCargo) : `O ${str(v.pastorCargo) || 'Pastor'}`, name: str(v.pastorNome) || undefined, image: 'both' },
           ...(str(v.secretarioNome) ? [{ role: 'O(A) Secretário(a)', name: str(v.secretarioNome) }] : []),
         ],
       },

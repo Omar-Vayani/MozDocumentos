@@ -19,6 +19,7 @@ import {
   notaBlocks,
   numeroComunidadeField,
   numeroRef,
+  parentescoG,
   pessoaFields,
   str,
   testemunhas,
@@ -31,7 +32,7 @@ function outrasAssinaturas(v: Record<string, any>): Block[] {
   const ts = testemunhas(v);
   const lista = ts.length ? ts : [{ nome: '', documento: '', morada: '' }, { nome: '', documento: '', morada: '' }];
   const cols: SignatureColumn[] = [
-    { role: g(v.declaranteGenero, 'O Declarante', 'A Declarante'), name: str(v.declaranteNome) || undefined, detail: str(v.declaranteParentesco) || undefined },
+    { role: g(v.declaranteGenero, 'O Declarante', 'A Declarante'), name: str(v.declaranteNome) || undefined, detail: str(v.declaranteParentesco) ? parentescoG(str(v.declaranteParentesco), v.declaranteGenero) : undefined },
     ...lista.map((t, i) => ({ role: `${i + 1}.ª Testemunha`, name: t.nome || undefined, detail: t.documento ? `BI n.º ${t.documento}` : undefined })),
   ];
   const out: Block[] = [];
@@ -119,9 +120,13 @@ export default defineTemplate({
     const fg = v.falecidoGenero;
     const end = enderecoBairro(v, 'falecido');
     const horaTxt = str(v.horaObito) ? `, ${hora(v.horaObito, 'pelas').replace(/^pelas/, 'cerca das').replace(/^pela /, 'cerca da ')}` : '';
-    const declarante = `**${str(v.declaranteNome) || BLANK}**${str(v.declaranteParentesco) ? `, ${str(v.declaranteParentesco)} ${g(fg, 'do falecido', 'da falecida')}` : ''}${str(v.declaranteDocNumero) ? `, ${v.declaranteGenero === 'F' ? 'portadora' : 'portador'} do ${str(v.declaranteDocTipo) || 'BI'} n.º ${str(v.declaranteDocNumero)}` : ''}`;
+    const declarante = `**${str(v.declaranteNome) || BLANK}**${str(v.declaranteParentesco) ? `, ${parentescoG(str(v.declaranteParentesco), v.declaranteGenero)} ${g(fg, 'do falecido', 'da falecida')}` : ''}${str(v.declaranteDocNumero) ? `, ${v.declaranteGenero === 'F' ? 'portadora' : 'portador'} do ${str(v.declaranteDocTipo) || 'BI'} n.º ${str(v.declaranteDocNumero)}` : ''}`;
     const familia: string[] = [];
-    if (str(v.conjuge)) familia.push(`${g(fg, 'deixa viúva ou companheira', 'deixa viúvo ou companheiro')} ${str(v.conjuge)}`);
+    if (str(v.conjuge)) {
+      const ec = str(v.falecidoEstadoCivil);
+      const quem = ec === 'casado' ? g(fg, 'viúva', 'viúvo') : ec === 'união de facto' ? g(fg, 'companheira', 'companheiro') : g(fg, 'viúva ou companheira', 'viúvo ou companheiro');
+      familia.push(`deixa ${quem} ${str(v.conjuge)}`);
+    }
     const filhos = Number(v.filhos);
     if (Number.isFinite(filhos) && filhos > 0) familia.push(`deixa ${filhos} ${filhos === 1 ? 'filho' : 'filhos'}`);
     const causa = v.causa === 'familia' && str(v.causaFamilia)

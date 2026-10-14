@@ -1,7 +1,7 @@
 import { defineTemplate, type Block, type Warning } from '../model';
-import { dateField, l, localField, refField } from './_shared';
+import { dateField, dateLong, l, localField, refField } from './_shared';
 import {
-  clinicianFields, clinicianSignature, clinicianWarnings, establishmentName, patientAge, patientFields, practitionerHeader, sigiloNote,
+  clinicianFields, clinicianSignature, clinicianWarnings, patientAge, patientFields, sigiloNote,
 } from './_saude';
 
 const URGENCIA_OPTIONS = [
@@ -23,11 +23,11 @@ const TRANSPORTE_OPTIONS = [
 
 const SINAIS = [
   ['ta', 'Tensão arterial', 'mmHg'],
-  ['fc', 'Frequência cardíaca', 'bpm'],
-  ['fr', 'Frequência respiratória', 'cpm'],
+  ['fc', 'Freq. cardíaca', 'bpm'],
+  ['fr', 'Freq. respiratória', 'cpm'],
   ['temp', 'Temperatura', '°C'],
-  ['sat', 'Saturação de oxigénio', '%'],
-  ['glasgow', 'Escala de Glasgow', ''],
+  ['sat', 'Sat. de oxigénio', '%'],
+  ['glasgow', 'Glasgow', ''],
 ] as const;
 
 export default defineTemplate({
@@ -96,7 +96,6 @@ export default defineTemplate({
     const dest = String(v.destino ?? '').split('\n').map((s) => s.trim()).filter(Boolean);
     const motivo = MOTIVO_OPTIONS.find((m) => m.value === v.motivoTipo)?.value ?? 'avaliação';
     const esp = String(v.especialidadeDestino ?? '').trim();
-    const origem = establishmentName(ctx);
     const ident = [
       { label: 'Doente', value: v.doenteNome || '____________________' },
       { label: 'Sexo / idade', value: `${v.doenteGenero === 'F' ? 'Feminino' : 'Masculino'}${age != null ? `, ${age} anos` : ''}` },
@@ -106,15 +105,14 @@ export default defineTemplate({
     ident.push({ label: 'Transporte', value: `${v.transporte || 'meios próprios'}${v.acompanhado ? ', acompanhado por profissional de saúde' : ''}` });
 
     const blocks: Block[] = [
-      ...practitionerHeader(ctx),
       { type: 'tags', items: tags },
-      { type: 'reference', ref: v.ref || undefined, place: ctx.place, date: v.data },
+      { type: 'reference', ref: v.ref || undefined, place: ctx.place, date: dateLong(v.data) },
       { type: 'recipient', lines: dest.length ? dest : ['____________________'] },
       { type: 'title', text: 'Guia de Referência de Doente' },
       {
         type: 'paragraph',
         id: 'refere',
-        text: `Refere-se a V. Ex.ª ${v.doenteGenero === 'F' ? 'a doente abaixo identificada' : 'o doente abaixo identificado'}, para **${motivo}${esp ? ` em ${esp}` : ''}**, pelos motivos e com os dados clínicos seguintes${origem ? `. Origem: ${origem}` : ''}.`,
+        text: `Refere-se a V. Ex.ª ${v.doenteGenero === 'F' ? 'a doente abaixo identificada' : 'o doente abaixo identificado'}, para **${motivo}${esp ? ` em ${esp}` : ''}**, pelos motivos e com os dados clínicos seguintes.`,
         en: `We refer the patient below for ${motivo}${esp ? ` in ${esp}` : ''}, for the reasons and with the clinical data below.`,
       },
       { type: 'keyValue', items: ident, columns: 2 },

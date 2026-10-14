@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type Warning } from '../model';
 import { l } from './_shared';
-import { TRAJE_OPTIONS, TRATAMENTO_OPTIONS, diasEntre, disp, footer, linhaData, rsvpFields, rsvpLine, str } from './_eventos';
+import { TRAJE_OPTIONS, TRATAMENTO_OPTIONS, diasEntre, disp, footer, linhaData, rsvpFields, rsvpLine, str, cardScale } from './_eventos';
 
 // Party invitation, A6 (four per A4): birthday (adult or child), wedding
 // anniversary, graduation or baptism. A large typographic numeral (the age or
@@ -83,22 +83,22 @@ export default defineTemplate({
       case 'crianca':
         if (str(v.pais)) out.push(disp(str(v.pais), 'xs', { tone: 'muted', after: 2 }));
         out.push(disp(`${nome} vai fazer`, 'md', { italic: true, tone: 'accent', fit: true, after: 0 }));
-        if (n) out.push(disp(String(n), 'xxl', { tone: 'accent', after: 0 }));
+        if (n) out.push(disp(String(n), 'xxxl', { tone: 'accent', after: 0 }));
         out.push(disp(n === 1 ? 'aninho!' : 'anos!', 'md', { italic: true, tone: 'accent', after: 4 }));
         out.push(disp('Vem festejar connosco', 'sm', { uppercase: true, after: 2 }));
         break;
       case 'bodas': {
         const casal = [nome, str(v.celebrante2)].filter(Boolean).join(' & ');
         const b = n ? BODAS.find(([y]) => y === n)?.[1] : undefined;
-        out.push(disp(casal, 'lg', { italic: true, tone: 'accent', fit: true, after: 2 }));
+        out.push(disp(casal, 'xl', { italic: true, tone: 'accent', fit: true, after: 2 }));
         out.push(disp(`têm a alegria de convidar ${trat}\npara celebrar as suas`, 'xs', { italic: true, tone: 'muted', after: 2 }));
         out.push(disp(b ? `Bodas de ${b}` : 'Bodas de Casamento', 'md', { uppercase: true, after: 0 }));
-        if (n) out.push(disp(String(n), 'xxl', { tone: 'accent', after: 0 }));
+        if (n) out.push(disp(String(n), 'xxxl', { tone: 'accent', after: 0 }));
         if (n) out.push(disp(n === 1 ? 'ano de casamento' : 'anos de casamento', 'xs', { uppercase: true, tone: 'muted', after: 2 }));
         break;
       }
       case 'graduacao':
-        out.push(disp(nome, 'lg', { italic: true, tone: 'accent', fit: true, after: 2 }));
+        out.push(disp(nome, 'xl', { italic: true, tone: 'accent', fit: true, after: 3 }));
         out.push(disp(`tem a honra de convidar ${trat}\npara a festa da sua`, 'xs', { italic: true, tone: 'muted', after: 2 }));
         out.push(disp('Graduação', 'xl', { uppercase: true, after: 1 }));
         if (str(v.curso)) out.push(disp(str(v.curso), 'xs', { italic: true, after: 2 }));
@@ -109,24 +109,24 @@ export default defineTemplate({
         out.push(disp(nome, 'xl', { italic: true, tone: 'accent', fit: true, after: 2 }));
         break;
       case 'outro':
-        out.push(disp(nome, 'lg', { italic: true, tone: 'accent', fit: true, after: 2 }));
+        out.push(disp(nome, 'xl', { italic: true, tone: 'accent', fit: true, after: 3 }));
         out.push(disp(`tem o prazer de convidar ${trat} para`, 'xs', { italic: true, tone: 'muted', after: 2 }));
         out.push(disp(str(v.titulo) || 'a sua celebração', 'md', { uppercase: true, fit: true, after: 2 }));
         break;
       default:
-        out.push(disp(nome, 'lg', { italic: true, tone: 'accent', fit: true, after: 2 }));
-        out.push(disp(`tem o prazer de convidar ${trat}\npara celebrar o seu aniversário`, 'xs', { italic: true, tone: 'muted', after: 2 }));
-        if (n) out.push(disp(String(n), 'xxl', { tone: 'accent', after: 0 }));
+        out.push(disp(nome, 'xl', { italic: true, tone: 'accent', fit: true, after: 3 }));
+        out.push(disp(`tem o prazer de convidar ${trat}\npara celebrar o seu aniversário`, 'sm', { italic: true, tone: 'muted', after: 2 }));
+        if (n) out.push(disp(String(n), 'xxxl', { tone: 'accent', after: 0 }));
         if (n) out.push(disp('anos', 'xs', { uppercase: true, tone: 'muted', after: 2 }));
     }
     out.push({ type: 'ornament', style: 'rule' });
     if (str(v.programaExtra)) out.push(disp(str(v.programaExtra), 'xs', { italic: true, after: 3 }));
-    out.push(disp(linhaData(v.dataEvento, v.horaEvento), 'xs', { uppercase: true, weight: 'bold', fit: true, after: 2 }));
-    out.push(disp(str(v.localEvento) || '____________________', 'xs', { weight: 'bold', fit: true, after: 0 }));
+    out.push(disp(linhaData(v.dataEvento, v.horaEvento), 'sm', { uppercase: true, weight: 'bold', fit: true, after: 2 }));
+    out.push(disp(str(v.localEvento) || '____________________', 'sm', { weight: 'bold', fit: true, after: 0 }));
     if (str(v.enderecoEvento)) out.push(disp(str(v.enderecoEvento), 'xs', { tone: 'muted', after: 0 }));
     out.push({ type: 'spacer', size: 'small' });
     out.push(...footer([rsvpLine(v, v.tipo === 'crianca' ? 'Confirmação' : 'Agradecemos a confirmação'), str(v.traje) ? `Traje: ${str(v.traje)}` : '']));
-    return out;
+    return cardScale(out);
   },
   warnings: (v, ctx) => {
     const out: Warning[] = [];

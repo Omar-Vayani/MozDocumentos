@@ -3,8 +3,8 @@
 // action, community court, civil registry) with a short statement of why.
 
 import { defineTemplate, type Block, type Warning } from '../model';
-import { BLANK, dateField, dateLong, exmo, g, l, localField } from './_shared';
-import { assinaturaBlocks, assinaturaFields, comunidadeWarnings, identificacao, neste, numeroComunidadeField, numeroRef, pessoaFields, str, unidadeField } from './_comunidade';
+import { BLANK, dateField, dateLong, exmo, g, l, localField, officialRef } from './_shared';
+import { assinaturaBlocks, assinaturaFields, comunidadeWarnings, identificacao, neste, numeroComunidadeField, pessoaFields, str, unidadeField } from './_comunidade';
 
 const DESTINOS = [
   { value: 'Chefe do Posto Administrativo', label: l('Posto Administrativo', 'Administrative post') },
@@ -77,7 +77,7 @@ export default defineTemplate({
     const blocks: Block[] = [];
     if (v.urgente) blocks.push({ type: 'tags', items: ['URGENTE'] });
     blocks.push(
-      { type: 'reference', ref: `Guia de Encaminhamento ${numeroRef(ctx)}`, place: ctx.place, date: dateLong(v.data) },
+      { type: 'reference', ref: officialRef(ctx, 'Guia de Encaminhamento', v.numero), place: ctx.place, date: dateLong(v.data) },
       { type: 'recipient', salutation: exmo(v.destinatarioGenero), lines: [cargo || BLANK, ent].filter(Boolean) },
       { type: 'subject', text: `Encaminhamento ${g(gen, 'do cidadão', 'da cidadã')} ${str(v.cidadaoNome) || BLANK}` },
       {

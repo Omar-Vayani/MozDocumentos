@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type Warning } from '../model';
 import { cite, dateField, dateLong, g, l, localField, placeDate, workerFields } from './_shared';
-import { clinicianFields, clinicianSignature, clinicianWarnings, hivWarning, mentionsHiv, practitionerHeader } from './_saude';
+import { clinicianFields, clinicianSignature, clinicianWarnings, hivWarning, mentionsHiv } from './_saude';
 
 const TIPO_OPTIONS = [
   { value: 'admissao', label: l('Admissão', 'Pre-employment') },
@@ -8,6 +8,13 @@ const TIPO_OPTIONS = [
   { value: 'regresso', label: l('Regresso ao trabalho (após doença ou acidente)', 'Return to work (after illness or accident)') },
   { value: 'ocasional', label: l('Ocasional (mudança de funções, pedido)', 'Occasional (change of job, on request)') },
 ];
+
+const TIPO_TEXTO: Record<string, string> = {
+  admissao: 'de admissão',
+  periodico: 'periódico',
+  regresso: 'de regresso ao trabalho',
+  ocasional: 'ocasional',
+};
 
 const CONCLUSOES = [
   { value: 'apto', label: 'Apto', en: 'Fit' },
@@ -94,7 +101,7 @@ export default defineTemplate({
 
   blocks: (ctx) => {
     const v = ctx.values;
-    const tipo = TIPO_OPTIONS.find((t) => t.value === v.tipoExame)?.label.pt.toLowerCase() ?? 'admissão';
+    const tipo = TIPO_TEXTO[String(v.tipoExame)] ?? TIPO_TEXTO.admissao;
     const items = [
       { label: 'Empresa', value: `${v.empresaNome || '____________________'}${v.empresaNuit ? ` (NUIT ${v.empresaNuit})` : ''}` },
       { label: g(v.trabalhadorGenero, 'Trabalhador', 'Trabalhadora'), value: `${v.trabalhadorNome || '____________________'}${v.trabalhadorNumero ? ` (n.º ${v.trabalhadorNumero})` : ''}` },
@@ -102,21 +109,24 @@ export default defineTemplate({
     ];
     if (v.trabalhadorDepartamento) items.push({ label: 'Departamento', value: v.trabalhadorDepartamento });
     if (v.trabalhadorDataAdmissao) items.push({ label: 'Data de admissão', value: dateLong(v.trabalhadorDataAdmissao) });
-    items.push({ label: 'Exame', value: `${tipo.charAt(0).toUpperCase()}${tipo.slice(1)}, realizado em ${dateLong(v.dataExame)}` });
+    items.push({ label: 'Exame', value: `Exame ${tipo}, realizado em ${dateLong(v.dataExame)}` });
 
     const blocks: Block[] = [
-      ...practitionerHeader(ctx),
       { type: 'tags', items: ['CONFIDENCIAL'] },
       { type: 'title', text: 'Ficha de Aptidão para o Trabalho' },
       {
         type: 'paragraph',
         id: 'intro',
-        text: `Comunica-se o resultado do exame médico de ${tipo} realizado ${g(v.trabalhadorGenero, 'ao trabalhador abaixo identificado', 'à trabalhadora abaixo identificada')}, nos termos do ${cite('examesMedicosTrabalho')}. Em cumprimento do sigilo médico, esta ficha indica apenas a aptidão para o trabalho.`,
+        text: `Comunica-se o resultado do exame médico ${tipo} realizado ${g(v.trabalhadorGenero, 'ao trabalhador abaixo identificado', 'à trabalhadora abaixo identificada')}, nos termos do ${cite('examesMedicosTrabalho')}. Em cumprimento do sigilo médico, esta ficha indica apenas a aptidão para o trabalho.`,
         en: 'This form gives the result of the medical examination of the worker named below. Under medical confidentiality it states only fitness for work.',
       },
       { type: 'keyValue', items, columns: 1 },
-      { type: 'heading', text: 'Resultado' },
-      { type: 'checklist', columns: 2, items: CONCLUSOES.map((c) => ({ label: c.label, checked: v.conclusao === c.value })) },
+      {
+        type: 'paragraph',
+        id: 'resultado',
+        text: `**Resultado: ${(CONCLUSOES.find((c) => c.value === v.conclusao) ?? CONCLUSOES[0]).label.toUpperCase()}**`,
+        en: `Result: ${(CONCLUSOES.find((c) => c.value === v.conclusao) ?? CONCLUSOES[0]).en}`,
+      },
     ];
     const rest = String(v.restricoes ?? '').trim();
     if (v.conclusao !== 'apto' && rest) {

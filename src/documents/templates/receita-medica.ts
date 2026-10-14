@@ -1,7 +1,7 @@
 import { defineTemplate, type Block, type Values, type Warning } from '../model';
 import { cite, dateField, l, lineItems, localField, placeDate, refField } from './_shared';
 import {
-  clinicianFields, clinicianSignature, clinicianWarnings, countText, patientAge, patientFields, practitionerHeader,
+  clinicianFields, clinicianSignature, clinicianWarnings, countText, patientAge, patientFields,
 } from './_saude';
 
 const FORMA_OPTIONS = [
@@ -162,7 +162,7 @@ export default defineTemplate({
     const v = ctx.values;
     const age = patientAge(v);
     const doente = [
-      { label: 'Doente', value: v.doenteNome || '____________________' },
+      { label: 'Doente', value: v.doenteNome || '______________' },
       { label: 'Idade', value: age != null ? `${age} ${age === 1 ? 'ano' : 'anos'}` : '______' },
       { label: 'Sexo', value: v.doenteGenero === 'F' ? 'Feminino' : 'Masculino' },
     ];
@@ -171,7 +171,6 @@ export default defineTemplate({
     if (v.alergias) doente.push({ label: 'Alergias', value: String(v.alergias) });
 
     const blocks: Block[] = [
-      ...practitionerHeader(ctx),
       { type: 'title', text: 'Receita Médica', subtitle: v.ref ? `N.º ${v.ref}` : undefined },
       { type: 'keyValue', items: doente, columns: 2 },
       { type: 'display', text: 'Rp/', size: 'md', align: 'left', weight: 'bold', tone: 'accent', italic: true, after: 2 },

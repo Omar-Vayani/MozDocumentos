@@ -82,7 +82,7 @@ export default defineTemplate({
     return { itens, valor, taxa, iva, total: r2(valor + iva), contrato, novoContrato: contrato != null ? r2(contrato + valor) : null, prorr, novoFim: v.prazoFimActual && prorr ? addDays(String(v.prazoFimActual), prorr) : '' };
   },
 
-  warnings: (v, { computed: c }) => {
+  warnings: (_v, { computed: c }) => {
     const w: Warning[] = [];
     if (!c.itens.length) w.push({ level: 'warning', field: 'itens', message: l('Descreva os trabalhos a mais.', 'Describe the extra works.') });
     if ((c.itens as Item[]).some((i) => i.preco == null)) w.push({ level: 'warning', field: 'itens', message: l('Indique o preço de cada trabalho antes de o executar.', 'Set the price of each item before doing it.') });
@@ -112,7 +112,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'motivo',
-        text: `Por ${motivo?.pt || 'motivo justificado'}${str(v.motivoDescricao) ? ` (${semPonto(v.motivoDescricao)})` : ''}, torna-se necessário executar os seguintes trabalhos, não previstos no contrato:`,
+        text: `${str(v.motivoDescricao) ? `${semPonto(v.motivoDescricao).replace(/^./, (s) => s.toUpperCase())}${motivo?.pt ? ` (${motivo.pt})` : ''}. Torna-se assim` : `Por ${motivo?.pt || 'motivo justificado'}, torna-se`} necessário executar os seguintes trabalhos, não previstos no contrato:`,
         en: 'The following works, not provided for in the contract, are needed:',
         keepWithNext: true,
       },

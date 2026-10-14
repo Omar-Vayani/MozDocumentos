@@ -1,7 +1,7 @@
 import { formatMonthYear } from '@/lib/format';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, dateField, dateLong, l, localField, placeDate } from './_shared';
-import { daEntidade, entidadeNome, naturezaField, naturezaOf, pessoaFields, semPonto, signatarioFields, str } from './_associacoes';
+import { daEntidade, entidadeNome, naturezaField, naturezaOf, pessoaFields, semPonto, signatarioFields, str, deNome } from './_associacoes';
 
 // Declaração de que uma pessoa é membro de uma associação, clube, ONG ou
 // igreja (for a bank, school, embassy, scholarship, employer…).
@@ -46,7 +46,7 @@ export default defineTemplate({
     const cat = v.categoria === 'simples' ? 'membro' : `membro ${v.categoria || 'efectivo'}`;
     const igreja = n === 'igreja';
     const partes = [
-      `Para os devidos efeitos, declara-se que **${str(v.membroNome) || BLANK}**${str(v.membroNacionalidade) ? `, de nacionalidade ${str(v.membroNacionalidade)}` : ''}${doc}, é ${cat} ${daEntidade(n)} **${nome}** desde ${dateLong(v.desde)}${str(v.numeroMembro) ? `, com o n.º de membro ${str(v.numeroMembro)}` : ''}`,
+      `Para os devidos efeitos, declara-se que **${str(v.membroNome) || BLANK}**${str(v.membroNacionalidade) ? `, de nacionalidade ${str(v.membroNacionalidade)}` : ''}${doc}, é ${cat} ${deNome(n, nome)} desde ${dateLong(v.desde)}${str(v.numeroMembro) ? `, com o n.º de membro ${str(v.numeroMembro)}` : ''}`,
       str(v.quotasAte) ? `, encontrando-se com as quotas regularizadas até ${formatMonthYear(`${v.quotasAte}-01`)}` : '',
       str(v.cargo) ? `, e exerce actualmente o cargo de ${semPonto(v.cargo)}` : '',
       v.participacao !== false ? `, participando regularmente nas ${igreja ? 'actividades e nos cultos da igreja' : 'actividades'} ${daEntidade(n)}` : '',

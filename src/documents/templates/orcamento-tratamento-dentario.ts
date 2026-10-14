@@ -1,7 +1,7 @@
 import { addDays, formatPercent, roundMoney } from '@/lib/format';
 import { defineTemplate, type Block, type Values, type Warning } from '../model';
 import { cite, dateField, dateLong, formatMoney, l, lineItems, localField, money, placeDate, refField } from './_shared';
-import { clinicianFields, clinicianSignature, clinicianWarnings, patientFields, practitionerHeader } from './_saude';
+import { clinicianFields, clinicianSignature, clinicianWarnings, patientFields } from './_saude';
 
 const PAGAMENTO_OPTIONS = [
   { value: 'fase', label: l('No fim de cada fase', 'At the end of each phase'), pt: 'O pagamento é feito no fim de cada fase do tratamento, pelo valor dos actos realizados.' },
@@ -125,7 +125,6 @@ export default defineTemplate({
     const totals: string[][] = [['', 'Subtotal', '', '', formatMoney(c.subtotal, false)]];
     if (c.desconto > 0) totals.push(['', 'Desconto', '', '', `− ${formatMoney(c.desconto, false)}`]);
     if (!v.isentoIva) totals.push(['', `IVA (${formatPercent(c.taxa)})`, '', '', formatMoney(c.iva, false)]);
-    totals.push(['', 'Total (MT)', '', '', formatMoney(c.total, false)]);
 
     const dias = Number(v.validadeDias) || 0;
     const ate = dias > 0 && v.data ? addDays(v.data, dias) : '';
@@ -140,14 +139,12 @@ export default defineTemplate({
     if (ate) cond.push(`Este orçamento é válido até ${dateLong(ate)}.`);
 
     const blocks: Block[] = [
-      ...practitionerHeader(ctx),
       { type: 'title', text: 'Orçamento de Tratamento Dentário', subtitle: v.ref ? `N.º ${v.ref}` : undefined },
       {
         type: 'keyValue',
         columns: 2,
         items: [
           { label: 'Doente', value: v.doenteNome || '____________________' },
-          { label: 'Data', value: dateLong(v.data) },
           ...(v.doenteProcesso ? [{ label: 'Processo n.º', value: String(v.doenteProcesso) }] : []),
           ...(v.doenteTelefone ? [{ label: 'Contacto', value: String(v.doenteTelefone) }] : []),
         ],

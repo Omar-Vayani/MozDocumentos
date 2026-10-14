@@ -22,6 +22,8 @@ export function legalLine(p: Profile): string {
     p.nuit ? `NUIT ${p.nuit}` : '',
     p.nuel ? `NUEL ${p.nuel}` : '',
     p.alvara ? `Alvará ${p.alvara}` : '',
+    // Licence of a clinic, school, pharmacy, contractor… (community appointment acts are not printed here).
+    p.licenca && p.tipoEntidade !== 'comunitaria' ? p.licenca : '',
     cap != null ? `Capital social ${formatMoney(cap)}` : p.capitalSocial ? `Capital social ${p.capitalSocial}` : '',
   ]
     .filter(Boolean)

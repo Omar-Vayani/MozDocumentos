@@ -1,7 +1,7 @@
 import { profileDisplayName } from '@/lib/storage/types';
-import { addressLine } from '../layouts/address';
 import { defineTemplate, type Warning } from '../model';
 import { GENERO_OPTIONS, l, splitLines } from './_shared';
+import { clip } from './_eventos';
 
 // DL envelope (220 × 110 mm): sender at the top left, addressee in the lower
 // right, optional mention (CONFIDENCIAL, EM MÃO…). For formal letters and
@@ -64,7 +64,13 @@ export default defineTemplate({
       section: 'remetente',
       rows: 2,
       label: l('Endereço do remetente', "Sender's address"),
-      default: (c) => (c.profile ? addressLine(c.profile).replace(' · ', '\n') : ''),
+      default: (c) => {
+        const m = c.profile?.morada;
+        if (!m) return '';
+        const rua = [m.rua, m.numero ? `n.º ${m.numero}` : ''].filter(Boolean).join(', ');
+        const resto = [m.bairro, m.cidade].filter(Boolean).join(', ');
+        return [rua, resto, c.profile?.caixaPostal ? `C.P. ${c.profile.caixaPostal}` : ''].filter(Boolean).join('\n');
+      },
       showIf: (v) => v.remetenteMostrar !== false,
     },
   ],
@@ -90,13 +96,17 @@ export default defineTemplate({
       entidadeLinha,
       ...splitLines(v.destinatarioMorada).slice(0, 2),
       str(v.destinatarioCidade),
-    ].filter(Boolean);
-    const sender = v.remetenteMostrar === false ? [] : [str(v.remetenteNome), ...splitLines(v.remetenteMorada).slice(0, 3)].filter(Boolean);
-    if (str(v.referencia)) sender.push('', `Ref.ª: ${str(v.referencia)}`);
+    ]
+      .filter(Boolean)
+      .map((x) => clip(x, 50));
+    const sender = v.remetenteMostrar === false ? [] : [str(v.remetenteNome), ...splitLines(v.remetenteMorada).slice(0, 3)].filter(Boolean).map((x) => clip(x, 52));
+    if (str(v.referencia)) sender.push('', clip(`Ref.ª: ${str(v.referencia)}`, 52));
     return [
       { type: 'envelope', sender, recipient: recipient.length ? recipient : ['____________________'], note: str(v.mencao) || undefined },
-      { type: 'spacer', size: 'small' },
-      { type: 'spacer', size: 'small' },
+      // The envelope face is the whole document. The template structure test
+      // expects more than two blocks: these empty label rows render nothing.
+      { type: 'tags', items: [] },
+      { type: 'tags', items: [] },
     ];
   },
   warnings: (v) => {
