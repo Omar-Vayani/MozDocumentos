@@ -4,7 +4,7 @@ import { l } from './_shared';
 import { entidadeNome, naturezaField, naturezaOf, str } from './_associacoes';
 
 // Cartão de membro, 85 × 55 mm, ten per A4 sheet with cutting marks. One
-// member per document (ten copies), or blank cards to fill in by hand.
+// member (ten copies), a list of members (one card each), or blank cards.
 
 const LINHA = '______________________________';
 
@@ -15,6 +15,12 @@ export default defineTemplate({
   verticalAlign: 'center',
   noBrand: true,
   letterhead: false,
+  repeat: (v) => {
+    if (v.emBranco) return undefined;
+    const lista = membrosDaLista(v.lista);
+    if (!lista.length) return undefined;
+    return lista.map((m) => ({ membroNome: m.nome, numero: m.numero, categoria: m.categoria || str(v.categoria) }));
+  },
   sections: [
     { id: 'entidade', title: l('Entidade', 'Organisation') },
     { id: 'membro', title: l('Membro', 'Member'), personRole: 'outro' },
@@ -28,6 +34,14 @@ export default defineTemplate({
     { name: 'membroNome', type: 'text', section: 'membro', label: l('Nome do membro', 'Member name'), personKey: 'nome', showIf: (v) => !v.emBranco },
     { name: 'numero', type: 'text', section: 'membro', width: 'half', label: l('N.º de membro', 'Member no.'), showIf: (v) => !v.emBranco },
     { name: 'categoria', type: 'text', section: 'membro', width: 'half', label: l('Categoria', 'Category'), default: 'Membro efectivo', showIf: (v) => !v.emBranco },
+    {
+      name: 'lista',
+      type: 'textarea',
+      section: 'membro',
+      label: l('Vários membros (opcional)', 'Several members (optional)'),
+      help: l('Um por linha: nome; n.º; categoria. Imprime um cartão por membro, dez por folha.', 'One per line: name; no.; category. Prints one card per member, ten per sheet.'),
+      showIf: (v) => !v.emBranco,
+    },
     { name: 'validade', type: 'month', section: 'membro', width: 'half', label: l('Válido até', 'Valid until') },
   ],
 
@@ -68,9 +82,22 @@ export default defineTemplate({
   warnings: (v) => {
     const w: Warning[] = [];
     if (str(v.entidadeNome).length > 40) w.push({ level: 'warning', field: 'entidadeNome', message: l('Nome longo: use a sigla para caber no cartão.', 'Long name: use the acronym to fit the card.') });
-    if (!v.emBranco && !str(v.membroNome)) w.push({ level: 'warning', field: 'membroNome', message: l('Indique o nome do membro ou escolha cartões em branco.', 'Enter the member name or choose blank cards.') });
-    w.push({ level: 'info', message: l('Imprime dez cartões iguais numa folha A4, com marcas de corte.', 'Prints ten identical cards on one A4 sheet, with cutting marks.') });
+    if (!v.emBranco && !str(v.membroNome) && !membrosDaLista(v.lista).length) w.push({ level: 'warning', field: 'membroNome', message: l('Indique o nome do membro ou escolha cartões em branco.', 'Enter the member name or choose blank cards.') });
+    w.push(
+      membrosDaLista(v.lista).length && !v.emBranco
+        ? { level: 'info', message: l('Imprime um cartão por membro da lista, dez por folha A4, com marcas de corte.', 'Prints one card per member on the list, ten per A4 sheet, with cutting marks.') }
+        : { level: 'info', message: l('Imprime dez cartões iguais numa folha A4, com marcas de corte.', 'Prints ten identical cards on one A4 sheet, with cutting marks.') },
+    );
     return w;
   },
   personName: (v) => (v.emBranco ? undefined : str(v.membroNome) || undefined),
 });
+
+/** "Nome; n.º; categoria" lines. */
+function membrosDaLista(raw: unknown): { nome: string; numero: string; categoria: string }[] {
+  return str(raw)
+    .split(/\r?\n/)
+    .map((ln) => ln.split(';').map((x) => x.trim()))
+    .filter((p) => p[0])
+    .map(([nome, numero = '', categoria = '']) => ({ nome, numero, categoria }));
+}

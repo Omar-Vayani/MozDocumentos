@@ -124,7 +124,7 @@ export default defineTemplate({
           { label: 'Nível / classe', width: 34 },
           { label: 'Matrícula', width: 16, align: 'right' },
           { label: 'Propina mensal', width: 18, align: 'right' },
-          { label: 'Prestações', width: 12, align: 'center' },
+          { label: 'Meses', width: 12, align: 'center' },
           { label: 'Total anual', width: 20, align: 'right' },
         ],
         rows: (niveis.length ? niveis : [{}, {}]).map((r) => [
@@ -134,7 +134,7 @@ export default defineTemplate({
           num(r.prestacoes) != null ? String(num(r.prestacoes)) : '',
           totalAnual(r),
         ]),
-        note: 'Total anual = matrícula + propina mensal × número de prestações.',
+        note: 'Total anual = matrícula + propina mensal × número de meses.',
       },
     ];
     const emol = rows(v.emolumentos).filter((r) => str(r.servico));

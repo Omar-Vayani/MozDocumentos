@@ -153,7 +153,7 @@ export default defineTemplate({
           `obter aproveitamento escolar com ${semPonto(v.aproveitamentoMinimo) || BLANK};`,
           `entregar à Entidade Concedente, ${str(v.comprovativos) || 'no fim de cada semestre'}, a declaração de aproveitamento ou a pauta com as classificações obtidas;`,
           'comunicar de imediato qualquer mudança de curso ou de instituição, interrupção dos estudos ou atribuição de outra bolsa;',
-          'utilizar os benefícios exclusivamente para os fins da bolsa e manter conduta compatível com a condição de bolseiro.',
+          `utilizar os benefícios exclusivamente para os fins da bolsa e manter conduta compatível com a condição de ${B.toLowerCase()}.`,
         ],
         en: 'Student duties: attendance, minimum results, proof of results, report changes, proper use of benefits.',
       },
@@ -192,7 +192,7 @@ export default defineTemplate({
         id: 'dados',
         heading: 'Dados pessoais e divulgação',
         text: v.publicidade
-          ? `${OB} autoriza a Entidade Concedente a divulgar o seu nome e fotografia na qualidade de bolseiro, podendo retirar a autorização por escrito.`
+          ? `${OB} autoriza a Entidade Concedente a divulgar o seu nome e fotografia na qualidade de ${B.toLowerCase()}, podendo retirar a autorização por escrito.`
           : `A Entidade Concedente usa os dados ${doB} apenas para a gestão da bolsa e não divulga o seu nome ou imagem sem autorização escrita.`,
         en: 'Use of personal data and publicity.',
       },

@@ -5,6 +5,7 @@ import { buildBlocks, buildContext } from '../context';
 import { loadTemplate } from '../registry';
 import { DocumentPdf, pdfMetadata } from './DocumentPdf';
 import { registerFontGeneration } from './fonts';
+import { FORMATS } from './theme';
 import type { RenderInput, RenderResult } from './types';
 
 export async function renderPdf(input: RenderInput): Promise<RenderResult> {
@@ -16,10 +17,20 @@ export async function renderPdf(input: RenderInput): Promise<RenderResult> {
   // One page per item (e.g. a certificate for each participant).
   const variants = template.repeat?.(input.values);
   if (variants && variants.length > 1) {
+    const variantBlocks = variants.map((vals) => {
+      const vctx = buildContext(template, { ...input.values, ...vals }, input.profile, input.legalOverrides, input.today);
+      return buildBlocks(template, vctx, input.overrides);
+    });
+    // Small formats printed on A4 sheets: each item takes one cell.
+    const fmt = FORMATS[template.page ?? 'A4'];
+    const pres = (input.values.__presentation ?? {}) as { imposed?: boolean };
+    if (fmt.sheet && (pres.imposed ?? (template.page === 'A6' || template.page === 'cartao'))) {
+      const doc = <DocumentPdf input={input} template={template} blocks={blocks} refNumber={ref} families={families} variants={variantBlocks} />;
+      return { pdf: await (await pdf(doc).toBlob()).arrayBuffer(), title: template.formalTitle };
+    }
     const pages = variants.map((vals, i) => {
       const vin = { ...input, values: { ...input.values, ...vals } };
-      const vctx = buildContext(template, vin.values, input.profile, input.legalOverrides, input.today);
-      return <DocumentPdf key={i} input={vin} template={template} blocks={buildBlocks(template, vctx, input.overrides)} refNumber={ref} families={families} pageOnly />;
+      return <DocumentPdf key={i} input={vin} template={template} blocks={variantBlocks[i]} refNumber={ref} families={families} pageOnly />;
     });
     const many = <Document {...pdfMetadata(template.formalTitle, input.profile?.firma || input.profile?.nome, ref, undefined, template.category)}>{pages}</Document>;
     const blob = await pdf(many).toBlob();

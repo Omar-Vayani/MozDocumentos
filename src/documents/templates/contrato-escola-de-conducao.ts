@@ -7,7 +7,7 @@ import { isPublicBody } from '@/lib/storage/types';
 import { defineTemplate, type Block, type ClauseItem, type Values, type Warning } from '../model';
 import { BLANK, dateField, dateLong, DOC_TIPO_OPTIONS, employerParty, employerSignature, formatMoney, GENERO_OPTIONS, isF, l, localField, money } from './_shared';
 import { foroField } from './_contratos';
-import { juntar, licenca, num, quantos, rows, semPonto, str } from './_educacao';
+import { licenca, num, quantos, rows, semPonto, str } from './_educacao';
 
 function formandoParty(v: Values): string {
   const f = isF(v.formandoGenero);
@@ -106,13 +106,11 @@ export default defineTemplate({
       {
         id: 'preco',
         heading: 'Preço',
-        text: `${precos.length ? `Os preços são os seguintes: ${juntar(precos.map((r) => `${semPonto(r.descricao).toLowerCase()}, ${money(r.valor) != null ? formatMoney(money(r.valor)) : `${BLANK} MT`}`))}.` : `O preço é de ${BLANK} MT.`} ${(num(v.prestacoes) ?? 1) > 1 ? `O pacote pode ser pago em ${quantos(num(v.prestacoes), 'prestação', 'prestações', true)} mensais, a primeira na assinatura.` : 'O pagamento é feito na assinatura do contrato, contra recibo.'} ${v.incluiTaxas ? 'O preço inclui as taxas de exame devidas ao INATRO.' : 'As taxas de exame e de emissão da carta, devidas ao INATRO, não estão incluídas e são pagas pelo formando.'}`,
+        text: `${precos.length ? `Os preços são os seguintes: ${precos.map((r) => `${semPonto(r.descricao).toLowerCase()}: ${money(r.valor) != null ? formatMoney(money(r.valor)) : `${BLANK} MT`}`).join('; ')}.` : `O preço é de ${BLANK} MT.`} ${(num(v.prestacoes) ?? 1) > 1 ? `O pacote pode ser pago em ${quantos(num(v.prestacoes), 'prestação', 'prestações', true)} mensais, a primeira na assinatura.` : 'O pagamento é feito na assinatura do contrato, contra recibo.'} ${v.incluiTaxas ? 'O preço inclui as taxas de exame devidas ao INATRO.' : 'As taxas de exame e de emissão da carta, devidas ao INATRO, não estão incluídas e são pagas pelo formando.'}`,
         en: 'Prices, payment and whether INATRO exam fees are included.',
       },
       { id: 'exames', heading: 'Exames', text: `A Escola apresenta ${oF} aos exames depois de concluída a formação mínima e de o instrutor considerar que está preparad${f ? 'a' : 'o'}. A repetição de exames e as aulas adicionais necessárias são pagas à parte, aos preços indicados.`, en: 'The school presents the learner to exams after the minimum training; repeats and extra lessons are paid separately.' },
-      { id: 'veiculos', heading: 'Veículos e seguro', text: 'As aulas práticas são dadas em veículos aprovados para o ensino de condução, com duplos comandos, cobertos por seguro que abrange o formando durante as aulas.', en: 'Lessons in approved dual-control vehicles with insurance covering the learner.' },
-      { id: 'instrutores', heading: 'Instrutores', text: `A formação é ministrada por instrutores licenciados${str(v.instrutorLicenca) ? ` (${semPonto(v.instrutorLicenca)})` : ''}. ${OF} pode pedir a mudança de instrutor, com fundamento.`, en: 'Licensed instructors; the learner may ask to change instructor.' },
-      { id: 'faltas', heading: 'Faltas e remarcações', text: `As aulas práticas desmarcadas com menos de ${quantos(num(v.remarcacaoHoras), 'hora', 'horas', true)} de antecedência, ou a que ${oF} falte, consideram-se dadas, salvo motivo de força maior.`, en: 'Lessons cancelled late or missed count as given, except force majeure.' },
+      { id: 'veiculos', heading: 'Veículos, seguro e instrutores', text: `As aulas práticas são dadas em veículos aprovados para o ensino de condução, com duplos comandos, cobertos por seguro que abrange ${oF} durante as aulas, e ministradas por instrutores licenciados${str(v.instrutorLicenca) ? ` (${semPonto(v.instrutorLicenca)})` : ''}. ${OF} pode pedir a mudança de instrutor, com fundamento. As aulas práticas desmarcadas com menos de ${quantos(num(v.remarcacaoHoras), 'hora', 'horas', true)} de antecedência, ou a que ${oF} falte, consideram-se dadas, salvo motivo de força maior.`, en: 'Approved dual-control insured vehicles, licensed instructors; late-cancelled or missed lessons count as given.' },
       { id: 'deveres', heading: `Deveres ${doF}`, text: `${OF} obriga-se a entregar os documentos exigidos para a inscrição, a ser pontual, a seguir as instruções do instrutor e a não conduzir sob a influência de álcool ou de substâncias que afectem a condução.`, en: 'Learner duties: documents, punctuality, follow instructions, no alcohol or drugs.' },
       {
         id: 'desistencia',

@@ -98,7 +98,7 @@ export default defineTemplate({
       ...(str(v.alojamento) ? [{ label: 'Alojamento', value: semPonto(v.alojamento) }] : []),
       ...(money(v.custo) != null ? [{ label: 'Custo por aluno', value: `${formatMoney(money(v.custo))}${str(v.custoInclui) ? ` (inclui ${semPonto(v.custoInclui)})` : ''}` }] : []),
       ...(str(v.levar) ? [{ label: 'Levar', value: semPonto(v.levar) }] : []),
-      { label: 'Seguro', value: v.seguro ? 'Os alunos estão cobertos por seguro durante a actividade.' : 'Sem seguro específico.' },
+      { label: 'Seguro', value: v.seguro ? 'Sim' : 'Não' },
       ...(resp.length ? [{ label: 'Responsáveis', value: resp.map((r) => `${str(r.nome)}${str(r.telefone) ? ` (${str(r.telefone)})` : ''}`).join('; ') }] : []),
     ];
     const blocks: Block[] = [
@@ -118,12 +118,19 @@ export default defineTemplate({
         text: `A participação depende de autorização escrita do Encarregado de Educação, a entregar ao ${semPonto(v.entregarA) || 'Director de Turma'} até ${v.dataDevolucao ? dateLong(v.dataDevolucao) : BLANK}. Os alunos que não participem têm actividades lectivas na Escola. Se o custo for um obstáculo, o Encarregado pode contactar a Direcção.`,
         en: 'Participation requires written consent by the stated date. Pupils who do not go have classes at school. Parents for whom the cost is a problem may contact the school.',
       },
-      { type: 'signatures', placeDate: `${ctx.place}, ${dateLong(v.data)}`, columns: [{ role: str(v.assinante) || 'A Direcção Pedagógica', name: ctx.profile?.representanteNome || undefined, image: 'both' }] },
+      {
+        type: 'paragraph',
+        id: 'assinatura',
+        text: `${ctx.place}, ${dateLong(v.data)}.   ${str(v.assinante) || 'A Direcção Pedagógica'}${ctx.profile?.representanteNome ? `, **${ctx.profile.representanteNome}**` : ''}`,
+        en: 'Place, date and the school management.',
+        align: 'right',
+        editable: false,
+      },
       {
         type: 'box',
         cut: true,
         label: `Autorização do Encarregado de Educação — devolver até ${v.dataDevolucao ? formatDateShort(v.dataDevolucao) : '___/___/______'}`,
-        text: `Eu, ${str(v.encarregadoNome) || '______________________________________'}, portador(a) do BI n.º ________________, Encarregado(a) de Educação do(a) aluno(a) ${str(v.alunoNome) || '______________________________________'}, da ______ classe, turma ______,\n[   ] AUTORIZO   [   ] NÃO AUTORIZO\no meu educando a participar ${masc ? 'no' : 'na'} ${act} a ${semPonto(v.destino) || '________________'}, ${v.dataRegresso ? `de ${formatDateShort(v.dataVisita)} a ${formatDateShort(v.dataRegresso)}` : `no dia ${formatDateShort(v.dataVisita)}`}, nas condições descritas. Autorizo ainda os professores responsáveis a tomar as medidas urgentes necessárias em caso de acidente ou doença, incluindo o transporte a uma unidade sanitária, sendo eu informado(a) de imediato.\nInformações de saúde relevantes (alergias, medicação): ____________________________________________\nContacto em caso de emergência: ______________________\n\nAssinatura: ______________________________     Data: ___/___/______`,
+        text: `Eu, ${str(v.encarregadoNome) || '________________________________'}, Encarregado(a) de Educação do(a) aluno(a) ${str(v.alunoNome) || '________________________________'}, da _____ classe, turma ____,   [   ] AUTORIZO   [   ] NÃO AUTORIZO   o meu educando a participar ${masc ? 'no' : 'na'} ${act} a ${semPonto(v.destino) || '________________'}, ${v.dataRegresso ? `de ${formatDateShort(v.dataVisita)} a ${formatDateShort(v.dataRegresso)}` : `no dia ${formatDateShort(v.dataVisita)}`}, nas condições descritas, e autorizo os professores responsáveis a tomar as medidas urgentes necessárias em caso de acidente ou doença, incluindo o transporte a uma unidade sanitária, sendo eu informado(a) de imediato.\nSaúde (alergias, medicação): ______________________   Contacto de emergência: ______________\nAssinatura: ______________________________     Data: ___/___/______`,
       },
     ];
     return blocks;

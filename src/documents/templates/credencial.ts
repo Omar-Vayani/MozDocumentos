@@ -124,12 +124,15 @@ export default defineTemplate({
     const ge = v.credenciadoGenero;
     const issuer = issuerText(ctx.profile);
     const empresa = ctx.profile?.kind === 'empresa';
+    // Associations, churches, schools and clinics are "instituições", not "empresas".
+    const sec = ctx.profile?.sector;
+    const casa = sec === 'empresa' || sec === 'construcao' || !sec ? 'empresa' : 'instituição';
     const fins = splitLines(v.finalidade).map(noDot);
     const tratamento = g(ge, 'o Senhor', 'a Senhora');
     const doc = v.credenciadoDocNumero
       ? `${g(ge, 'portador', 'portadora')} do ${v.credenciadoDocTipo || 'BI'} n.º ${v.credenciadoDocNumero}${v.credenciadoDocEmissao ? `, emitido em ${dateLong(v.credenciadoDocEmissao)}` : ''}${v.credenciadoDocLocal ? `, em ${v.credenciadoDocLocal}` : ''}`
       : `${g(ge, 'portador', 'portadora')} do BI n.º ${BLANK}`;
-    const cargo = v.credenciadoCargo ? `, ${v.credenciadoCargo}${empresa ? ' desta empresa' : ''}` : '';
+    const cargo = v.credenciadoCargo ? `, ${v.credenciadoCargo}${empresa ? ` desta ${casa}` : ''}` : '';
     const representar = empresa ? 'em seu nome e representação' : 'em meu nome e representação';
     const verbo = empresa ? 'credencia' : 'credencio';
 
@@ -167,7 +170,7 @@ export default defineTemplate({
 
     const rep = employerRep(ctx);
     const issuerSig: SignatureColumn = empresa
-      ? { role: rep.cargo || 'Pela empresa', name: rep.nome || undefined, image: 'both' }
+      ? { role: rep.cargo || `Pela ${casa}`, name: rep.nome || undefined, image: 'both' }
       : { role: g(ctx.profile?.genero, 'O Emitente', 'A Emitente'), name: ctx.profile?.nome || undefined, image: 'both' };
     const columns: SignatureColumn[] = [issuerSig];
     if (v.assinaturaCredenciado) {
@@ -178,7 +181,7 @@ export default defineTemplate({
         type: 'paragraph',
         id: 'fecho',
         text: empresa
-          ? 'Por ser verdade, passa-se a presente credencial, que vai assinada e autenticada com o carimbo em uso nesta empresa.'
+          ? `Por ser verdade, passa-se a presente credencial, que vai assinada e autenticada com o carimbo em uso nesta ${casa}.`
           : 'Por ser verdade, passo a presente credencial, que vai por mim assinada.',
         en: empresa
           ? 'In witness whereof, this authorisation is issued, signed and stamped with the company seal.'

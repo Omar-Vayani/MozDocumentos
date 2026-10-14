@@ -326,7 +326,7 @@ export const SAMPLES: Sample[] = [
       turma: 'C',
       anoLectivo: '2026',
       escolaDestino: 'Escola Primária Completa de Malhampsene',
-      localidadeDestino: 'Cidade da Matola, Província de Maputo',
+      localidadeDestino: 'Matola, Província de Maputo',
       motivo: 'residencia',
       motivoTexto: 'para o bairro de Malhampsene, na Matola',
       vagaConfirmada: true,
@@ -416,7 +416,17 @@ export const SAMPLES: Sample[] = [
   },
   {
     id: 'contrato-escola-de-conducao',
-    who: school,
+    who: () => {
+      const s = school();
+      Object.assign(s.profile, {
+        firma: 'Escola de Condução Avenida, Lda',
+        licenca: 'Alvará INATRO n.º 0217/2022',
+        representanteNome: 'Jaime Matola',
+        representanteCargo: 'Director',
+        email: 'geral@conducaoavenida.co.mz',
+      });
+      return s;
+    },
     values: {
       formandoNome: 'Hélio Manuel Cumbe',
       formandoGenero: 'M',
@@ -440,7 +450,7 @@ export const SAMPLES: Sample[] = [
       incluiTaxas: false,
       remarcacaoHoras: 24,
       restituicao: 'proporcional',
-      instrutorLicenca: 'Instrutor Jaime Matola, licença INATRO n.º 0456',
+      instrutorLicenca: 'Instrutor Paulo Novela, licença INATRO n.º 0456',
     },
   },
 ];

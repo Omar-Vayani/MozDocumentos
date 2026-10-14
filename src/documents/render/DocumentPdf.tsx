@@ -18,9 +18,11 @@ type Props = {
   families?: FontFamilies;
   /** Return only the <Page> (for combining several documents in one PDF). */
   pageOnly?: boolean;
+  /** Different items (numbered vouchers, members' cards) laid out one per cell on imposed sheets. */
+  variants?: Block[][];
 };
 
-export function DocumentPdf({ input, template, blocks, refNumber, families, pageOnly }: Props) {
+export function DocumentPdf({ input, template, blocks, refNumber, families, pageOnly, variants }: Props) {
   const { profile, assets } = input;
   const branding = profile?.branding;
   const presentation = (input.values.__presentation ?? {}) as Presentation;
@@ -332,7 +334,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
     const SH = (landscape ? 210 : 297) * MM;
     const ox = (SW - cols * PW) / 2;
     const oy = (SH - rows * PH) / 2;
-    const cell = (i: number) => (
+    const cell = (i: number, cellBlocks: Block[] = blocks) => (
       <View
         key={i}
         style={{
@@ -351,7 +353,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
       >
         {frame ? <Frame kind={frame} w={PW} h={PH} inset={Math.max(3, fmt.margin * 0.45) * MM} accent={theme.plain ? theme.text : theme.accent} /> : null}
         {lhEnv ? publicBody ? <RepublicaHeader env={lhEnv} /> : professional ? <ProfessionalHeader env={lhEnv} /> : <Letterhead env={lhEnv} layout={layout === 'faixa' ? 'minimo' : layout} /> : null}
-        {renderBlocks(blocks, blockEnv)}
+        {renderBlocks(cellBlocks, blockEnv)}
       </View>
     );
     const marks: { x: number; y: number; w: number; h: number }[] = [];
@@ -369,9 +371,14 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
       if (roomX) marks.push({ x: ox - m - len, y, w: len, h: 0.3 }, { x: ox + cols * PW + m, y, w: len, h: 0.3 });
       else if (r > 0 && r < rows) marks.push({ x: ox, y, w: cols * PW, h: 0.25 });
     }
-    const sheet = (
-      <Page size={[SW, SH]} style={{ fontFamily: theme.font, fontSize: theme.bodySize, color: theme.text, lineHeight: theme.lineHeight }}>
-        {Array.from({ length: cols * rows }, (_, i) => cell(i))}
+    const perSheet = cols * rows;
+    // The same item repeated across the sheet, or several items filling sheets in order.
+    const sheets = variants && variants.length > 1
+      ? Array.from({ length: Math.ceil(variants.length / perSheet) }, (_, s) => variants.slice(s * perSheet, (s + 1) * perSheet))
+      : [Array.from({ length: perSheet }, () => blocks)];
+    const sheet = sheets.map((items, s) => (
+      <Page key={s} size={[SW, SH]} style={{ fontFamily: theme.font, fontSize: theme.bodySize, color: theme.text, lineHeight: theme.lineHeight }}>
+        {items.map((b, i) => cell(i, b))}
         {marks.map((k, i) => (
           <View key={`m${i}`} style={{ position: 'absolute', left: k.x, top: k.y, width: k.w, height: k.h, backgroundColor: '#9aa0a6' }} />
         ))}
@@ -381,7 +388,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
           </Text>
         ) : null}
       </Page>
-    );
+    ));
     return <Document {...pdfMetadata(template.formalTitle, profileDisplayName(profile), refNumber, docId, template.category)}>{sheet}</Document>;
   }
 
