@@ -383,7 +383,7 @@ export default defineTemplate({
         type: 'box',
         label: 'Aceitação da proposta',
         dashed: true,
-        text: `Eu, **${v.trabalhadorNome || BLANK}**, declaro que aceito a presente proposta de emprego, nas condições nela descritas, e que me apresentarei ao serviço em ${dateLong(inicio)}.\n\nData: ____/____/________${'\u00a0'.repeat(10)}${g(ge, 'O Candidato', 'A Candidata')}: ________________________________`,
+        text: `Eu, **${v.trabalhadorNome || BLANK}**, declaro que aceito a presente proposta de emprego, nas condições nela descritas, e que me apresentarei ao serviço em ${dateLong(inicio)}.\n\nData: ____/____/________          ${g(ge, 'O Candidato', 'A Candidata')}: ________________________________`,
       },
     );
     return blocks;

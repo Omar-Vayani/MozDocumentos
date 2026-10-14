@@ -9,18 +9,41 @@ import { FORMATS } from './theme';
 import { pageOf } from '../model';
 import type { RenderInput, RenderResult } from './types';
 
-export async function renderPdf(input: RenderInput): Promise<RenderResult> {
+/**
+ * Characters the embedded fonts cannot draw (control characters, zero-width
+ * marks, typographic spaces) are cleaned from everything the user typed or
+ * pasted, and from the built text: some crash the PDF engine.
+ */
+const cleanString = (s: string) =>
+  s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\r\u200B-\u200D\u2060\uFEFF]/g, '').replace(/[\u2000-\u200A\u202F\u205F]/g, (c) => (c === '\u202F' ? '\u00A0' : ' '));
+
+export function cleanText<T>(v: T): T {
+  if (typeof v === 'string') return cleanString(v) as T;
+  if (Array.isArray(v)) return v.map(cleanText) as T;
+  if (v && typeof v === 'object' && Object.getPrototypeOf(v) === Object.prototype) {
+    return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, cleanText(x)])) as T;
+  }
+  return v;
+}
+
+/** Values and profile with unprintable characters removed (assets are left as they are). */
+function cleanInput(input: RenderInput): RenderInput {
+  return { ...input, values: cleanText(input.values), profile: input.profile ? cleanText(input.profile) : input.profile, overrides: cleanText(input.overrides) };
+}
+
+export async function renderPdf(raw: RenderInput): Promise<RenderResult> {
+  const input = cleanInput(raw);
   const families = registerFontGeneration(input.fontBase);
   const template = await loadTemplate(input.templateId);
   const ctx = buildContext(template, input.values, input.profile, input.legalOverrides, input.today);
-  const blocks = buildBlocks(template, ctx, input.overrides);
+  const blocks = cleanText(buildBlocks(template, ctx, input.overrides));
   const ref = typeof input.values.ref === 'string' ? input.values.ref : undefined;
   // One page per item (e.g. a certificate for each participant).
   const variants = template.repeat?.(input.values);
   if (variants && variants.length > 1) {
     const variantBlocks = variants.map((vals) => {
-      const vctx = buildContext(template, { ...input.values, ...vals }, input.profile, input.legalOverrides, input.today);
-      return buildBlocks(template, vctx, input.overrides);
+      const vctx = buildContext(template, { ...input.values, ...cleanText(vals) }, input.profile, input.legalOverrides, input.today);
+      return cleanText(buildBlocks(template, vctx, input.overrides));
     });
     // Small formats printed on A4 sheets: each item takes one cell.
     const format = pageOf(template, input.values);
@@ -66,10 +89,11 @@ export async function renderBatchPdf(inputs: RenderInput[], title: string): Prom
   if (!inputs.length) throw new Error('empty batch');
   const families = registerFontGeneration(inputs[0].fontBase);
   const pages = [];
-  for (const [i, input] of inputs.entries()) {
+  for (const [i, raw] of inputs.entries()) {
+    const input = cleanInput(raw);
     const template = await loadTemplate(input.templateId);
     const ctx = buildContext(template, input.values, input.profile, input.legalOverrides, input.today);
-    const blocks = buildBlocks(template, ctx, input.overrides);
+    const blocks = cleanText(buildBlocks(template, ctx, input.overrides));
     const ref = typeof input.values.ref === 'string' ? input.values.ref : undefined;
     pages.push(<DocumentPdf key={i} input={input} template={template} blocks={blocks} refNumber={ref} families={families} pageOnly />);
   }

@@ -73,7 +73,7 @@ export function recusaBox(text: string, segunda = 'Testemunha'): Block {
     type: 'box',
     label: 'Recusa de recepção',
     dashed: true,
-    text: `${text}\n\nTestemunha: ____________________${'\u00a0'.repeat(4)}${segunda}: ____________________`,
+    text: `${text}\n\nTestemunha: ____________________    ${segunda}: ____________________`,
   };
 }
 

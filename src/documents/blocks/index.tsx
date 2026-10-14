@@ -165,7 +165,8 @@ function SignatureColumnView({
             style={{
               position: 'absolute',
               right: 0,
-              bottom: -stampH * 0.2,
+              // Overlaps the signature line a little, never the printed name below it.
+              bottom: -Math.min(stampH * 0.2, 4),
               height: stampH,
               width: (stampH * env.stamp.width) / Math.max(1, env.stamp.height),
               maxWidth: '75%',
@@ -487,7 +488,13 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       const rowHeight = (r: { label: string; value: string }[]) =>
         Math.max(...r.map((it) => textLines(theme, oneLine(it.value), cols === 2 ? 0.27 : 0.6, theme.bodySize - 1))) * (theme.bodySize - 1) * 1.4 + 6;
       const row = (r: { label: string; value: string }[], i: number) => (
-        <View key={`r${i}`} wrap={!canKeep(theme, rowHeight(r))} style={{ flexDirection: 'row' }}>
+        <View
+          key={`r${i}`}
+          wrap={!canKeep(theme, rowHeight(r))}
+          // The last row never starts a page alone: it takes the one before with it.
+          minPresenceAhead={i === rows.length - 2 && rows.length > 2 ? rowHeight(rows[rows.length - 1]) : undefined}
+          style={{ flexDirection: 'row' }}
+        >
           {r.map((it, j) => cell(it, i * cols + j))}
         </View>
       );

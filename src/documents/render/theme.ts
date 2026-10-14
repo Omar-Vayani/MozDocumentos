@@ -115,7 +115,8 @@ export function makeTheme(
     // Official documents and court filings are printed in black.
     heading: b.accentHeadings === false || plain || peca || family === 'oficio' ? '#111111' : accent,
     wash: tint(accent, 0.955),
-    logoScale: clamp(b.logoScale, 0.4, 2.5, 1),
+    // Fitting a document to one page also shrinks the letterhead logo.
+    logoScale: clamp(b.logoScale, 0.4, 2.5, 1) * (1 - fit * 0.18),
     signatureScale: clamp(presentation.signatureScale ?? b.signatureScale, 0.4, 3, 1),
     stampScale: clamp(presentation.stampScale ?? b.stampScale, 0.4, 3, 1),
     family,
