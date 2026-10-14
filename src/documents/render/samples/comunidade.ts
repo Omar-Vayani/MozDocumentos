@@ -139,10 +139,10 @@ export const SAMPLES: Sample[] = [
       cidadaoEstadoCivil: 'união de facto',
       numero: '052',
       membros: [
-        { nome: 'Paulo Jorge Mabunda', parentesco: 'companheiro(a)', nascimento: '1990-11-02', documento: '110101112223D', ocupacao: 'Electricista' },
-        { nome: 'Ana Paulo Mabunda', parentesco: 'filho(a)', nascimento: '2015-06-20', documento: '', ocupacao: 'Estudante' },
-        { nome: 'Rui Paulo Mabunda', parentesco: 'filho(a)', nascimento: '2019-01-14', documento: '', ocupacao: 'Estudante' },
-        { nome: 'Marta Sitoe', parentesco: 'pai/mãe', nascimento: '1958-08-30', documento: '110200334455E', ocupacao: 'Doméstica' },
+        { nome: 'Paulo Jorge Mabunda', parentesco: 'companheiro(a)', sexo: 'M', nascimento: '1990-11-02', documento: '110101112223D', ocupacao: 'Electricista' },
+        { nome: 'Ana Paulo Mabunda', parentesco: 'filho(a)', sexo: 'F', nascimento: '2015-06-20', documento: '', ocupacao: 'Estudante' },
+        { nome: 'Rui Paulo Mabunda', parentesco: 'filho(a)', sexo: 'M', nascimento: '2019-01-14', documento: '', ocupacao: 'Estudante' },
+        { nome: 'Marta Sitoe', parentesco: 'pai/mãe', sexo: 'F', nascimento: '1958-08-30', documento: '110200334455E', ocupacao: 'Doméstica' },
       ],
       finalidade: 'candidatura a bolsa de estudo do Instituto de Bolsas de Estudo',
     },
@@ -358,6 +358,24 @@ export const SAMPLES: Sample[] = [
     },
   },
   {
+    id: 'convocatoria-reuniao-comunitaria',
+    name: 'convocatoria-reuniao-comunitaria-a5',
+    who: community,
+    values: {
+      ...base,
+      formato: 'A5',
+      tipo: 'campanha',
+      actividade: 'campanha de limpeza das valas de drenagem',
+      destinatarios: 'todos os moradores dos Quarteirões n.º 10 a 14',
+      dataReuniao: '2026-10-24',
+      hora: '07:00',
+      localReuniao: 'Concentração junto ao mercado do bairro',
+      agenda: [{ ponto: 'Limpeza das valas da Rua da Resistência' }, { ponto: 'Recolha dos resíduos para o contentor municipal' }],
+      trazer: 'enxadas, pás e sacos',
+      mobilizacao: true,
+    },
+  },
+  {
     id: 'guia-de-encaminhamento',
     who: community,
     values: {
@@ -416,3 +434,4 @@ export const SAMPLES: Sample[] = [
     },
   },
 ];
+

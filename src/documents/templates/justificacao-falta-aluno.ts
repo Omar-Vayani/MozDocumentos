@@ -7,7 +7,7 @@
 import { diffDays } from '@/lib/format';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, dateField, dateLong, exmo, GENERO_OPTIONS, isF, l, localField } from './_shared';
-import { semPonto, str } from './_educacao';
+import { intervalo, semPonto, str } from './_educacao';
 
 const MOTIVOS: Record<string, string> = {
   doenca: 'doença',
@@ -127,7 +127,7 @@ export default defineTemplate({
     const dest = str(v.destinatario) || 'Director de Turma';
     const destF = fd ? dest.replace(/^Director/, 'Directora').replace(/^Professor/, 'Professora').replace(/^Coordenador/, 'Coordenadora').replace('Pedagógico', 'Pedagógica') : dest;
     const turma = [str(v.classe) ? `${semPonto(v.classe).replace(/\s*classe$/i, '')} classe` : '', str(v.turma) ? `turma ${str(v.turma)}` : ''].filter(Boolean).join(', ');
-    const dias = v.dataFim && v.dataFim !== v.dataInicio ? `de ${dateLong(v.dataInicio)} a ${dateLong(v.dataFim)}` : `no dia ${dateLong(v.dataInicio)}`;
+    const dias = v.dataFim && v.dataFim !== v.dataInicio ? intervalo(str(v.dataInicio), str(v.dataFim)) : `no dia ${dateLong(v.dataInicio)}`;
     const aulas = str(v.disciplinas) ? `às aulas de ${semPonto(v.disciplinas)}` : 'a todas as aulas';
     const motivo = [MOTIVOS[str(v.motivo)] ?? '', semPonto(v.motivoTexto)].filter(Boolean).join(' — ') || BLANK;
     const quem = proprio
@@ -148,7 +148,7 @@ export default defineTemplate({
         placeDate: `${ctx.place}, ${dateLong(v.data)}`,
         columns: [{ role: proprio ? (fa ? 'A Aluna' : 'O Aluno') : fe ? 'A Encarregada de Educação' : 'O Encarregado de Educação', name: (proprio ? str(v.alunoNome) : str(v.encarregadoNome)) || undefined, detail: str(v.encarregadoTelefone) ? `Tel. ${str(v.encarregadoTelefone)}` : undefined }],
       },
-      { type: 'box', label: `Despacho ${fd ? 'da' : 'do'} ${destF}`, text: '[   ] Justificada     [   ] Não justificada\nData: ___/___/______     Assinatura: ____________________', dashed: true },
+      { type: 'box', label: `Despacho ${fd ? 'da' : 'do'} ${destF}`, text: '☐ Justificada      ☐ Não justificada\nData: ___/___/______     Assinatura: ____________________', dashed: true },
     );
     return blocks;
   },

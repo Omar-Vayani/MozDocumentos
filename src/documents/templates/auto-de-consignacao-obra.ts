@@ -128,7 +128,7 @@ export default defineTemplate({
       pontos.push({ id: 'referencias', heading: 'Implantação e referências', text: `Foram verificados e aceites os seguintes elementos de implantação: ${semPonto(v.referencias)}.`, en: 'Setting-out references were checked and accepted.' });
     }
     if (docs.length) {
-      pontos.push({ id: 'documentos', heading: 'Documentos entregues', text: 'O Empreiteiro declara ter recebido os seguintes elementos:', items: docs.map((d) => semPonto(d)), en: 'The Contractor acknowledges receipt of the listed documents.' });
+      pontos.push({ id: 'documentos', heading: 'Documentos entregues', text: 'O Empreiteiro declara ter recebido os seguintes elementos:', items: docs.map((d, i) => `${semPonto(d)}${i === docs.length - 1 ? '.' : ';'}`), en: 'The Contractor acknowledges receipt of the listed documents.' });
     }
     pontos.push({
       id: 'licenca',

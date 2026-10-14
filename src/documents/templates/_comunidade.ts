@@ -75,7 +75,7 @@ export function cargoComArtigo(v: Values): string {
   return comArtigo(str(v.assinanteCargo) || 'Secretário do Bairro', v.assinanteGenero) || 'O Secretário do Bairro';
 }
 
-const generoDoCargo = (cargo: string): 'M' | 'F' =>
+export const generoDoCargo = (cargo: string): 'M' | 'F' =>
   /^(Secretária|Rainha|Régula|Chefe da|Líder comunitária|Presidente da Comissão)/i.test(cargo.trim()) || /^\S+a\s+d[oa]\s/i.test(cargo.trim()) ? 'F' : 'M';
 
 // ---------------------------------------------------------------- Fields
@@ -159,9 +159,13 @@ export function identificacao(v: Values, prefix = 'cidadao', opts: { upper?: boo
   else if (get(v, prefix, 'Idade')) parts.push(`de ${get(v, prefix, 'Idade')} anos de idade`);
   if (get(v, prefix, 'Nacionalidade')) parts.push(`de nacionalidade ${get(v, prefix, 'Nacionalidade')}`);
   const ec = get(v, prefix, 'EstadoCivil');
-  if (ec) parts.push(f ? estadoCivilF(ec) : ec);
+  if (ec) parts.push(ec === 'união de facto' ? 'em união de facto' : f ? estadoCivilF(ec) : ec);
   const docN = get(v, prefix, 'DocNumero');
-  if (docN) {
+  // A blank form keeps a line for the ID number, unless "no document" was chosen.
+  if (!docN && `${prefix}DocTipo` in v && get(v, prefix, 'DocTipo')) {
+    const tipo = get(v, prefix, 'DocTipo');
+    parts.push(`${f ? 'portadora' : 'portador'} ${/^(Cédula|Certidão)/.test(tipo) ? 'da' : 'do'} ${tipo} n.º ____________`);
+  } else if (docN) {
     const tipo = get(v, prefix, 'DocTipo') || 'BI';
     const art = /^(Cédula|Certidão)/.test(tipo) ? 'da' : 'do';
     const em = get(v, prefix, 'DocEmissao') ? `, ${/^(Cédula|Certidão)/.test(tipo) ? 'emitida' : 'emitido'} em ${dateLong(get(v, prefix, 'DocEmissao'))}` : '';

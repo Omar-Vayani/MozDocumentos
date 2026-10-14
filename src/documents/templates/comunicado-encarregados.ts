@@ -6,7 +6,7 @@ import { formatDateShort } from '@/lib/format';
 import { isPublicBody } from '@/lib/storage/types';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, dateField, dateLong, l, localField, splitLines } from './_shared';
-import { rows, semPonto, str } from './_educacao';
+import { intervalo, rows, semPonto, str } from './_educacao';
 
 export default defineTemplate({
   id: 'comunicado-encarregados',
@@ -88,7 +88,7 @@ export default defineTemplate({
       preset.push({
         type: 'paragraph',
         id: 'interrupcao',
-        text: `Comunicamos que, ${str(v.motivo) ? `devido a ${semPonto(v.motivo)}` : 'por motivo de força maior'}, as aulas ficam suspensas ${v.dataInicio && v.dataFim && v.dataInicio !== v.dataFim ? `de ${dateLong(v.dataInicio)} a ${dateLong(v.dataFim)}` : `no dia ${dateLong(v.dataInicio || v.dataFim)}`}${v.dataRetoma ? `, retomando no dia ${dateLong(v.dataRetoma)}, no horário habitual` : ''}.`,
+        text: `Comunicamos que, ${str(v.motivo) ? `devido a ${semPonto(v.motivo)}` : 'por motivo de força maior'}, as aulas ficam suspensas ${v.dataInicio && v.dataFim && v.dataInicio !== v.dataFim ? intervalo(str(v.dataInicio), str(v.dataFim)) : `no dia ${dateLong(v.dataInicio || v.dataFim)}`}${v.dataRetoma ? `, retomando no dia ${dateLong(v.dataRetoma)}, no horário habitual` : ''}.`,
         en: 'Classes are suspended for the stated period and resume on the stated date.',
       });
     if (tema === 'calendario')

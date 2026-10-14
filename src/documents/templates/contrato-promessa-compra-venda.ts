@@ -435,8 +435,8 @@ export default defineTemplate({
     ];
     if (c.recheio.length) {
       blocks.push(
-        { type: 'pageBreakHint' },
-        { type: 'title', text: 'Anexo I — Recheio', subtitle: 'Bens móveis incluídos no preço' },
+        { type: 'spacer', size: 'large' },
+        { type: 'heading', text: 'Anexo I — Recheio (bens móveis incluídos no preço)', align: 'center', keepWithNext: true },
         {
           type: 'table',
           columns: [

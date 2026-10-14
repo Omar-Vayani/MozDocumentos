@@ -3,7 +3,7 @@
 // administrator and the decisions, with votes counted by share.
 
 import { defineTemplate, type Block, type Warning } from '../model';
-import { BLANK, cite, dateLong, l, lineItems, money, splitLines } from './_shared';
+import { BLANK, cite, dateLong, GENERO_OPTIONS, isF, l, lineItems, money, splitLines } from './_shared';
 import { num, semPonto, str } from './_contratos';
 import { condominioFields, dataPorExtenso, edificio, hora, mt, permil, permilNum, r2 } from './_construcao';
 
@@ -43,7 +43,9 @@ export default defineTemplate({
     { name: 'meioConvocatoria', type: 'text', section: 'reuniao', width: 'half', default: 'carta registada', label: l('Meio da convocatória', 'Notice sent by') },
     { name: 'ordemTrabalhos', type: 'textarea', section: 'reuniao', required: true, rows: 4, label: l('Ordem de trabalhos (um ponto por linha)', 'Agenda (one item per line)') },
     { name: 'presidente', type: 'text', section: 'reuniao', width: 'half', required: true, label: l('Presidente da mesa', 'Chair') },
+    { name: 'presidenteGenero', type: 'radio', section: 'reuniao', width: 'half', label: l('Tratamento (presidente)', 'Chair: form of address'), options: GENERO_OPTIONS, default: 'M' },
     { name: 'secretario', type: 'text', section: 'reuniao', width: 'half', required: true, label: l('Secretário', 'Secretary') },
+    { name: 'secretarioGenero', type: 'radio', section: 'reuniao', width: 'half', label: l('Tratamento (secretário)', 'Secretary: form of address'), options: GENERO_OPTIONS, default: 'M' },
 
     {
       name: 'fraccoes',
@@ -154,7 +156,7 @@ export default defineTemplate({
         keepWithNext: true,
       },
       { type: 'list', style: 'numeric', items: pontos.length ? pontos.map(semPonto) : [BLANK] },
-      { type: 'paragraph', id: 'mesa', text: `Presidiu à reunião ${semPonto(v.presidente) || BLANK}, secretariado por ${semPonto(v.secretario) || BLANK}.`, en: 'Chair and secretary.' },
+      { type: 'paragraph', id: 'mesa', text: `A reunião foi presidida por ${semPonto(v.presidente) || BLANK} e secretariada por ${semPonto(v.secretario) || BLANK}.`, en: 'Chair and secretary.' },
     ];
     if (c.fr.length) {
       blocks.push({
@@ -194,9 +196,9 @@ export default defineTemplate({
           columns: [
             { label: 'Fracção', width: 0.9 },
             { label: 'Condómino', width: 3 },
-            { label: 'Permilagem', width: 1.1, align: 'right' },
+            { label: '‰', width: 0.8, align: 'right' },
             { label: 'Quota (MT)', width: 1.2, align: 'right' },
-            { label: 'Fundo reserva', width: 1.2, align: 'right' },
+            { label: 'Reserva (MT)', width: 1.3, align: 'right' },
             { label: 'Total/mês (MT)', width: 1.3, align: 'right' },
           ],
           rows: c.quotas.map((q: Fr & { mensal: number; fundo: number; totalMes: number }) => [q.fraccao, q.condomino, permilNum(q.permilagem), mt(q.mensal), mt(q.fundo), mt(q.totalMes)]),
@@ -221,11 +223,11 @@ export default defineTemplate({
     blocks.push({
       type: 'paragraph',
       id: 'encerramento',
-      text: `Nada mais havendo a tratar, foi encerrada a sessão${str(v.horaEncerramento) ? ` ${hora(v.horaEncerramento, 'pelas')}` : ''}, dela se lavrando a presente acta, que, depois de lida e aprovada, vai ser assinada pelo Presidente e pelo Secretário${v.assinaturaTodos ? ' e pelos condóminos presentes' : ''}.${v.notificarAusentes ? ' As deliberações são comunicadas aos condóminos ausentes por carta registada.' : ''}`,
+      text: `Nada mais havendo a tratar, foi encerrada a sessão${str(v.horaEncerramento) ? ` ${hora(v.horaEncerramento, 'pelas')}` : ''}, dela se lavrando a presente acta, que, depois de lida e aprovada, vai ser assinada ${isF(v.presidenteGenero) ? 'pela Presidente' : 'pelo Presidente'} e ${isF(v.secretarioGenero) ? 'pela Secretária' : 'pelo Secretário'}${v.assinaturaTodos ? ' e pelos condóminos presentes' : ''}.${v.notificarAusentes ? ' As deliberações são comunicadas aos condóminos ausentes por carta registada.' : ''}`,
       en: 'Closing of the meeting and signature of the minutes.',
       keepWithNext: true,
     });
-    blocks.push({ type: 'signatures', columns: [{ role: 'O Presidente da Mesa', name: str(v.presidente) || undefined }, { role: 'O Secretário', name: str(v.secretario) || undefined }] });
+    blocks.push({ type: 'signatures', columns: [{ role: isF(v.presidenteGenero) ? 'A Presidente da Mesa' : 'O Presidente da Mesa', name: str(v.presidente) || undefined }, { role: isF(v.secretarioGenero) ? 'A Secretária' : 'O Secretário', name: str(v.secretario) || undefined }] });
     if (v.assinaturaTodos) {
       const presentes = (c.fr as Fr[]).filter((f) => f.situacao !== 'ausente');
       blocks.push({

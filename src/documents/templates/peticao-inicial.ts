@@ -317,7 +317,6 @@ export default defineTemplate({
         id: 'nestesTermos',
         text: `Nestes termos e nos melhores de Direito que V. Ex.ª doutamente suprirá, deve a presente acção ser julgada procedente, por provada, e, em consequência, ser ${oReu} ${condenado} a pagar ${ao}:`,
         en: 'On these grounds, the action should be upheld and the defendant ordered to pay the claimant:',
-        keepWithNext: true,
       },
       { type: 'list', style: 'alpha', items: pedidos },
       {

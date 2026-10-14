@@ -115,9 +115,8 @@ export default defineTemplate({
     const convoca = v.convocante === 'condominos' ? `Os condóminos ${semPonto(v.convocantesNomes) || BLANK}, nos termos da lei, convocam` : 'Nos termos do Código Civil e do Regulamento do Regime Jurídico do Condomínio, convoco';
     const blocks: Block[] = [
       { type: 'reference', ref: v.ref, place: ctx.place, date: dateLong(v.data) },
-      v.circular
-        ? { type: 'recipient', lines: [`Aos Senhores Condóminos do ${ed}`, semPonto(v.edificioMorada)].filter(Boolean) }
-        : { type: 'recipient', salutation: exmo(v.destinatarioGenero), lines: [str(v.destinatarioNome) || BLANK, `Condómino da fracção ${str(v.destinatarioFraccao) || BLANK} do ${ed}`] },
+      // A circular to all owners is addressed in the salutation and the text; a single owner gets a recipient block.
+      ...(v.circular ? [] : [{ type: 'recipient', salutation: exmo(v.destinatarioGenero), lines: [str(v.destinatarioNome) || BLANK, `Condómino da fracção ${str(v.destinatarioFraccao) || BLANK} do ${ed}`] } as Block]),
       { type: 'subject', text: `Convocatória — Assembleia ${tipo} de Condóminos` },
       { type: 'salutation', text: v.circular ? 'Exmos. Senhores Condóminos,' : `${exmo(v.destinatarioGenero)},` },
       {

@@ -418,6 +418,8 @@ export const SAMPLES: Sample[] = [
       ordemTrabalhos: 'Apreciação e votação das contas de 2026\nOrçamento para 2027 e fixação das quotas\nEleição do administrador\nReparação da bomba de água',
       presidente: 'Ana Paula Mondlane',
       secretario: 'Carla Sitoe Matsinhe',
+      presidenteGenero: 'F',
+      secretarioGenero: 'F',
       fraccoes: [
         { fraccao: 'A', condomino: 'Ana Paula Mondlane', permilagem: 120, situacao: 'presente' },
         { fraccao: 'B', condomino: 'Jorge Manuel Cumbe', permilagem: 120, situacao: 'presente' },

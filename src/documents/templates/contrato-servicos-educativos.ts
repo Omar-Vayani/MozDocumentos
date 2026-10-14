@@ -10,7 +10,7 @@ import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type ClauseItem, type TemplateContext, type Values, type Warning } from '../model';
 import { BLANK, dateField, dateLong, FORMA_PAGAMENTO_OPTIONS, formatMoney, g, l, localField, money } from './_shared';
 import {
-  alunoFields, encarregadoFields, estudante, juntar, licenca, mesAno, NIVEL_OPTIONS, NIVEL_TEXTO, num, pct, quantos, rows, semPonto, str,
+  alunoFields, encarregadoFields, estudante, intervalo, juntar, licenca, mesAno, NIVEL_OPTIONS, NIVEL_TEXTO, num, pct, quantos, rows, semPonto, str,
 } from './_educacao';
 import { foroField } from './_contratos';
 import { inteiroPorExtenso, MAX_EXTENSO, numeroPorExtenso } from '@/lib/format';
@@ -291,7 +291,7 @@ export default defineTemplate({
       {
         id: 'duracao',
         heading: 'Duração',
-        text: `O presente contrato vigora de ${dateLong(v.dataInicio)} a ${dateLong(v.dataFim)}, correspondente ao ano lectivo. A continuação no ano seguinte depende de nova matrícula ou renovação, nas condições então em vigor.`,
+        text: `O presente contrato vigora ${v.dataInicio && v.dataFim ? intervalo(str(v.dataInicio), str(v.dataFim)) : `de ${dateLong(v.dataInicio)} a ${dateLong(v.dataFim)}`}, correspondente ao ano lectivo. A continuação no ano seguinte depende de nova matrícula ou renovação, nas condições então em vigor.`,
         en: 'The contract runs for the school year; continuing next year requires a new enrolment or renewal.',
       },
     ];

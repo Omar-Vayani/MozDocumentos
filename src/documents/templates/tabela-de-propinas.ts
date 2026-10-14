@@ -144,14 +144,12 @@ export default defineTemplate({
         { type: 'table', columns: [{ label: 'Serviço', width: 50 }, { label: 'Valor', width: 20, align: 'right' }, { label: 'Observação', width: 30 }], rows: emol.map((r) => [str(r.servico), m(r.valor), str(r.obs)]) },
       );
     blocks.push({ type: 'heading', text: 'Condições' }, { type: 'list', style: 'numeric', items: condicoes });
-    if (v.comunicada)
-      blocks.push({
-        type: 'paragraph',
-        id: 'comunicacao',
-        text: `A presente tabela foi comunicada à ${semPonto(v.entidade) || BLANK}${v.comunicadaEm ? ` em ${dateLong(v.comunicadaEm)}` : ''}, nos termos da legislação aplicável ao ensino privado.`,
-        en: 'This schedule was reported to the education authority under the private-education rules.',
-      });
-    if (v.vigorDesde) blocks.push({ type: 'paragraph', id: 'vigor', text: `Em vigor a partir de ${dateLong(v.vigorDesde)}.`, en: 'In force from the stated date.' });
+    const comunicacao = v.comunicada
+      ? `A presente tabela foi comunicada à ${semPonto(v.entidade) || BLANK}${v.comunicadaEm ? ` em ${dateLong(v.comunicadaEm)}` : ''}, nos termos da legislação aplicável ao ensino privado.`
+      : '';
+    const vigor = v.vigorDesde ? `Em vigor a partir de ${dateLong(v.vigorDesde)}.` : '';
+    if (comunicacao || vigor)
+      blocks.push({ type: 'paragraph', id: 'comunicacao', text: [comunicacao, vigor].filter(Boolean).join(' '), en: 'This schedule was reported to the education authority and is in force from the stated date.', keepWithNext: true });
     blocks.push({ type: 'signatures', placeDate: `${ctx.place}, ${dateLong(v.data)}`, columns: [{ role: str(v.assinante) || 'A Direcção', name: ctx.profile?.representanteNome || undefined, image: 'both' }] });
     return blocks;
   },

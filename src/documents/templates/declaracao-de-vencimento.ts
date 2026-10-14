@@ -5,6 +5,7 @@ import {
   blank, dateField, dateLong, employerName, employerSignature, formatMoney, g, isF, l, lineItems, localField,
   money, placeDate, refField, workerFields,
 } from './_shared';
+import { moneyExt } from './_contrato-trabalho';
 
 // ---------------------------------------------------------------- Local helpers
 
@@ -279,9 +280,14 @@ export default defineTemplate({
     const showLiq = Boolean(v.incluirLiquido) && c.liquidoUsed != null && c.brutoUsed > 0;
     const subs: Record<string, any>[] = c.subs;
     const hasExtra = subs.length > 0 || Math.abs(c.brutoUsed - (c.base ?? 0)) > 0.005;
+    // With the table, the paragraph gives the headline amount in words and no amount box is printed.
+    const comTabela = c.brutoUsed > 0 && (subs.length > 0 || showLiq);
+    const ext = (n: number | null) => (comTabela ? moneyExt(n) : formatMoney(n));
 
     const blocks: Block[] = [];
-    if (v.ref) blocks.push({ type: 'reference', ref: v.ref });
+    // Reference, place and date share the top line; the signature then needs no date line.
+    const topo = Boolean(v.ref || v.destinatario);
+    if (topo) blocks.push({ type: 'reference', ref: v.ref || undefined, place: ctx.place, date: dateLong(v.data) });
     if (v.destinatario) {
       blocks.push({ type: 'recipient', salutation: 'Exmos. Senhores', lines: [v.destinatario, v.destinatarioEndereco || ''] });
     }
@@ -296,15 +302,19 @@ export default defineTemplate({
     );
 
     const ref = g(ge, 'O referido trabalhador', 'A referida trabalhadora');
-    const liqPt = showLiq ? `, a que corresponde a remuneração mensal líquida de **${formatMoney(c.liquidoUsed)}**, após os descontos legais` : '';
+    const liqPt = showLiq ? `, a que corresponde a remuneração mensal líquida de **${ext(c.liquidoUsed)}**, após os descontos legais` : '';
     const liqEn = showLiq ? `, corresponding to a net monthly pay of ${formatMoney(c.liquidoUsed)} after statutory deductions` : '';
     blocks.push({
       type: 'paragraph',
       id: 'remuneracao',
-      text: hasExtra
-        ? `${ref} aufere o salário base mensal ilíquido de **${formatMoney(c.base)}**${subs.length ? `, acrescido dos subsídios discriminados no quadro seguinte` : ''}, perfazendo a remuneração mensal ilíquida de **${formatMoney(c.brutoUsed)}**${liqPt}.`
+      text: comTabela && subs.length
+        ? `${ref} aufere a remuneração mensal ilíquida de **${showLiq ? formatMoney(c.brutoUsed) : ext(c.brutoUsed)}**, composta pelo salário base e pelos subsídios discriminados no quadro seguinte${liqPt}.`
+        : hasExtra
+        ? `${ref} aufere o salário base mensal ilíquido de **${formatMoney(c.base)}**${subs.length ? `, acrescido dos subsídios discriminados no quadro seguinte` : ''}, perfazendo a remuneração mensal ilíquida de **${showLiq ? formatMoney(c.brutoUsed) : ext(c.brutoUsed)}**${liqPt}.`
         : `${ref} aufere o salário base mensal ilíquido de **${formatMoney(c.base)}**${liqPt}.`,
-      en: hasExtra
+      en: comTabela && subs.length
+        ? `${f ? 'She' : 'He'} earns a gross monthly pay of ${formatMoney(c.brutoUsed)}, made up of the base salary and the allowances listed in the table below${liqEn}.`
+        : hasExtra
         ? `${f ? 'She' : 'He'} earns a gross monthly base salary of ${formatMoney(c.base)}${subs.length ? ', plus the allowances listed in the table below' : ''}, making a gross monthly pay of ${formatMoney(c.brutoUsed)}${liqEn}.`
         : `${f ? 'She' : 'He'} earns a gross monthly base salary of ${formatMoney(c.base)}${liqEn}.`,
     });
@@ -312,8 +322,7 @@ export default defineTemplate({
     if (c.brutoUsed > 0 && (subs.length > 0 || showLiq)) {
       const totals: string[][] = [['Remuneração mensal ilíquida', formatMoney(c.brutoUsed, false)]];
       if (showLiq) {
-        const descontos = roundMoney(c.brutoUsed - c.liquidoUsed);
-        if (descontos > 0) totals.push(['Descontos legais (INSS e IRPS)', formatMoney(descontos, false)]);
+        // Gross and net are enough: the deductions follow from them (and the declaration stays on one page).
         totals.push(['Remuneração mensal líquida', formatMoney(c.liquidoUsed, false)]);
       }
       blocks.push({
@@ -330,7 +339,7 @@ export default defineTemplate({
       });
     }
     const destaque = showLiq ? c.liquidoUsed : c.brutoUsed;
-    if (destaque > 0) {
+    if (destaque > 0 && !comTabela) {
       blocks.push({
         type: 'amount',
         label: showLiq ? 'Remuneração mensal líquida' : 'Remuneração mensal ilíquida',
@@ -338,20 +347,17 @@ export default defineTemplate({
       });
     }
 
-    if (v.semPenhoras) {
+    // Both statements in one paragraph: the declaration stays on one page.
+    const penhorasPt = `não é do conhecimento ${empresa ? 'desta empresa' : 'da entidade empregadora'} a existência de qualquer penhora, cessão ou outro ónus sobre a remuneração ${g(ge, 'do referido trabalhador', 'da referida trabalhadora')}`;
+    const cessacaoPt = `${g(ge, 'o trabalhador', 'a trabalhadora')} não se encontra em período probatório e não está em curso qualquer processo disciplinar ou de cessação do respectivo contrato de trabalho`;
+    const penhorasEn = `the employer is not aware of any garnishment, assignment or other charge on ${f ? 'her' : 'his'} pay`;
+    const cessacaoEn = `the employee is not on probation and no disciplinary or termination proceedings are pending against ${f ? 'her' : 'him'}`;
+    if (v.semPenhoras || v.semCessacao) {
       blocks.push({
         type: 'paragraph',
         id: 'penhoras',
-        text: `Mais se declara que, até à presente data, não é do conhecimento ${empresa ? 'desta empresa' : 'da entidade empregadora'} a existência de qualquer penhora, cessão ou outro ónus sobre a remuneração ${g(ge, 'do referido trabalhador', 'da referida trabalhadora')}.`,
-        en: `It is further stated that, to date, the employer is not aware of any garnishment, assignment or other charge on ${f ? 'her' : 'his'} pay.`,
-      });
-    }
-    if (v.semCessacao) {
-      blocks.push({
-        type: 'paragraph',
-        id: 'cessacao',
-        text: `Declara-se ainda que ${g(ge, 'o trabalhador', 'a trabalhadora')} não se encontra em período probatório e que não está em curso qualquer processo disciplinar ou de cessação do respectivo contrato de trabalho.`,
-        en: `It is also stated that the employee is not on probation and that no disciplinary or termination proceedings are pending against ${f ? 'her' : 'him'}.`,
+        text: `Mais se declara que, até à presente data, ${[v.semPenhoras && penhorasPt, v.semCessacao && cessacaoPt].filter(Boolean).join(', e que ')}.`,
+        en: `It is further stated that, to date, ${[v.semPenhoras && penhorasEn, v.semCessacao && cessacaoEn].filter(Boolean).join(', and that ')}.`,
       });
     }
 
@@ -360,14 +366,14 @@ export default defineTemplate({
         type: 'paragraph',
         id: 'fecho',
         text: empresa
-          ? 'Por ser verdade e me ter sido solicitada, passa-se a presente declaração, que vai por mim assinada e autenticada com o carimbo em uso nesta empresa.'
-          : 'Por ser verdade e me ter sido solicitada, passa-se a presente declaração, que vai por mim assinada.',
+          ? 'Por ser verdade, vai a presente declaração assinada e autenticada com o carimbo em uso nesta empresa.'
+          : 'Por ser verdade, vai a presente declaração por mim assinada.',
         en: empresa
           ? 'This declaration is issued at the request of the person concerned, signed and authenticated with the company stamp.'
           : 'This declaration is issued at the request of the person concerned and signed by me.',
         keepWithNext: true,
       },
-      { type: 'signatures', placeDate: placeDate(ctx, v.data), columns: [signer(ctx)] },
+      { type: 'signatures', placeDate: topo ? undefined : placeDate(ctx, v.data), columns: [signer(ctx)] },
     );
     return blocks;
   },

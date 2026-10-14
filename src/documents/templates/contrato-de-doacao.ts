@@ -5,7 +5,7 @@ import { roundMoney } from '@/lib/format';
 import { defineTemplate, type Block, type ClauseItem, type Warning } from '../model';
 import { BLANK, cite, dateLong, formatMoney, l, money } from './_shared';
 import {
-  assinatura, conjugeColumn, consentimentoTexto, documentoFields, fecho, lines, numerar, papel, partesBlocks, partyFields, partyName, partyWarnings, semPonto,
+  assinatura, conjugeColumn, consentimentoTexto, documentoFields, fecho, isEmpresa, isOsfl, lines, numerar, papel, partesBlocks, partyFields, partyName, partyWarnings, semPonto,
   str, testemunhasField, valorTexto,
 } from './_contratos';
 
@@ -17,7 +17,15 @@ export default defineTemplate({
   sections: [
     { id: 'documento', title: l('Local e data', 'Place and date') },
     { id: 'doador', title: l('Doador (quem dá)', 'Donor'), personRole: 'outro' },
-    { id: 'donatario', title: l('Donatário (quem recebe)', 'Recipient'), personRole: 'outro' },
+    {
+      id: 'donatario',
+      title: l('Donatário (quem recebe)', 'Recipient'),
+      description: l(
+        'Pode ser uma pessoa, uma empresa ou uma associação, igreja, fundação ou ONG: escolha «Empresa ou organização» e indique a natureza.',
+        'A person, a company or an association, church, foundation or NGO: choose “Company or organisation” and state its kind.',
+      ),
+      personRole: 'outro',
+    },
     {
       id: 'objecto',
       title: l('O que é doado', 'What is given'),
@@ -28,7 +36,7 @@ export default defineTemplate({
   fields: [
     ...documentoFields(),
     ...partyFields('doador', { fromProfile: true, conjuge: true }),
-    ...partyFields('donatario'),
+    ...partyFields('donatario', { osfl: true }),
 
     {
       name: 'objectoTipo',
@@ -113,6 +121,23 @@ export default defineTemplate({
         ),
       });
     }
+    if (isEmpresa(v, 'donatario') && (isOsfl(v, 'donatario') || v.donatarioNatureza === 'publica') && !v.beneficente) {
+      w.push({
+        level: 'info',
+        field: 'beneficente',
+        message: l(
+          'O donatário é uma organização sem fins lucrativos ou uma entidade pública: se a doação se destina às suas actividades de assistência ou beneficência, ligue a opção «Doação com fim de caridade, assistência ou beneficência».',
+          'The recipient is a non-profit or public body: if the gift supports its charitable work, turn on the “charitable gift” option.',
+        ),
+      });
+    }
+    if (isOsfl(v, 'donatario') && !str(v.donatarioRepNome)) {
+      w.push({
+        level: 'info',
+        field: 'donatarioRepNome',
+        message: l('Quem aceita pela organização deve ter poderes nos estatutos (normalmente o presidente do conselho de direcção ou o representante legal).', 'The person accepting for the organisation must be empowered by its statutes (usually the chair of the board or legal representative).'),
+      });
+    }
     w.push({
       level: 'info',
       message: v.beneficente
@@ -164,7 +189,7 @@ export default defineTemplate({
       id: 'aceitacao',
       heading: 'Aceitação',
       text: numerar([
-        `${R.O} declara aceitar a presente doação nos termos exarados.`,
+        `${R.O} declara aceitar a presente doação nos termos do presente contrato.`,
         v.beneficente ? `A presente doação é feita com fim de ${dinheiro ? 'apoio' : 'assistência'} e beneficência, para prossecução das actividades ${R.de}.` : '',
       ]),
       en: `The Recipient accepts the gift.${v.beneficente ? ' It is made for charitable purposes.' : ''}`,

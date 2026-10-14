@@ -12,7 +12,7 @@ const NOTA_BAPTISMO =
 export default defineTemplate({
   id: 'certificado-de-baptismo',
   family: 'declaracao',
-  page: 'A5-paisagem',
+  page: (v) => (v.formato === 'A4' ? 'A4-paisagem' : 'A5-paisagem'),
   verticalAlign: 'center',
   frame: 'double',
   noBrand: true,
@@ -62,6 +62,17 @@ export default defineTemplate({
     { name: 'assento', type: 'text', section: 'registo', width: 'third', label: l('Assento n.º', 'Entry no.') },
     { name: 'data', type: 'date', section: 'registo', width: 'half', label: l('Data de emissão', 'Issue date'), default: (c) => c.today },
     { name: 'secretarioNome', type: 'text', section: 'registo', width: 'half', label: l('Secretário(a) (opcional)', 'Secretary (optional)') },
+    {
+      name: 'formato',
+      type: 'radio',
+      section: 'registo',
+      label: l('Tamanho do papel', 'Paper size'),
+      options: [
+        { value: 'A5', label: l('A5 horizontal (meia folha)', 'A5 landscape (half sheet)') },
+        { value: 'A4', label: l('A4 horizontal (para emoldurar)', 'A4 landscape (for framing)') },
+      ],
+      default: 'A5',
+    },
   ],
 
   blocks: (ctx) => {

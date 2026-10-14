@@ -8,7 +8,7 @@ import { addMonths, diffDays } from '@/lib/format';
 import { defineTemplate, type Block, type ClauseItem, type Warning } from '../model';
 import { BLANK, cite, dateLong, l, money, splitLines } from './_shared';
 import { int, lines, semPonto, str, valorTexto } from './_contratos';
-import { assinaturasObra, dataPorExtenso, fechoAuto, hora, obraFields, obraTexto, partesObraFields, presentesItems, signatureRows } from './_construcao';
+import { assinaturasObra, dataPorExtenso, dateShort, fechoAuto, hora, obraFields, obraTexto, partesObraFields, presentesItems, signatureRows } from './_construcao';
 
 const isDef = (v: Record<string, unknown>) => v.tipo === 'definitiva';
 
@@ -131,7 +131,7 @@ export default defineTemplate({
             { label: 'Defeito ou trabalho em falta', width: 4.4 },
             { label: 'Corrigir até', width: 1.4, align: 'center' },
           ],
-          rows: c.defeitos.map((d: Record<string, unknown>, i: number) => [String(i + 1), str(d.local), str(d.descricao), d.prazo ? dateLong(d.prazo) : '']),
+          rows: c.defeitos.map((d: Record<string, unknown>, i: number) => [String(i + 1), str(d.local), str(d.descricao), d.prazo ? dateShort(d.prazo) : '']),
         }
       : null;
 

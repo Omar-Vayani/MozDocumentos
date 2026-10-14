@@ -143,7 +143,15 @@ export default defineTemplate({
           ...(comPen ? [{ label: 'Penalização (MT)', width: 22, align: 'right' as const }] : []),
         ],
         rows: (linhas.length ? linhas : [{}]).map((r) => [str(r.mes), r.vencimento ? formatDateShort(r.vencimento) : '', fmt(r.valor), ...(comPen ? [fmt(r.penalizacao)] : [])]),
-        totals: total != null ? [['Total em dívida', '', formatMoney(total, false), ...(comPen ? [''] : [])]] : undefined,
+        totals:
+          total == null
+            ? undefined
+            : comPen
+              ? [
+                  ['Subtotal', '', formatMoney(linhas.reduce((a, r) => a + (money(r.valor) ?? 0), 0), false), formatMoney(linhas.reduce((a, r) => a + (money(r.penalizacao) ?? 0), 0), false)],
+                  ['Total em dívida', '', '', formatMoney(total, false)],
+                ]
+              : [['Total em dívida', '', formatMoney(total, false)]],
       },
       {
         type: 'paragraph',

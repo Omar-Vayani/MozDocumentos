@@ -1,4 +1,5 @@
 import type { LegalRefId } from '@/legal/mz-legal';
+import { recusaBox } from './_contrato-trabalho';
 import { addDays, addWorkingDays, diffDays } from '@/lib/format';
 import { defineTemplate, type Block, type Warning } from '../model';
 import {
@@ -570,16 +571,7 @@ export default defineTemplate({
         signer: g(ge, 'O Trabalhador', 'A Trabalhadora'),
       },
     );
-    if (v.testemunhas) {
-      blocks.push(
-        {
-          type: 'note',
-          text: `Em caso de recusa de recepção, ${g(ge, 'o trabalhador foi notificado', 'a trabalhadora foi notificada')} na presença das testemunhas abaixo, em ___/___/______.`,
-          keepWithNext: true,
-        },
-        { type: 'signatures', columns: [{ role: 'Testemunha' }, { role: 'Testemunha' }] },
-      );
-    }
+    if (v.testemunhas) blocks.push(recusaBox(`Em caso de recusa de recepção, ${g(ge, 'o trabalhador foi notificado', 'a trabalhadora foi notificada')} na presença das testemunhas abaixo, em ___/___/______.`));
     return blocks;
   },
 });

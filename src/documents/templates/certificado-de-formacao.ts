@@ -9,7 +9,7 @@
 import { profileDisplayName } from '@/lib/storage/types';
 import { defineTemplate, type Block, type SignatureColumn, type Values, type Warning } from '../model';
 import { dateLong, GENERO_OPTIONS, l, localField, placeDate } from './_shared';
-import { licenca, num, rows, semPonto, str } from './_educacao';
+import { intervalo, licenca, num, rows, semPonto, str } from './_educacao';
 
 const ACCAO: Record<string, { m: boolean; n: string }> = {
   curso: { m: true, n: 'curso' },
@@ -24,7 +24,7 @@ const ACCAO: Record<string, { m: boolean; n: string }> = {
 function periodo(a: unknown, b: unknown): string {
   const i = str(a);
   const f = str(b);
-  if (i && f && i !== f) return `de ${dateLong(i)} a ${dateLong(f)}`;
+  if (i && f && i !== f) return intervalo(i, f);
   return `em ${dateLong(i || f)}`;
 }
 

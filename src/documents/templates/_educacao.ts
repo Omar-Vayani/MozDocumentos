@@ -21,6 +21,14 @@ export const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : 
 /** "a, b e c" */
 export const juntar = (xs: string[]) => (xs.length <= 1 ? xs.join('') : `${xs.slice(0, -1).join(', ')} e ${xs[xs.length - 1]}`);
 
+/** "de 15 a 16 de Outubro de 2026" / "de 28 de Outubro a 3 de Novembro de 2026" / full dates across years. */
+export function intervalo(a: string, b: string): string {
+  const [la, lb] = [dateLong(a), dateLong(b)];
+  if (a.slice(0, 7) === b.slice(0, 7)) return `de ${Number(a.slice(8, 10))} a ${lb}`;
+  if (a.slice(0, 4) === b.slice(0, 4)) return `de ${la.replace(/ de \d{4}$/, '')} a ${lb}`;
+  return `de ${la} a ${lb}`;
+}
+
 /** "Outubro de 2026" from a month field (YYYY-MM) or a date. */
 export function mesAno(x: unknown): string {
   const s = str(x);

@@ -121,7 +121,7 @@ export default defineTemplate({
       {
         id: 'objecto',
         heading: 'Objecto',
-        text: `${P.O} obriga-se a produzir ${cultura}${str(v.variedade) ? ` da variedade ${semPonto(v.variedade)}` : ''} na campanha agrícola ${str(v.campanha) || BLANK}, na sua machamba situada em ${semPonto(v.localMachamba) || BLANK}${area != null ? `, com cerca de ${String(area).replace('.', ',')} hectares` : ''}, e a vendê-la ${C.ao}, que se obriga a comprá-la nas condições deste contrato. O presente contrato não transmite nem onera qualquer direito sobre a terra.`,
+        text: `${P.O} obriga-se a produzir ${cultura}${str(v.variedade) ? ` da variedade ${semPonto(v.variedade)}` : ''} na campanha agrícola ${str(v.campanha) || BLANK}, na sua machamba situada em ${semPonto(v.localMachamba) || BLANK}${area != null ? `, com cerca de ${String(area).replace('.', ',')} hectares` : ''}, e a vender a respectiva produção ${C.ao}, que se obriga a comprá-la nas condições deste contrato. O presente contrato não transmite nem onera qualquer direito sobre a terra.`,
         en: 'The producer grows the crop on their plot for the season and sells it to the buyer, who buys it on these terms. No land rights are transferred.',
       },
       {
@@ -136,7 +136,7 @@ export default defineTemplate({
         id: 'insumos',
         heading: 'Insumos e assistência técnica',
         text: numerar([
-          `${C.O} fornece ${P.ao}, a crédito, os insumos seguintes${totalIns ? `, no valor total de ${valorTexto(totalIns)}` : ''}: ${ins.length ? ins.map((x) => [str(x.item), str(x.quantidade), money(x.valor) != null ? `${fm(money(x.valor))} MT` : ''].filter(Boolean).join(', ')).join('; ') : BLANK}.`,
+          `${C.O} fornece ${P.ao}, a crédito, os insumos seguintes${totalIns ? `, no valor total de ${valorTexto(totalIns)}` : ''}: ${ins.length ? ins.map((x) => [str(x.item).replace(/^(\p{Lu})(\p{Ll})/u, (_m, a: string, b: string) => a.toLowerCase() + b), str(x.quantidade), money(x.valor) != null ? `${fm(money(x.valor))} MT` : ''].filter(Boolean).join(', ')).join('; ') : BLANK}.`,
           `O valor dos insumos é descontado no pagamento da produção, sem juros.`,
           `Se a produção for insuficiente por causa não imputável ${P.ao}, designadamente seca, cheias ou pragas declaradas pelas autoridades, ${perdao ? `${pct(perdao)} do saldo em dívida é perdoado e o restante` : 'o saldo em dívida'} transita para a campanha seguinte.`,
           v.assistencia ? `${C.O} presta assistência técnica através dos seus extensionistas, e ${P.o} segue as boas práticas recomendadas.` : '',
@@ -189,12 +189,6 @@ export default defineTemplate({
         ]),
         en: 'Side-selling: the producer repays the inputs (plus any agreed penalty). If the buyer does not buy or collect, the producer may sell to others.',
       },
-      {
-        id: 'mediacao',
-        heading: 'Mediação',
-        text: `As partes procuram resolver qualquer divergência por acordo, com a mediação ${semPonto(v.mediador) || 'das autoridades locais'}, antes de recorrer ao tribunal.`,
-        en: 'The parties try to settle disputes with local mediation before going to court.',
-      },
     );
     if (v.leituraLingua) {
       items.push({
@@ -204,7 +198,29 @@ export default defineTemplate({
         en: 'The contract was read and explained to the producer in the local language by the interpreter, before witnesses; the producer declared understanding and accepting it.',
       });
     }
-    items.push(...clausulasFinais(v));
+    // Plain notices suited to a smallholder (no registered mail or e-mail), then the usual final clauses.
+    items.push(
+      {
+        id: 'comunicacoes',
+        heading: 'Comunicações',
+        text: `As comunicações entre as partes são feitas por escrito, entregues em mão contra assinatura ou impressão digital de quem as recebe, ou por mensagem para os contactos indicados neste contrato.`,
+        en: 'Notices are in writing, handed over against signature or thumbprint, or sent by text message to the contacts given.',
+      },
+      ...clausulasFinais(v)
+        .filter((c) => c.id !== 'comunicacoes')
+        // Local mediation (community leaders, district services) before going to court.
+        .map((c) =>
+          c.id === 'leiForo'
+            ? {
+                ...c,
+                text: c.text.replace(
+                  'As partes procurarão resolver por acordo qualquer divergência sobre a interpretação ou execução do presente contrato.',
+                  `As partes procuram resolver qualquer divergência por acordo, com a mediação ${semPonto(v.mediador) || 'das autoridades locais'}, antes de recorrer ao tribunal.`,
+                ),
+              }
+            : c,
+        ),
+    );
 
     const blocks: Block[] = [
       { type: 'title', text: 'Contrato de produção e compra de produtos agrícolas' },
@@ -217,11 +233,13 @@ export default defineTemplate({
       blocks.push({ type: 'paragraph', id: 'residencia', text: `${P.O} reside em ${semPonto(v.produtorLocalidade)}${str(v.produtorContacto) ? `, com o contacto ${str(v.produtorContacto)}` : ''}.`, en: 'Producer’s place of residence and contact.' });
     }
     blocks.push(
-      { type: 'paragraph', id: 'celebracao', text: 'É celebrado o presente contrato de produção e compra, que se rege pelas cláusulas seguintes:', en: 'This production and purchase contract is made on the following terms:' },
-      { type: 'numberedClauses', style: 'clausula', items },
+      { type: 'paragraph', id: 'celebracao', text: 'é celebrado o presente contrato de produção e compra, que se rege pelas cláusulas seguintes:', en: 'This production and purchase contract is made on the following terms:' },
+      // The last clause travels with the closing and the signatures.
+      { type: 'numberedClauses', style: 'clausula', items: items.slice(0, -1) },
+      { type: 'numberedClauses', style: 'clausula', items: items.slice(-1), start: items.length, keepWithNext: true },
     );
     const prodCol: SignatureColumn = assinatura(ctx, 'produtor', P);
-    if (v.leituraLingua) prodCol.detail = [prodCol.detail, 'ou impressão digital: [            ]'].filter(Boolean).join('\n');
+    if (v.leituraLingua) prodCol.detail = [prodCol.detail, 'Assinatura ou impressão digital'].filter(Boolean).join('\n');
     const cols: SignatureColumn[] = [assinatura(ctx, 'comprador', C, true), prodCol];
     const extra: SignatureColumn[] = v.leituraLingua
       ? [
@@ -230,7 +248,12 @@ export default defineTemplate({
           { role: 'Testemunha', detail: `Nome e BI n.º: ${BLANK}` },
         ]
       : [];
-    blocks.push(...fecho({ ...ctx, values: { ...v, testemunhas: v.leituraLingua ? false : v.testemunhas } }, cols, { extraCols: extra }));
+    const fim = fecho({ ...ctx, values: { ...v, testemunhas: v.leituraLingua ? false : v.testemunhas } }, cols, { extraCols: extra });
+    // The parties' signatures stay on the same page as the interpreter's and the witnesses'.
+    fim.forEach((b, i) => {
+      if (b.type === 'signatures' && i < fim.length - 1) b.keepWithNext = true;
+    });
+    blocks.push(...fim);
     return blocks;
   },
 });

@@ -87,7 +87,7 @@ export default defineTemplate({
   blocks: (ctx) => {
     const v = ctx.values;
     const ind = v.tipo === 'individual';
-    const quando = `no dia **${diaSemana(v.dataReuniao) ? `${diaSemana(v.dataReuniao)}, ` : ''}${dateLong(v.dataReuniao)}**, pelas **${str(v.hora) || BLANK}**, no ${semPonto(v.localReuniao).replace(/^(no|na|em) /i, '') || BLANK}`;
+    const quando = `no dia **${diaSemana(v.dataReuniao) ? `${diaSemana(v.dataReuniao)}, ` : ''}${dateLong(v.dataReuniao)}**, pelas **${str(v.hora) || BLANK}**, ${noLocal(semPonto(v.localReuniao))}`;
     const blocks: Block[] = [{ type: 'reference', ref: `Convocatória n.º ${str(v.numero) || '____'}`, place: ctx.place, date: dateLong(v.data) }];
     if (ind) {
       const fa = isF(v.alunoGenero);
@@ -127,8 +127,15 @@ export default defineTemplate({
         type: 'box',
         cut: true,
         label: `Talão a devolver à Escola${v.dataDevolucao ? ` até ${formatDateShort(v.dataDevolucao)}` : ''}`,
-        text: `Eu, ______________________________________, Encarregado(a) de Educação do(a) aluno(a) ${ind && str(v.alunoNome) ? str(v.alunoNome) : '______________________________'}, tomei conhecimento da Convocatória n.º ${str(v.numero) || '____'} e   [   ] estarei presente   [   ] não poderei estar presente.\n\nAssinatura: ______________________________     Data: ___/___/______`,
+        text: `Eu, ______________________________________, Encarregado(a) de Educação do(a) aluno(a) ${ind && str(v.alunoNome) ? str(v.alunoNome) : '______________________________'}, tomei conhecimento da Convocatória n.º ${str(v.numero) || '____'} e   ☐ estarei presente    ☐ não poderei estar presente.\n\nAssinatura: ______________________________     Data: ___/___/______`,
       });
     return blocks;
   },
 });
+
+/** "no salão da Escola", "na sala n.º 12", "em casa de…": keeps a preposition the user typed. */
+function noLocal(x: string): string {
+  if (!x) return `no ${BLANK}`;
+  if (/^(no|na|nos|nas|em)\s/i.test(x)) return x;
+  return /^(sala|biblioteca|escola|cantina|igreja|secretaria|quadra|direcção|igreja|casa|tenda|varanda)\b/i.test(x) ? `na ${x}` : `no ${x}`;
+}

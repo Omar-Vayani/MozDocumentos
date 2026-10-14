@@ -1,5 +1,17 @@
 // Preview samples for the day-to-day business documents ("comercio").
+import type { Profile } from '@/lib/storage/types';
+import type { RenderAsset } from '../types';
 import { company, contractor, person, type Issuer, type Sample } from './_profiles';
+
+/**
+ * The base company's logo and stamp belong to a construction firm: the other
+ * businesses keep only the handwritten signature (no logo, stamp drawn by hand).
+ */
+function ownMarks(p: Profile, assets: Record<string, RenderAsset>): Record<string, RenderAsset> {
+  p.branding.logoAssetId = undefined;
+  p.branding.stampAssetId = undefined;
+  return assets.sig ? { sig: assets.sig } : {};
+}
 
 /** A retail shop (electronics and appliances). */
 function shop(): Issuer {
@@ -20,7 +32,7 @@ function shop(): Issuer {
     nib: '000100000045678901257',
   });
   p.branding.accent = '#1f4e8c';
-  return { profile: p, assets };
+  return { profile: p, assets: ownMarks(p, assets) };
 }
 
 /** An accountant registered with OCAM. */
@@ -56,10 +68,11 @@ function agro(): Issuer {
     localPadrao: 'Nampula',
     telefones: '+258 26 218 400',
     email: 'compras@lurioagro.co.mz',
+    website: '',
     representanteNome: 'Ernesto Muhate',
     representanteCargo: 'Director-Geral',
   });
-  return { profile: p, assets };
+  return { profile: p, assets: ownMarks(p, assets) };
 }
 
 export const SAMPLES: Sample[] = [

@@ -130,7 +130,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'abertura',
-        text: `${dataPorExtenso(v.data)}, ${onde}, ${g(v.cessanteGenero, 'o Senhor', 'a Senhora')} **${ces.nome}**${ces.cargo ? `, ${ces.cargo}` : ''}, procedeu, ${motivo || 'nos termos superiormente determinados'}, à entrega ${daPosto(str(v.posto))} ${g(v.entranteGenero, 'ao Senhor', 'à Senhora')} **${ent.nome}**${ent.cargo ? `, ${ent.cargo}` : ''}${desig ? `, designad${v.entranteGenero === 'F' ? 'a' : 'o'} por ${desig}` : ''}${presenca}, nos termos seguintes:`,
+        text: `${dataPorExtenso(v.data)}, ${onde}, ${g(v.cessanteGenero, 'o Senhor', 'a Senhora')} **${ces.nome}**${ces.cargo ? `, ${ces.cargo},` : ''} procedeu, ${motivo || 'nos termos superiormente determinados'}, à entrega ${daPosto(str(v.posto))} ${g(v.entranteGenero, 'ao Senhor', 'à Senhora')} **${ent.nome}**${ent.cargo ? `, ${ent.cargo}` : ''}${desig ? `, designad${v.entranteGenero === 'F' ? 'a' : 'o'} por ${desig}` : ''}${presenca}, nos termos seguintes:`,
         en: 'Date and place; the outgoing holder hands the post over to the incoming holder, as follows:',
       },
     ];

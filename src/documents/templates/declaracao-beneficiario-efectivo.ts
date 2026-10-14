@@ -2,15 +2,46 @@
 // control a company. For banks (KYC), public tenders and registry files; the
 // registry filing itself is made on the official form or online.
 import { formatPercent } from '@/lib/format';
-import { defineTemplate, type Block, type DefaultsContext, type Values, type Warning } from '../model';
+import { defineTemplate, type Block, type DefaultsContext, type FieldDef, type Values, type Warning } from '../model';
 import { BLANK, cite, dateField, dateLong, DOC_TIPO_OPTIONS, g, l, lineItems, localField } from './_shared';
 import { identificacao, num, pessoaFields, quantos, comReconhecimento, semPonto, sociedadeFields, sociedadeIdent, sociedadeNome, str } from './_sociedades';
+import { deEntidade } from './_pessoal-rh';
 
 const CONTROLO: Record<string, string> = {
   directo: 'Participação directa',
   indirecto: 'Participação indirecta',
   outro: 'Controlo por outro meio',
 };
+
+const NATUREZA_OSFL: Record<string, string> = {
+  associacao: 'associação sem fins lucrativos',
+  confissao: 'confissão religiosa',
+  fundacao: 'fundação',
+  ong: 'organização não-governamental estrangeira',
+};
+
+/** Association, church, foundation or foreign NGO: no share capital; the officers are the beneficial owners. */
+const isOsfl = (v: Values) => v.entidadeTipo === 'osfl';
+
+function osflIdent(v: Values): string {
+  const cons = str(v.sociedadeConservatoria);
+  return [
+    `**${sociedadeNome(v)}**`,
+    NATUREZA_OSFL[v.osflNatureza] ?? NATUREZA_OSFL.associacao,
+    semPonto(v.osflReconhecimento),
+    `com sede em ${semPonto(v.sociedadeSede) || BLANK}`,
+    str(v.sociedadeNuel) ? `registada na Conservatória do Registo das Entidades Legais${cons ? ` de ${cons}` : ''} sob o NUEL ${str(v.sociedadeNuel)}` : '',
+    `titular do NUIT ${str(v.sociedadeNuit) || BLANK}`,
+  ]
+    .filter(Boolean)
+    .join(', ');
+}
+
+/** "à Administração…", "ao Banco…", "a Maria Silva" (keeps an article the user typed). */
+function aEntidade(e: string): string {
+  const d = deEntidade(e);
+  return d.replace(/^das /, 'às ').replace(/^dos /, 'aos ').replace(/^da /, 'à ').replace(/^do /, 'ao ').replace(/^de /, 'a ');
+}
 
 type Benef = Record<string, string>;
 const beneficiarios = (v: Values): Benef[] =>
@@ -26,7 +57,14 @@ export default defineTemplate({
   official: 'registo',
   sections: [
     { id: 'documento', title: l('Local e data', 'Place and date') },
-    { id: 'sociedade', title: l('Entidade', 'Entity') },
+    {
+      id: 'sociedade',
+      title: l('Entidade', 'Entity'),
+      description: l(
+        'Uma sociedade comercial ou uma organização sem fins lucrativos (associação, igreja, fundação ou ONG estrangeira).',
+        'A company or a non-profit organisation (association, church, foundation or foreign NGO).',
+      ),
+    },
     { id: 'declarante', title: l('Declarante (representante legal)', 'Declarant (legal representative)'), personRole: 'representante' },
     { id: 'beneficiarios', title: l('Beneficiários efectivos', 'Beneficial owners') },
     { id: 'finalidade', title: l('Finalidade', 'Purpose') },
@@ -34,7 +72,46 @@ export default defineTemplate({
   fields: [
     localField(),
     dateField(),
-    ...sociedadeFields('sociedade'),
+    {
+      name: 'entidadeTipo',
+      type: 'radio',
+      section: 'sociedade',
+      label: l('Tipo de entidade', 'Type of entity'),
+      options: [
+        { value: 'sociedade', label: l('Sociedade comercial', 'Company') },
+        { value: 'osfl', label: l('Associação, igreja, fundação ou ONG', 'Association, church, foundation or NGO') },
+      ],
+      default: (c) => (c.profile?.kind === 'empresa' && c.profile.sector === 'associacoes' ? 'osfl' : 'sociedade'),
+    },
+    {
+      name: 'osflNatureza',
+      type: 'select',
+      section: 'sociedade',
+      width: 'half',
+      label: l('Natureza', 'Kind'),
+      options: [
+        { value: 'associacao', label: l('Associação', 'Association') },
+        { value: 'confissao', label: l('Igreja ou confissão religiosa', 'Church or religious body') },
+        { value: 'fundacao', label: l('Fundação', 'Foundation') },
+        { value: 'ong', label: l('ONG estrangeira', 'Foreign NGO') },
+      ],
+      default: 'associacao',
+      showIf: isOsfl,
+    },
+    ...sociedadeFields('sociedade').map((f): FieldDef => {
+      if (f.name === 'sociedadeFirma') return { ...f, label: l('Firma ou denominação', 'Name'), help: l('Tal como consta da certidão de registo ou dos estatutos publicados.', 'As in the registry certificate or published statutes.') };
+      if (f.name === 'sociedadeTipo' || f.name === 'sociedadeCapital') return { ...f, showIf: (v: Values) => !isOsfl(v) };
+      return f;
+    }),
+    {
+      name: 'osflReconhecimento',
+      type: 'text',
+      section: 'sociedade',
+      label: l('Reconhecimento ou autorização (opcional)', 'Recognition or authorisation (optional)'),
+      placeholder: l('Ex.: reconhecida por despacho do Ministro da Justiça publicado no BR, III Série, n.º 45, de 2015', 'E.g. recognised by order published in the Official Gazette'),
+      default: (c) => (c.profile?.kind === 'empresa' && c.profile.sector === 'associacoes' && c.profile.licenca ? c.profile.licenca.charAt(0).toLowerCase() + c.profile.licenca.slice(1) : ''),
+      showIf: isOsfl,
+    },
     { name: 'dataConstituicao', type: 'date', section: 'sociedade', width: 'half', label: l('Data de constituição', 'Date of incorporation') },
     ...pessoaFields('declarante', 'declarante').map((f) =>
       f.name === 'declaranteNome' ? { ...f, default: (c: DefaultsContext) => (c.profile?.kind === 'empresa' ? c.profile.representanteNome ?? '' : '') } : f,
@@ -71,7 +148,8 @@ export default defineTemplate({
         { name: 'domicilio', type: 'text', label: l('Domicílio habitual', 'Home address') },
         { name: 'domicilioProfissional', type: 'text', label: l('Domicílio profissional / fiscal', 'Work / tax address') },
         { name: 'telemovel', type: 'tel', label: l('Telemóvel', 'Mobile') },
-        { name: 'percentagem', type: 'number', label: l('Percentagem detida (%)', 'Percentage held (%)'), min: 0, max: 100 },
+        { name: 'cargo', type: 'text', label: l('Cargo e órgão (associações, igrejas, ONG)', 'Office held (non-profits)'), placeholder: l('Ex.: Presidente do Conselho de Direcção', 'E.g. Chair of the Board') },
+        { name: 'percentagem', type: 'number', label: l('Percentagem detida (%) (sociedades)', 'Percentage held (%) (companies)'), min: 0, max: 100 },
         {
           name: 'tipoControlo',
           type: 'select',
@@ -92,9 +170,10 @@ export default defineTemplate({
       section: 'beneficiarios',
       label: l('Ninguém atinge a percentagem legal: declarar quem dirige', 'Nobody reaches the threshold: declare the senior manager'),
       help: l('Indique a pessoa que ocupa a direcção de topo da entidade.', 'Name the person in senior management.'),
+      showIf: (v) => !isOsfl(v),
     },
-    { name: 'topoNome', type: 'text', section: 'beneficiarios', width: 'half', label: l('Nome de quem dirige', 'Senior manager’s name'), showIf: (v) => Boolean(v.semLimiar) },
-    { name: 'topoCargo', type: 'text', section: 'beneficiarios', width: 'half', label: l('Cargo', 'Position'), showIf: (v) => Boolean(v.semLimiar) },
+    { name: 'topoNome', type: 'text', section: 'beneficiarios', width: 'half', label: l('Nome de quem dirige', 'Senior manager’s name'), showIf: (v) => !isOsfl(v) && Boolean(v.semLimiar) },
+    { name: 'topoCargo', type: 'text', section: 'beneficiarios', width: 'half', label: l('Cargo', 'Position'), showIf: (v) => !isOsfl(v) && Boolean(v.semLimiar) },
     {
       name: 'finalidade',
       type: 'select',
@@ -121,16 +200,28 @@ export default defineTemplate({
     const w: Warning[] = [];
     const bs = beneficiarios(v);
     const limiar = formatPercent(ctx.legal.value<number>('beneficiarioEfectivoLimiar'));
-    if (!bs.length && !v.semLimiar) {
+    const osfl = isOsfl(v);
+    if (!bs.length && (osfl || !v.semLimiar)) {
       w.push({ level: 'error', field: 'beneficiarios', message: l('Indique pelo menos um beneficiário efectivo.', 'Name at least one beneficial owner.') });
     }
     const directo = bs.filter((b) => b.tipoControlo !== 'outro').reduce((a, b) => a + (num(b.percentagem) ?? 0), 0);
-    if (directo > 100.01) {
+    if (!osfl && directo > 100.01) {
       w.push({ level: 'warning', field: 'beneficiarios', message: l('A soma das percentagens ultrapassa a totalidade do capital. Confirme os valores.', 'Percentages add up to more than the whole capital. Check them.') });
     }
     const hoje = ctx.today;
     if (bs.some((b) => b.docValidade && b.docValidade < hoje)) {
       w.push({ level: 'warning', field: 'beneficiarios', message: l('Há documentos de identificação caducados: a lei exige documento válido.', 'Some ID documents have expired: a valid document is required.') });
+    }
+    if (osfl) {
+      if (bs.some((b) => !b.cargo)) w.push({ level: 'warning', field: 'beneficiarios', message: l('Indique o cargo e o órgão de cada beneficiário (ex.: Presidente do Conselho de Direcção).', 'State each person’s office (e.g. Chair of the Board).') });
+      w.push({
+        level: 'info',
+        message: l(
+          `Uma associação, igreja, fundação ou ONG não tem capital social: declare como beneficiários efectivos os titulares dos órgãos sociais (direcção, conselho fiscal, mesa da assembleia geral) e quem controle a organização por outro meio. A declaração e a lista dos titulares dos órgãos são entregues na Conservatória do Registo das Entidades Legais; o incumprimento sujeita a multa (${cite('assocBeneficiarioOSFL')}).`,
+          'A non-profit has no share capital: declare the members of its governing bodies, and anyone otherwise in control, as beneficial owners. The declaration is filed with the Legal Entities Registry; failure is fined.',
+        ),
+      });
+      return w;
     }
     w.push(
       {
@@ -166,13 +257,24 @@ export default defineTemplate({
     const limiar = formatPercent(ctx.legal.value<number>('beneficiarioEfectivoLimiar'));
     const prazo = ctx.legal.value<number>('beneficiarioEfectivoSociedade');
     const constituida = v.dataConstituicao ? `, constituída em ${dateLong(v.dataConstituicao)}` : '';
+    const osfl = isOsfl(v);
+    const um = bs.length === 1;
+    const quem = osfl
+      ? um
+        ? 'é beneficiário efectivo da referida entidade, na qualidade de titular dos seus órgãos sociais, a seguinte pessoa singular'
+        : 'são beneficiários efectivos da referida entidade, na qualidade de titulares dos seus órgãos sociais, as seguintes pessoas singulares'
+      : um
+        ? 'é beneficiário efectivo da referida entidade a seguinte pessoa singular'
+        : 'são beneficiários efectivos da referida entidade as seguintes pessoas singulares';
 
     const blocks: Block[] = [
       { type: 'title', text: 'Declaração de Beneficiário Efectivo', subtitle: sociedadeNome(v) },
       {
         type: 'paragraph',
         id: 'declarante',
-        text: `${identificacao(v, 'declarante')}, na qualidade de ${semPonto(v.declaranteCargo) || BLANK} da sociedade ${sociedadeIdent(v)}${constituida}, com poderes para o acto, declara, para os efeitos do ${cite('beneficiarioEfectivoSociedade')}, do ${cite('beneficiarioEfectivoDeclaracao')} e da legislação de prevenção e combate ao branqueamento de capitais e ao financiamento do terrorismo, que ${bs.length === 1 ? 'é beneficiário efectivo da referida entidade a seguinte pessoa singular' : 'são beneficiários efectivos da referida entidade as seguintes pessoas singulares'}:`,
+        text: osfl
+          ? `${identificacao(v, 'declarante')}, na qualidade de ${semPonto(v.declaranteCargo) || BLANK} da ${osflIdent(v)}${constituida}, com poderes para o acto, declara, para os efeitos da ${cite('assocBeneficiarioOSFL')} e da demais legislação de prevenção e combate ao branqueamento de capitais e ao financiamento do terrorismo, que ${quem}:`
+          : `${identificacao(v, 'declarante')}, na qualidade de ${semPonto(v.declaranteCargo) || BLANK} da sociedade ${sociedadeIdent(v)}${constituida}, com poderes para o acto, declara, para os efeitos do ${cite('beneficiarioEfectivoSociedade')}, do ${cite('beneficiarioEfectivoDeclaracao')} e da legislação de prevenção e combate ao branqueamento de capitais e ao financiamento do terrorismo, que ${quem}:`,
         en: 'The legal representative named above declares that the following individuals are the beneficial owners of the company:',
       },
     ];
@@ -192,12 +294,16 @@ export default defineTemplate({
           { label: 'Telemóvel', value: b.telemovel || BLANK },
           { label: 'Domicílio habitual', value: semPonto(b.domicilio) || BLANK },
           { label: 'Domicílio profissional / fiscal', value: semPonto(b.domicilioProfissional) || '—' },
-          { label: 'Capital / direitos de voto', value: p != null ? `${p}%` : '____%' },
-          { label: 'Tipo de controlo', value: `${CONTROLO[b.tipoControlo] ?? CONTROLO.directo}${b.via ? ` — ${semPonto(b.via)}` : ''}` },
+          ...(osfl
+            ? [{ label: 'Cargo e órgão social', value: semPonto(b.cargo) || BLANK }]
+            : [
+                { label: 'Capital / direitos de voto', value: p != null ? `${p}%` : '____%' },
+                { label: 'Tipo de controlo', value: `${CONTROLO[b.tipoControlo] ?? CONTROLO.directo}${b.via ? ` — ${semPonto(b.via)}` : ''}` },
+              ]),
         ],
       });
     });
-    if (v.semLimiar) {
+    if (v.semLimiar && !osfl) {
       blocks.push({
         type: 'paragraph',
         id: 'semLimiar',
@@ -208,17 +314,17 @@ export default defineTemplate({
     blocks.push({
       type: 'paragraph',
       id: 'veracidade',
-      text: `${g(v.declaranteGenero, 'O declarante', 'A declarante')} declara que as informações prestadas são verdadeiras, completas e actuais, que tem conhecimento de que a prestação de falsas declarações ${g(v.declaranteGenero, 'o', 'a')} faz incorrer em responsabilidade civil e criminal, e obriga-se a comunicar qualquer alteração no prazo de ${quantos(prazo, 'dia', 'dias')}.`,
+      text: `${g(v.declaranteGenero, 'O declarante', 'A declarante')} declara que as informações prestadas são verdadeiras, completas e actuais, que tem conhecimento de que a prestação de falsas declarações ${g(v.declaranteGenero, 'o', 'a')} faz incorrer em responsabilidade civil e criminal, e obriga-se a comunicar qualquer alteração ${osfl ? 'no prazo legal' : `no prazo de ${quantos(prazo, 'dia', 'dias')}`}.`,
       en: `The declarant confirms the information is true, complete and current, knows that false statements carry civil and criminal liability, and will report any change within ${prazo} days.`,
     });
     const dest = semPonto(v.destinatario);
     const ref = semPonto(v.referencia);
     const destino =
       v.finalidade === 'concurso'
-        ? `A presente declaração é entregue ${dest ? `a ${dest}` : 'à entidade contratante'}${ref ? `, no âmbito do procedimento ${ref}` : ''}.`
+        ? `A presente declaração é entregue ${dest ? aEntidade(dest) : 'à entidade contratante'}${ref ? `, no âmbito do procedimento ${ref}` : ''}.`
         : v.finalidade === 'conservatoria'
           ? 'A presente declaração destina-se a instruir o processo junto da Conservatória do Registo das Entidades Legais.'
-          : `A presente declaração destina-se a ser entregue ${dest ? `a ${dest}` : 'à entidade que a solicitou'}${ref ? `, referência ${ref}` : ''}.`;
+          : `A presente declaração destina-se a ser entregue ${dest ? aEntidade(dest) : 'à entidade que a solicitou'}${ref ? `, referência ${ref}` : ''}.`;
     blocks.push(
       { type: 'paragraph', id: 'destino', text: destino, en: 'Purpose of this declaration.', keepWithNext: true },
       {

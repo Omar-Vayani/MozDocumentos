@@ -18,6 +18,7 @@ import {
   notaBlocks,
   numeroComunidadeField,
   numeroRef,
+  parentescoG,
   pessoaFields,
   str,
   unidadeField,
@@ -48,7 +49,7 @@ export default defineTemplate({
     localField(),
     dateField('data'),
     validadeField(),
-    ...pessoaFields(['nome', 'genero', 'nacionalidade', 'estadoCivil', 'docTipo', 'docNumero', 'docEmissao', 'docLocal', 'quarteirao', 'casa', 'rua']),
+    ...pessoaFields(['nome', 'genero', 'nascimento', 'nacionalidade', 'estadoCivil', 'docTipo', 'docNumero', 'docEmissao', 'docLocal', 'quarteirao', 'casa', 'rua']),
     {
       name: 'membros',
       type: 'lines',
@@ -60,6 +61,7 @@ export default defineTemplate({
       columns: [
         { name: 'nome', type: 'text', label: l('Nome', 'Name') },
         { name: 'parentesco', type: 'select', label: l('Parentesco', 'Relationship'), options: PARENTESCO_OPTIONS.filter((o) => o.value !== 'chefe do agregado') },
+        { name: 'sexo', type: 'select', label: l('Sexo', 'Sex'), options: [{ value: 'M', label: l('M', 'M') }, { value: 'F', label: l('F', 'F') }] },
         { name: 'nascimento', type: 'date', label: l('Data de nascimento', 'Date of birth') },
         { name: 'documento', type: 'text', label: l('Documento (opcional)', 'ID (optional)') },
         { name: 'ocupacao', type: 'text', label: l('Ocupação', 'Occupation') },
@@ -87,15 +89,22 @@ export default defineTemplate({
     const end = enderecoBairro(v);
     const membros = lineItems(v.membros).filter((r) => str(r.nome));
     const rows = [
-      [`1`, str(v.cidadaoNome) || BLANK, 'Chefe', '', str(v.cidadaoDocNumero), ''],
-      ...membros.map((r, i) => [String(i + 2), str(r.nome), str(r.parentesco), dataCurta(r.nascimento), str(r.documento), str(r.ocupacao)]),
+      [`1`, str(v.cidadaoNome) || BLANK, 'Chefe', dataCurta(v.cidadaoNascimento), str(v.cidadaoDocNumero), ''],
+      ...membros.map((r, i) => [
+        String(i + 2),
+        str(r.nome),
+        r.sexo === 'M' || r.sexo === 'F' ? parentescoG(str(r.parentesco), r.sexo) : str(r.parentesco),
+        dataCurta(r.nascimento),
+        str(r.documento),
+        str(r.ocupacao),
+      ]),
     ];
     const blocks: Block[] = [
       { type: 'title', text: 'Declaração de Agregado Familiar', subtitle: str(v.numero) ? numeroRef(ctx) : undefined },
       {
         type: 'paragraph',
         id: 'declaracao',
-        text: `Declara-se, para os devidos efeitos, que ${identificacao(v)}, residente ${neste(str(v.unidade))}${end ? `, ${end}` : ''}, é chefe de um agregado familiar composto por ${membros.length + 1} ${membros.length ? 'pessoas' : 'pessoa'}, que vivem em comunhão de mesa e habitação, a saber:`,
+        text: `Declara-se, para os devidos efeitos, que ${identificacao(v)}, residente ${neste(str(v.unidade))}${end ? `, ${end}` : ''}, é chefe de um agregado familiar composto por ${membros.length + 1} ${membros.length ? 'pessoas, que vivem' : 'pessoa, que vive'} em comunhão de mesa e habitação, a saber:`,
         keepWithNext: true,
         en: 'It is declared that the person named heads a household made up of the people listed, who live and eat together.',
       },

@@ -54,6 +54,29 @@ export function enumerate(items: string[]): string[] {
   return clean.map((s, i) => `${s.charAt(0).toLowerCase()}${s.slice(1)}${i === clean.length - 1 ? '.' : ';'}`);
 }
 
+/** "dever de pontualidade; dever de lealdade e dever de zelo" from a textarea with one item per line (or separated by ";"). */
+export function listaTexto(x: unknown): string {
+  const items = String(x ?? '')
+    .split(/\n+|;\s*/)
+    .map((d) => d.trim().replace(/[.;,]+$/, ''))
+    .filter(Boolean)
+    .map((d) => (/^[A-ZÀ-Ý][a-zà-ÿ]/.test(d) ? d.charAt(0).toLowerCase() + d.slice(1) : d));
+  return items.length > 1 ? `${items.slice(0, -1).join('; ')} e ${items[items.length - 1]}` : items[0] ?? '';
+}
+
+/**
+ * Refusal of receipt confirmed by two witnesses, as a compact dashed box under the
+ * acknowledgement (two signature lines on one row), so it never fills a page of its own.
+ */
+export function recusaBox(text: string, segunda = 'Testemunha'): Block {
+  return {
+    type: 'box',
+    label: 'Recusa de recepção',
+    dashed: true,
+    text: `${text}\n\nTestemunha: ____________________${'\u00a0'.repeat(4)}${segunda}: ____________________`,
+  };
+}
+
 /** Lowercases the first letter of user text inserted mid-sentence. */
 export const lc = (s: string) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s);
 

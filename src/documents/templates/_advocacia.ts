@@ -62,8 +62,11 @@ export function partyFields(p: string, section: string, opts: { light?: boolean;
   return fields.filter((f) => !/(EstadoCivil|DocTipo|DocNumero)$/.test(f.name));
 }
 
-/** Full identification of a party, court style. Missing data is left out, except the residence. */
-export function partyDesc(v: Values, p: string): string {
+/**
+ * Full identification of a party, court style. Missing data is left out, except
+ * the residence and, with `docBlank`, the ID number (a line to fill in).
+ */
+export function partyDesc(v: Values, p: string, opts: { docBlank?: boolean } = {}): string {
   const nome = `**${(get(v, `${p}Nome`) || BLANK).toLocaleUpperCase('pt')}**`;
   if (isEmpresa(v, p)) {
     const rep = get(v, `${p}Representante`);
@@ -86,7 +89,7 @@ export function partyDesc(v: Values, p: string): string {
     estado,
     get(v, `${p}Nacionalidade`) ? `de nacionalidade ${get(v, `${p}Nacionalidade`)}` : '',
     get(v, `${p}Profissao`),
-    docN ? `${f ? 'portadora' : 'portador'} do ${DOC_NOME[get(v, `${p}DocTipo`)] ?? 'Bilhete de Identidade'} n.º ${docN}` : '',
+    docN || opts.docBlank ? `${f ? 'portadora' : 'portador'} do ${DOC_NOME[get(v, `${p}DocTipo`)] ?? 'Bilhete de Identidade'} n.º ${docN || '____________'}` : '',
     get(v, `${p}Nuit`) ? `NUIT ${get(v, `${p}Nuit`)}` : '',
     `residente em ${get(v, `${p}Morada`) || BLANK}`,
   ]

@@ -108,7 +108,7 @@ export default defineTemplate({
         text: c.fr.length ? `O edifício é composto por ${c.fr.length} fracções autónomas, com as permilagens constantes do quadro anexo a este Regulamento, que corresponde ao título constitutivo da propriedade horizontal.` : 'O edifício é composto pelas fracções autónomas constantes do título constitutivo da propriedade horizontal, com as respectivas permilagens.',
         en: 'Units and shares.',
       },
-      { id: 'partesComuns', heading: 'Partes comuns', text: 'São partes comuns do edifício, nomeadamente:', items: partes.length ? partes.map(semPonto) : [BLANK], en: 'Common parts.' },
+      { id: 'partesComuns', heading: 'Partes comuns', text: 'São partes comuns do edifício, nomeadamente:', items: partes.length ? partes.map((x, i) => `${semPonto(x)}${i === partes.length - 1 ? '.' : ';'}`) : [BLANK], en: 'Common parts.' },
     ];
     const cap2: ClauseItem[] = [
       { id: 'uso', heading: 'Uso das fracções', text: `As fracções destinam-se a ${v.usoFraccoes === 'misto' ? 'habitação e, as do rés-do-chão, a comércio ou serviços' : 'habitação'}, não podendo ser usadas para actividades ruidosas, insalubres, perigosas ou contrárias aos bons costumes.`, en: 'Use of units.' },
@@ -152,13 +152,14 @@ export default defineTemplate({
     ];
     const blocks: Block[] = [{ type: 'title', text: 'Regulamento Interno do Condomínio', subtitle: ed }];
     let start = 1;
-    for (const [h, items] of caps) {
+    caps.forEach(([h, items], ci) => {
       blocks.push({ type: 'heading', text: h, align: 'center' });
-      // One block per article so a chapter can flow across pages.
-      for (const it of items) blocks.push({ type: 'numberedClauses', style: 'artigo', items: [it], start: start++ });
-    }
-    const last = blocks[blocks.length - 1];
-    last.keepWithNext = true;
+      // The last article is a block of its own so that it travels with the signatures.
+      const corpo = ci === caps.length - 1 ? items.slice(0, -1) : items;
+      if (corpo.length) blocks.push({ type: 'numberedClauses', style: 'artigo', items: corpo, start });
+      start += corpo.length;
+    });
+    blocks.push({ type: 'numberedClauses', style: 'artigo', items: [cap5[cap5.length - 1]], start, keepWithNext: true });
     blocks.push({ type: 'signatures', placeDate: `${ctx.place}, ${dateLong(v.dataAprovacao)}`, columns: [{ role: 'O Presidente da Mesa', name: str(v.presidenteMesa) || undefined }, administradorColumn(v)] });
     if (c.fr.length) {
       blocks.push({ type: 'pageBreakHint' }, {

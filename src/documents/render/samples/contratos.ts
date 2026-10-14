@@ -1,5 +1,5 @@
 // Preview samples for civil and commercial contracts.
-import { company, person, type Sample } from './_profiles';
+import { association, company, person, type Sample } from './_profiles';
 
 const comprador = {
   compradorTipo: 'pessoa',
@@ -113,17 +113,19 @@ export const SAMPLES: Sample[] = [
     who: company,
     values: {
       donatarioTipo: 'empresa',
-      donatarioEmpresaNome: 'Escola Secundária Josina Machel',
+      donatarioNatureza: 'associacao',
+      donatarioEmpresaNome: 'Associação Kulima de Apoio à Criança',
+      donatarioReconhecimento: 'reconhecida por despacho do Ministro da Justiça de 14 de Março de 2012',
       donatarioEmpresaNuit: '500112233',
-      donatarioEmpresaSede: 'Avenida Ho Chi Min, n.º 1060, Maputo',
-      donatarioRepNome: 'Dra. Graça Muianga',
-      donatarioRepCargo: 'Directora da Escola',
+      donatarioEmpresaSede: 'Rua dos Lírios, n.º 45, Bairro de Chamanculo C, Maputo',
+      donatarioRepNome: 'Graça Muianga',
+      donatarioRepCargo: 'Presidente do Conselho de Direcção',
       bens: [
         { descricao: 'Computador portátil HP 250 G9', quantidade: 20, valorEstimado: '640000' },
         { descricao: 'Projector multimédia Epson', quantidade: 2, valorEstimado: '70000' },
       ],
       encargo: true,
-      encargoTexto: 'os bens destinam-se exclusivamente à sala de informática da escola, não podendo ser vendidos nem cedidos a terceiros',
+      encargoTexto: 'os bens destinam-se exclusivamente à sala de informática do centro comunitário da associação em Chamanculo, não podendo ser vendidos nem cedidos a terceiros',
       beneficente: true,
     },
   },
@@ -238,6 +240,31 @@ export const SAMPLES: Sample[] = [
       responsabilidades2: 'Seleccionar os estagiários e garantir o seu seguro escolar\nAvaliar os estágios em conjunto com a Primeira Parte',
       pontosFocais: 'Eng.º Mário Sitoe, Director de Obras, +258 84 300 1111\nDra. Célia Mondlane, Coordenadora de Estágios, +258 82 400 2222',
       foro: 'Tribunal Judicial da Cidade da Beira',
+      parte2Natureza: 'publica',
+    },
+  },
+  {
+    id: 'memorando-de-entendimento',
+    name: 'memorando-parceria-ong',
+    who: association,
+    values: {
+      modelo: 'parceriaOng',
+      parte2Natureza: 'ong',
+      parte2EmpresaNome: 'Fundação Horizonte Solidário',
+      parte2Reconhecimento: 'autorizada a operar em Moçambique pelo Ministério dos Negócios Estrangeiros e Cooperação',
+      parte2EmpresaNuit: '700112233',
+      parte2EmpresaSede: 'Avenida Kenneth Kaunda, n.º 455, Maputo',
+      parte2RepNome: 'Maria João Fonseca',
+      parte2RepCargo: 'Directora de País',
+      objecto: 'estabelecer a parceria entre as Partes para a execução do programa de apoio escolar a crianças vulneráveis do Bairro da Mafalala',
+      areas: 'Apoio escolar e explicações\nDistribuição de material escolar\nSensibilização das famílias',
+      responsabilidades1: 'Mobilizar as famílias e identificar as crianças beneficiárias\nDisponibilizar a sua sede para as actividades',
+      responsabilidades2: 'Financiar o material escolar e a formação dos voluntários\nApoiar tecnicamente a monitoria do programa',
+      pontosFocais: 'Celso Matsinhe, Presidente da Direcção, +258 84 555 0101\nAna Cossa, Oficial de Programas, +258 82 555 0202',
+      duracaoAnos: 3,
+      renovacao: false,
+      versaoIngles: true,
+      foro: 'Tribunal Judicial da Cidade de Maputo',
     },
   },
   {

@@ -1,4 +1,4 @@
-import { addMonths, formatDateShort, MAX_EXTENSO, numeroPorExtenso, roundMoney } from '@/lib/format';
+import { addMonths, MAX_EXTENSO, numeroPorExtenso, roundMoney } from '@/lib/format';
 import type { Profile } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type ClauseItem, type DefaultsContext, type FieldDef, type SignatureColumn, type Values, type Warning } from '../model';
@@ -238,7 +238,6 @@ export default defineTemplate({
         en: `The Debtor, identified above, declares that it owes the Creditor, identified above, the sum of ${moneyText(v.valor)}, arising from the stated origin, and acknowledges that the debt is certain, liquid and due.`,
       },
     ];
-    if (total != null && total > 0) blocks.push({ type: 'amount', label: 'Valor em dívida', value: total });
     blocks.push({
       type: 'paragraph',
       id: 'acordo',
@@ -246,16 +245,20 @@ export default defineTemplate({
       en: 'The Debtor and the Creditor agree on payment of the debt as follows:',
     });
 
+    // Instalment amounts in the clause itself (no schedule table): the declaration stays on one page.
+    const p1 = prestacoes[0]?.valor ?? null;
+    const pN = prestacoes[prestacoes.length - 1]?.valor ?? null;
+    const valorPrest = p1 != null ? ` de **${formatMoney(p1)}**${pN != null && pN !== p1 ? `, sendo a última de **${formatMoney(pN)}**` : ''}` : '';
     const pagamento = `${v.formaPagamento || 'transferência bancária'}${v.contaPagamento ? ` (${v.contaPagamento})` : ''}`;
     const clauses: ClauseItem[] = [
       {
         id: 'plano',
         heading: 'Prazo de pagamento',
         text: mensal
-          ? `${O(dev)} pagará a dívida em ${c.n} prestações mensais e sucessivas, conforme o plano abaixo, vencendo-se a primeira em ${dateLong(v.dataPrimeira)} e as restantes no mesmo dia de cada um dos meses seguintes${c.ultimaData ? `, até ${dateLong(c.ultimaData)}` : ''}.`
+          ? `${O(dev)} pagará a dívida em ${c.n} prestações mensais e sucessivas${valorPrest}, vencendo-se a primeira em ${dateLong(v.dataPrimeira)} e as restantes no mesmo dia de cada um dos meses seguintes${c.ultimaData ? `, até ${dateLong(c.ultimaData)}` : ''}.`
           : `${O(dev)} pagará a totalidade da dívida, numa única prestação, até ${dateLong(v.dataPrimeira)}.`,
         en: mensal
-          ? `The Debtor will pay the debt in ${c.n} consecutive monthly instalments, as set out in the plan below.`
+          ? `The Debtor will pay the debt in ${c.n} consecutive monthly instalments${prestacoes[0] ? ` of ${formatMoney(prestacoes[0].valor)}` : ''}, the first on ${v.dataPrimeira || '—'} and the others on the same day of each following month.`
           : 'The Debtor will pay the whole debt in a single payment by the due date.',
       },
       {
@@ -292,31 +295,17 @@ export default defineTemplate({
       text: `Com o pagamento integral do valor em dívida, ${o(cred)} dará ${ao(dev)} plena e integral quitação, nada mais tendo a exigir com fundamento na dívida aqui reconhecida.`,
       en: 'On full payment, the Creditor will give the Debtor a full discharge and will have no further claim based on this debt.',
     });
-    blocks.push({ type: 'numberedClauses', style: 'numeric', items: clauses });
-
-    if (mensal) {
-      const rows = prestacoes.length
-        ? prestacoes.map((p) => [`${p.n}.ª`, p.data ? formatDateShort(p.data) : '___/___/______', formatMoney(p.valor, false)])
-        : Array.from({ length: c.n }, (_, i) => [`${i + 1}.ª`, v.dataPrimeira ? formatDateShort(addMonths(v.dataPrimeira, i)) : '___/___/______', '']);
-      blocks.push({
-        type: 'table',
-        caption: 'Plano de pagamento',
-        columns: [
-          { label: 'Prestação', width: 1 },
-          { label: 'Data de vencimento', width: 2, align: 'center' },
-          { label: 'Valor (MT)', width: 2, align: 'right' },
-        ],
-        rows,
-        totals: [['Total', '', total != null ? formatMoney(total, false) : '']],
-      });
-    }
+    // Numbered paragraphs with run-in headings ("1. Prazo de pagamento. …").
+    blocks.push(
+      ...clauses.map((cl, k): Block => ({ type: 'paragraph', id: cl.id, text: `**${k + 1}. ${cl.heading}.** ${cl.text}`, en: `${k + 1}. ${cl.heading}. ${cl.en}` })),
+    );
 
     const credSig: SignatureColumn = empresaCredora ? employerSignature(ctx, O(cred)) : workerSignature(v, O(cred), 'credor');
     blocks.push(
       {
         type: 'paragraph',
         id: 'fecho',
-        text: 'Por ser verdade e corresponder à vontade das partes, vai a presente declaração assinada por ambas, em dois exemplares de igual valor, ficando um em poder de cada uma.',
+        text: 'Por ser verdade, vai a presente declaração assinada por ambas as partes, em dois exemplares de igual valor, ficando um em poder de cada uma.',
         en: 'In witness whereof, this declaration is signed by both parties in two copies of equal value, one for each party.',
         keepWithNext: true,
       },

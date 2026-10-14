@@ -19,7 +19,8 @@ const diaSemana = (iso: unknown) => {
 export default defineTemplate({
   id: 'convocatoria-reuniao-comunitaria',
   family: 'carta',
-  page: 'A4',
+  // A4 poster for posting; A5 to hand out (two per A4 sheet).
+  page: (v) => (v.formato === 'A5' ? 'A5' : 'A4'),
   frame: 'simple',
   noBrand: true,
   sections: [
@@ -41,6 +42,18 @@ export default defineTemplate({
         { value: 'aviso', label: l('Aviso à população', 'Public notice') },
       ],
       default: 'reuniao',
+    },
+    {
+      name: 'formato',
+      type: 'select',
+      section: 'aviso',
+      width: 'half',
+      label: l('Formato', 'Format'),
+      options: [
+        { value: 'A4', label: l('A4 — cartaz para afixar', 'A4 — poster') },
+        { value: 'A5', label: l('A5 — folheto para distribuir (dois por folha)', 'A5 — handout (two per sheet)') },
+      ],
+      default: 'A4',
     },
     unidadeField('aviso'),
     {
@@ -103,16 +116,18 @@ export default defineTemplate({
         ? `${secretaria} informa ${str(v.destinatarios) || 'todos os moradores'} de que terá lugar ${o_que}, nos termos seguintes:`
         : `${secretaria} ${verbo} **${str(v.destinatarios) || 'todos os moradores'}** para ${v.tipo === 'reuniao' ? 'uma reunião' : `a ${o_que.replace(/^(a|uma)\s+/i, '')}`}, a realizar-se:`;
 
+    // The A5 handout drops the poster's extra white space so it stays on one page.
+    const a5 = v.formato === 'A5';
     const blocks: Block[] = [
-      { type: 'spacer', size: 'medium' },
-      { type: 'display', text: titulo, size: 'xxl', uppercase: true, weight: 'bold', tone: 'text', after: 6 },
+      ...(a5 ? [] : [{ type: 'spacer', size: 'medium' } as Block]),
+      { type: 'display', text: titulo, size: a5 ? 'xl' : 'xxl', uppercase: true, weight: 'bold', tone: 'text', after: a5 ? 4 : 6 },
       { type: 'ornament', style: 'rule', width: 'short' },
-      { type: 'spacer', size: 'medium' },
+      ...(a5 ? [] : [{ type: 'spacer', size: 'medium' } as Block]),
       { type: 'paragraph', id: 'corpo', text: corpo, align: 'center', en: 'The community structure calls the residents named to the meeting or activity below.' },
-      { type: 'spacer', size: 'small' },
-      { type: 'display', text: quando, size: 'lg', weight: 'bold', tone: 'accent', fit: true, after: 4 },
-      { type: 'display', text: hora(v.hora, 'às').replace(/^à(s)? /, (m) => m.charAt(0).toUpperCase() + m.slice(1)), size: 'md', weight: 'bold', tone: 'text', after: 4 },
-      { type: 'display', text: str(v.localReuniao) || BLANK, size: 'md', tone: 'text', fit: true, after: 8 },
+      ...(a5 ? [] : [{ type: 'spacer', size: 'small' } as Block]),
+      { type: 'display', text: quando, size: a5 ? 'md' : 'lg', weight: 'bold', tone: 'accent', fit: true, after: a5 ? 2 : 4 },
+      { type: 'display', text: hora(v.hora, 'às').replace(/^à(s)? /, (m) => m.charAt(0).toUpperCase() + m.slice(1)), size: 'md', weight: 'bold', tone: 'text', after: a5 ? 2 : 4 },
+      { type: 'display', text: str(v.localReuniao) || BLANK, size: a5 ? 'sm' : 'md', tone: 'text', fit: true, after: a5 ? 4 : 8 },
     ];
     if (agenda.length) {
       blocks.push(
@@ -131,7 +146,8 @@ export default defineTemplate({
     if (str(v.textoLocal)) {
       blocks.push({ type: 'ornament', style: 'dots', width: 'short' }, { type: 'paragraph', id: 'texto-local', text: str(v.textoLocal), align: 'center', en: 'The same notice in a local language.' });
     }
-    blocks.push({ type: 'spacer', size: 'medium' }, { type: 'signatures', placeDate: `${ctx.place}, ${dateLong(v.data)}`, columns: [assinanteColumn(ctx)] });
+    if (!a5) blocks.push({ type: 'spacer', size: 'medium' });
+    blocks.push({ type: 'signatures', placeDate: `${ctx.place}, ${dateLong(v.data)}`, columns: [assinanteColumn(ctx)] });
     return blocks;
   },
 });

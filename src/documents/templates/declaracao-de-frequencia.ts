@@ -6,10 +6,7 @@
 import { diffDays } from '@/lib/format';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { blank, dateField, dateLong, l, localField, placeDate } from './_shared';
-import {
-  academicFields, alunoFields, alunoIdent, designacaoField, eCurso, eSuperior, estudante, FINALIDADE_FIELD, finalidadeBlock,
-  fechoDeclaracao, frequenciaTexto, inst, licenceWarning, mesAno, num, schoolSignatures, signatoryFields, str,
-} from './_educacao';
+import { academicFields, alunoFields, alunoIdent, designacaoField, eCurso, estudante, eSuperior, fechoDeclaracao, FINALIDADE_FIELD, finalidadeBlock, frequenciaTexto, inst, intervalo, licenceWarning, mesAno, num, schoolSignatures, signatoryFields, str } from './_educacao';
 
 export default defineTemplate({
   id: 'declaracao-de-frequencia',
@@ -119,7 +116,7 @@ export default defineTemplate({
       const horas = num(v.cargaHoraria);
       const periodo = v.dataInicio
         ? tipo === 'frequentou'
-          ? v.dataFim ? `, de ${dateLong(v.dataInicio)} a ${dateLong(v.dataFim)}` : `, com início em ${dateLong(v.dataInicio)}`
+          ? v.dataFim ? `, ${intervalo(str(v.dataInicio), str(v.dataFim))}` : `, com início em ${dateLong(v.dataInicio)}`
           : `, com início em ${dateLong(v.dataInicio)}${v.dataFim ? ` e termo previsto para ${dateLong(v.dataFim)}` : ''}`
         : '';
       const curso = `${str(v.classe) ? `o ${str(v.classe)} do ` : 'o '}curso de **${blank(v.curso)}**`;

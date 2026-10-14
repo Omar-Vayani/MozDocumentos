@@ -291,7 +291,16 @@ export function fraccoesFields(section: string, name = 'fraccoes'): FieldDef {
   };
 }
 
-/** Per-mille share as printed: "125/1000" (the ‰ sign is not in the document fonts). */
-export const permil = (n: number | null) => (n == null ? '' : `${String(r2(n)).replace('.', ',')}/1000`);
+/** Per-mille share as printed: "125‰". */
+export const permil = (n: number | null) => (n == null ? '' : `${String(r2(n)).replace('.', ',')}‰`);
 /** Per-mille share in a table column headed "Permilagem": "125". */
 export const permilNum = (n: number | null) => (n == null ? '' : String(r2(n)).replace('.', ','));
+
+/** "Município da Matola", "Município da Beira", "Município do Dondo", "Município de Maputo". */
+export function municipioNome(m: unknown): string {
+  const s = semPonto(m).replace(/^(munic[ií]pio|cidade)\s+(de|da|do)\s+/i, '');
+  if (!s) return `Município de ${BLANK}`;
+  if (/^(matola|beira|maxixe|ilha de moçambique|namaacha|manhiça|moamba|macia|gorongosa|catandica)$/i.test(s)) return `Município da ${s}`;
+  if (/^(dondo|chókwè|chokwe|songo)$/i.test(s)) return `Município do ${s}`;
+  return `Município de ${s}`;
+}

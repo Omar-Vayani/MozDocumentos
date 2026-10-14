@@ -8,7 +8,7 @@ import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type DefaultsContext, type Warning } from '../model';
 import { BLANK, cite, dateLong, DOC_TIPO_OPTIONS, ESTADO_CIVIL_OPTIONS, estadoCivilF, GENERO_OPTIONS, isF, l } from './_shared';
 import { semPonto, str } from './_contratos';
-import { alvaraFrase, profileLicenca } from './_construcao';
+import { alvaraFrase, municipioNome, profileLicenca } from './_construcao';
 
 const pessoa = (c: DefaultsContext) => (c.profile?.kind === 'pessoa' ? c.profile : null);
 
@@ -159,14 +159,14 @@ export default defineTemplate({
       str(v.tecnicoNuit) ? `titular do NUIT ${v.tecnicoNuit}` : '',
       `residente em ${semPonto(v.tecnicoMorada) || BLANK}`,
       `${titulo}, ${f ? 'inscrita' : 'inscrito'} na ${ordem} sob o n.º ${str(v.ordemNumero) || BLANK}${str(v.ordemCategoria) ? `, na categoria de ${semPonto(v.ordemCategoria)}` : ''}`,
-      str(v.inscricaoMunicipal) ? `${f ? 'inscrita' : 'inscrito'} no Município sob o ${semPonto(v.inscricaoMunicipal).replace(/^n\.º/i, 'n.º')}` : '',
+      str(v.inscricaoMunicipal) ? `com a inscrição municipal ${semPonto(v.inscricaoMunicipal).replace(/^n\.º/i, 'n.º')}` : '',
       str(v.empresaFirma) ? `técnic${f ? 'a' : 'o'} da sociedade ${semPonto(v.empresaFirma)}${str(v.empresaAlvara) ? `, ${alvaraFrase(v.empresaAlvara)}` : ''}` : '',
     ].filter(Boolean).join(', ');
 
     const tipo = TIPOS_OBRA.find((t) => t.value === v.tipoObra) ?? TIPOS_OBRA[0];
     const esp = ESPECIALIDADES.find((e) => e.value === v.especialidadeProjecto);
     const espTxt = (esp?.value === 'outra' ? semPonto(v.especialidadeOutra) : esp?.pt) || BLANK;
-    const obra = `**${tipo.pt}** de ${semPonto(v.descricaoObra).replace(/^./, (s) => s.toLowerCase()) || BLANK}, sita em ${semPonto(v.localObra) || BLANK}, Município de ${semPonto(v.municipio) || BLANK}`;
+    const obra = `**${tipo.pt}** de ${semPonto(v.descricaoObra).replace(/^./, (s) => s.toLowerCase()) || BLANK}, sita em ${semPonto(v.localObra) || BLANK}, ${municipioNome(v.municipio)}`;
     const processo = str(v.processoNumero) ? `, objecto do processo n.º ${semPonto(v.processoNumero)}` : '';
 
     const corpo =

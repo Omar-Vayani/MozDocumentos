@@ -7,6 +7,7 @@ import {
   num, numerar, pct, quantos, semPonto, signatureRows, SOCIO_COLUMNS, socioIdent, socios, socioSignature, sociedadeFields, sociedadeIdent,
   sociedadeNome, splitOutros, str, valorTexto, type Socio,
 } from './_sociedades';
+import { deEntidade } from './_pessoal-rh';
 
 const sec = 'clausulas';
 const when = (k: string) => (v: Values) => Boolean(v[k]);
@@ -160,7 +161,7 @@ export default defineTemplate({
       },
     ];
     if (v.gerencia) {
-      clauses.push({ id: 'gerencia', heading: 'Composição da gerência', text: `As partes obrigam-se a votar de modo a que a gerência da Sociedade tenha a seguinte composição e funcionamento: ${semPonto(v.gerenciaTexto) || BLANK}.`, en: 'The parties will vote so that management is composed as stated.' });
+      clauses.push({ id: 'gerencia', heading: 'Composição da gerência', text: `As partes obrigam-se a votar de modo a que a gerência da Sociedade tenha a seguinte composição e funcionamento: ${semPonto(v.gerenciaTexto).replace(/^[A-ZÁÉÍÓÚ](?=[a-záéíóúâêôãõç])/, (x) => x.toLowerCase()) || BLANK}.`, en: 'The parties will vote so that management is composed as stated.' });
     }
     if (v.reservadas) {
       const ms = splitOutros(v.materias);
@@ -188,7 +189,7 @@ export default defineTemplate({
       clauses.push({ id: 'dragAlong', heading: 'Obrigação de acompanhar a venda', text: `Se partes que representem, pelo menos, ${pcto(v.dragPct)} do capital social aceitarem uma proposta de terceiro para a aquisição da totalidade do capital, as demais partes obrigam-se a ceder-lhe as suas quotas nas mesmas condições e pelo mesmo preço proporcional.`, en: 'Drag-along: holders of the stated share may require the others to sell on the same terms.' });
     }
     if (v.naoConcorrencia) {
-      clauses.push({ id: 'naoConcorrencia', heading: 'Não concorrência', text: `Enquanto forem sócios e durante ${quantos(num(v.naoConcorrenciaAnos), 'ano', 'anos')} após deixarem de o ser, as partes não exercem, directa ou indirectamente, no território de ${semPonto(v.territorio) || BLANK}, actividade concorrente com a da Sociedade, nem aliciam os seus trabalhadores ou clientes.`, en: 'Non-compete and non-solicitation while members and for the stated period afterwards, in the stated territory.' });
+      clauses.push({ id: 'naoConcorrencia', heading: 'Não concorrência', text: `Enquanto forem sócios e durante ${quantos(num(v.naoConcorrenciaAnos), 'ano', 'anos')} após deixarem de o ser, as partes não exercem, directa ou indirectamente, no território ${semPonto(v.territorio) ? deEntidade(semPonto(v.territorio)) : `de ${BLANK}`}, actividade concorrente com a da Sociedade, nem aliciam os seus trabalhadores ou clientes.`, en: 'Non-compete and non-solicitation while members and for the stated period afterwards, in the stated territory.' });
     }
     if (v.confidencialidade) {
       clauses.push({ id: 'confidencialidade', heading: 'Confidencialidade', text: 'As partes mantêm confidenciais o conteúdo do presente acordo e as informações sobre a Sociedade a que tenham acesso, salvo quando a sua divulgação seja exigida por lei ou por autoridade competente.', en: 'The parties keep this agreement and company information confidential unless disclosure is required by law.' });

@@ -101,7 +101,7 @@ export default defineTemplate({
     }
     itens.push('As partes comprometem-se a manter boas relações de vizinhança e a não retomar o diferendo agora resolvido.');
     const presencas = ts.length ? `, na presença de ${ts.map((t) => `**${t.nome}**${t.documento ? ` (BI n.º ${t.documento})` : ''}`).join(', ')}` : '';
-    const lingua = str(v.lingua) ? ` e traduzida para ${str(v.lingua)}` : '';
+    const lingua = str(v.lingua) ? ` e traduzido para ${str(v.lingua)}` : '';
 
     const blocks: Block[] = [
       { type: 'title', text: 'Acta de Conciliação', subtitle: str(v.numero) ? numeroRef(ctx) : undefined },
@@ -141,7 +141,7 @@ export default defineTemplate({
       },
     ];
     if (ts.length) {
-      blocks.push({ type: 'signatures', columns: ts.slice(0, 3).map((t, i) => ({ role: `${i + 1}.ª Testemunha`, name: t.nome || undefined })) });
+      blocks.push({ type: 'signatures', columns: ts.slice(0, 3).map((t, i) => ({ role: ts.length > 1 ? `${i + 1}.ª Testemunha` : 'A Testemunha', name: t.nome || undefined, detail: t.documento ? `BI n.º ${t.documento.replace(/^(BI\s*)?n\.?\s*º\s*/i, '')}` : undefined })) });
     }
     return blocks;
   },

@@ -337,7 +337,7 @@ export default defineTemplate({
         keepWithNext: true,
       },
     ];
-    const cols: SignatureColumn[] = [parteSignature(v, 'cedente', OCed), parteSignature(v, 'cessionario', OCes), ...companyColumns(ctx, reps)];
+    const cols: SignatureColumn[] = [parteSignature(v, 'cedente', OCed), parteSignature(v, 'cessionario', OCes), ...companyColumns(ctx, reps, 'A Sociedade')];
     blocks.push(...signatureRows(cols));
     if (v.conjuge && !isEmpresa(v, 'cedente')) {
       blocks.push(

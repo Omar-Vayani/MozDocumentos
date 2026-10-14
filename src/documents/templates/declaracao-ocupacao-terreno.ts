@@ -4,8 +4,8 @@
 // DUAT by good-faith or customary occupation. It is not a title and never
 // records a "sale" of land, which belongs to the State.
 
-import { defineTemplate, type Block, type Warning } from '../model';
-import { BLANK, cite, dateField, l, lineItems, localField } from './_shared';
+import { defineTemplate, type Block, type SignatureColumn, type Warning } from '../model';
+import { BLANK, cite, dateField, dateLong, l, lineItems, localField } from './_shared';
 import {
   assinaturaBlocks,
   assinaturaFields,
@@ -16,6 +16,7 @@ import {
   numeroComunidadeField,
   numeroRef,
   pessoaFields,
+  residenteEm,
   str,
   unidadeField,
 } from './_comunidade';
@@ -151,7 +152,7 @@ export default defineTemplate({
   blocks: (ctx) => {
     const v = ctx.values;
     const area = str(v.area) ? `${str(v.area).replace('.', ',')} ${str(v.areaUnidade) || 'm²'}` : `${BLANK} ${str(v.areaUnidade) || 'm²'}`;
-    const origem = str(v.origem) ? `, ${str(v.origem)},` : '';
+    const origem = str(v.origem) ? `, ${str(v.origem).replace(/[.,;]+$/, '')},` : ',';
     const entidade = str(v.entidade);
     const conf = lineItems(v.confrontantes).filter((r) => str(r.nome) || str(r.documento));
     const blocks: Block[] = [
@@ -159,7 +160,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'declaracao',
-        text: `Declara-se, ${finalidadeFrase(v)}${entidade ? ` junto ${/^(Serviço|Conselho|Município|Posto|Distrito)/i.test(entidade) ? 'dos' : 'de'} ${entidade.replace(/^(os|as|o|a)\s+/i, '')}` : ''}, que ${identificacao(v)}, ocupa e utiliza, **de forma pacífica, contínua e de boa-fé, desde ${str(v.desde) || BLANK}**${origem} uma parcela de terreno situada em ${str(v.localizacao) || BLANK}, com a área aproximada de ${area}, destinada a ${str(v.uso) || BLANK}, com as seguintes confrontações:`,
+        text: `Declara-se, ${finalidadeFrase(v)}${entidade ? ` junto ${/^(Serviço|Conselho|Município|Posto|Distrito)/i.test(entidade) ? 'dos' : 'de'} ${entidade.replace(/^(os|as|o|a)\s+/i, '')}` : ''}, que ${identificacao(v)}, ocupa e utiliza, **de forma pacífica, contínua e de boa-fé, desde ${str(v.desde) || BLANK}**${origem} uma parcela de terreno situada ${str(v.localizacao) ? residenteEm(str(v.localizacao)).replace(/^residente /, '') : `em ${BLANK}`}, com a área aproximada de ${area}, destinada a ${str(v.uso) || BLANK}, com as seguintes confrontações:`,
         keepWithNext: true,
         en: 'It is declared that the person named has occupied and used the plot described peacefully, continuously and in good faith since the year stated, with these boundaries:',
       },
@@ -193,19 +194,25 @@ export default defineTemplate({
     blocks.push({
       type: 'paragraph',
       id: 'confrontantes-intro',
-      text: 'Os vizinhos confrontantes abaixo assinados, membros da comunidade, confirmam o que antecede.',
+      text: 'Os vizinhos confrontantes abaixo assinados, membros da comunidade, confirmam o que antecede. Quem não souber assinar apõe a impressão digital junto do seu nome.',
       keepWithNext: true,
       en: 'The neighbours below, community members, confirm the above.',
     });
-    const linhas = conf.length ? conf : [{}, {}, {}, {}];
-    blocks.push({
-      type: 'table',
-      columns: [{ label: 'Nome', width: 3 }, { label: 'BI n.º', width: 1.8 }, { label: 'Lado', width: 0.8, align: 'center' }, { label: 'Assinatura / impressão digital', width: 2.6 }],
-      rows: linhas.map((r: Record<string, any>) => [str(r.nome) || ' ', str(r.documento) || ' ', str(r.lado) || ' ', ' ']),
+    // Each neighbour signs on a line of their own (or presses a thumbprint next to it).
+    const LADOS: Record<string, string> = { N: 'Norte', S: 'Sul', E: 'Este', O: 'Oeste', W: 'Oeste' };
+    const linhas: Record<string, unknown>[] = conf.length ? conf : [{}, {}, {}];
+    const cols: SignatureColumn[] = linhas.map((r) => {
+      const lado = str(r.lado);
+      const ladoTxt = LADOS[lado.toUpperCase()] ?? lado;
+      const doc = str(r.documento).replace(/^(BI\s*)?n\.?\s*º\s*/i, '');
+      return { role: `Confrontante${ladoTxt ? ` — ${ladoTxt}` : ''}`, name: str(r.nome) || undefined, detail: doc ? `BI n.º ${doc}` : undefined };
     });
-    blocks.push(...assinaturaBlocks(ctx), ...notaBlocks(v.cidadaoGenero));
+    for (let i = 0; i < cols.length; i += 3) {
+      blocks.push({ type: 'signatures', placeDate: i === 0 ? `${ctx.place}, ${dateLong(v.data)}` : undefined, columns: cols.slice(i, i + 3), keepWithNext: true });
+    }
+    blocks.push(...assinaturaBlocks(ctx, { placeDate: false }), ...notaBlocks(v.cidadaoGenero));
     // Blank area (no ruled lines) for a hand-drawn sketch.
-    if (v.croqui !== false) blocks.push({ type: 'box', label: 'Anexo — Croqui de localização (indicar o norte, os caminhos e as referências)', text: Array.from({ length: 14 }, () => '\u00a0').join('\n') });
+    if (v.croqui !== false) blocks.push({ type: 'box', label: 'Anexo — Croqui de localização (indicar o norte, os caminhos e as referências)', space: 70 });
     return blocks;
   },
 });

@@ -190,31 +190,17 @@ export default defineTemplate({
         text: `Pelo presente contrato, ${aA} obriga-se a prestar ao Cliente os seguintes serviços jurídicos: ${trim(v.objecto).replace(/[.;]$/, '') || BLANK}.${trim(v.exclusoes) ? ` Não se incluem no presente contrato ${trim(v.exclusoes).replace(/[.;]$/, '')}, que serão objecto de acordo separado.` : ''}`,
         en: 'The lawyer will provide the client with the legal services described; any excluded services require a separate agreement.',
       },
-      { id: 'honorarios', heading: 'Honorários', text: honorarios, en: 'Fees.' },
-      ...(money(v.provisao) != null
-        ? [
-            {
-              id: 'provisao',
-              heading: 'Provisão',
-              text: `Na data da assinatura do presente contrato, o Cliente entrega ${aoA}, a título de provisão por conta de honorários, a quantia de ${moneyExt(v.provisao)}, que será levada em conta na nota de honorários final. A falta de pagamento da provisão confere ${aoA} o direito de renunciar ao mandato.`,
-              en: 'The client pays an advance on account of fees, credited in the final fee note. If unpaid, the lawyer may withdraw.',
-            },
-          ]
-        : []),
       {
-        id: 'despesas',
-        heading: 'Despesas e encargos',
-        text:
-          v.despesas === 'reembolso'
-            ? `As despesas e encargos do processo, designadamente custas judiciais, preparos, certidões, registos, traduções e deslocações para fora da cidade de ${ctx.place}, são suportados pelo Cliente, que os reembolsa ${aoA} contra apresentação dos respectivos comprovativos.`
-            : `As despesas e encargos do processo, designadamente custas judiciais, preparos, certidões, registos, traduções e deslocações para fora da cidade de ${ctx.place}, são suportados pelo Cliente, que adianta os respectivos valores mediante pedido ${daA}.`,
-        en: 'Court fees and other expenses are borne by the client.',
+        id: 'honorarios',
+        heading: money(v.provisao) != null ? 'Honorários e provisão' : 'Honorários',
+        text: `${honorarios}${money(v.provisao) != null ? ` Na data da assinatura do presente contrato, o Cliente entrega ${aoA}, a título de provisão por conta de honorários, a quantia de ${moneyExt(v.provisao)}, que será levada em conta na nota de honorários final; a falta de pagamento da provisão confere ${aoA} o direito de renunciar ao mandato.` : ''}`,
+        en: 'Fees; any advance paid on account of fees is credited in the final fee note, and if unpaid the lawyer may withdraw.',
       },
       {
-        id: 'pagamento',
-        heading: 'Pagamento',
-        text: `${AA} apresenta notas de honorários e despesas, que o Cliente paga no prazo de ${prazo} a contar da sua recepção${trim(v.nib) ? `, por transferência para a conta com o NIB ${trim(v.nib)}` : ''}.${v.iva ? ` Aos honorários acresce o IVA à taxa legal em vigor (actualmente ${formatPercent(iva)}), sendo emitida a respectiva factura.` : ''}`,
-        en: 'The lawyer issues fee notes, payable within the agreed period; VAT is added where applicable.',
+        id: 'despesas',
+        heading: 'Despesas e pagamento',
+        text: `As despesas e encargos do processo, designadamente custas judiciais, preparos, certidões, registos, traduções e deslocações para fora da cidade de ${ctx.place}, são suportados pelo Cliente, ${v.despesas === 'reembolso' ? `que os reembolsa ${aoA} contra apresentação dos respectivos comprovativos` : `que adianta os respectivos valores mediante pedido ${daA}`}. ${AA} apresenta notas de honorários e despesas, que o Cliente paga no prazo de ${prazo} a contar da sua recepção${trim(v.nib) ? `, por transferência para a conta com o NIB ${trim(v.nib)}` : ''}.${v.iva ? ` Aos honorários acresce o IVA à taxa legal em vigor (actualmente ${formatPercent(iva)}), sendo emitida a respectiva factura.` : ''}`,
+        en: 'Court fees and other expenses are borne by the client. The lawyer issues fee notes, payable within the agreed period; VAT is added where applicable.',
       },
       {
         id: 'deveresCliente',
@@ -260,7 +246,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'exemplares',
-        text: 'O presente contrato é feito em dois exemplares de igual valor, ficando um em poder de cada uma das partes.',
+        text: 'Feito em dois exemplares de igual valor, um para cada parte.',
         en: 'Made in two counterparts of equal value, one for each party.',
         keepWithNext: true,
       },

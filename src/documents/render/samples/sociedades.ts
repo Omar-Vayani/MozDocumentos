@@ -1,5 +1,5 @@
 // Preview samples for company-law documents (pacto social, deliberações, cessão de quotas…).
-import { company, person, type Sample } from './_profiles';
+import { association, company, person, type Sample } from './_profiles';
 
 const SOCIOS = [
   {
@@ -174,6 +174,31 @@ export const SAMPLES: Sample[] = [
   },
   {
     id: 'declaracao-beneficiario-efectivo',
+    name: 'declaracao-beneficiario-efectivo-osfl',
+    who: association,
+    values: {
+      entidadeTipo: 'osfl',
+      osflNatureza: 'associacao',
+      sociedadeNuel: '',
+      sociedadeNuit: '500667788',
+      declaranteNome: 'Celso Matsinhe',
+      declaranteGenero: 'M',
+      declaranteEstadoCivil: 'solteiro',
+      declaranteNacionalidade: 'moçambicana',
+      declaranteDocTipo: 'BI',
+      declaranteDocNumero: '110100445566B',
+      declaranteMorada: 'Rua da Mafalala, n.º 32, Cidade de Maputo',
+      declaranteCargo: 'Presidente do Conselho de Direcção',
+      beneficiarios: [
+        { nome: 'Celso Matsinhe', dataNascimento: '1990-02-14', nacionalidade: 'moçambicana', docTipo: 'BI', docNumero: '110100445566B', docValidade: '2031-01-20', nuit: '120334455', domicilio: 'Rua da Mafalala, n.º 32, Cidade de Maputo', telemovel: '+258 84 555 0101', cargo: 'Presidente do Conselho de Direcção' },
+        { nome: 'Ana Cossa', dataNascimento: '1994-08-30', nacionalidade: 'moçambicana', docTipo: 'BI', docNumero: '110100667788C', docValidade: '2029-09-11', nuit: '120998877', domicilio: 'Bairro de Chamanculo C, Cidade de Maputo', telemovel: '+258 82 555 0202', cargo: 'Presidente do Conselho Fiscal' },
+        { nome: 'Rui Nhaca', dataNascimento: '1982-05-03', nacionalidade: 'moçambicana', docTipo: 'BI', docNumero: '110100112233D', docValidade: '2028-04-02', nuit: '120112233', domicilio: 'Bairro do Aeroporto A, Cidade de Maputo', telemovel: '+258 86 555 0303', cargo: 'Presidente da Mesa da Assembleia Geral' },
+      ],
+      finalidade: 'conservatoria',
+    },
+  },
+  {
+    id: 'declaracao-beneficiario-efectivo',
     who: company,
     values: {
       ...SOCIEDADE,
@@ -313,6 +338,7 @@ export const SAMPLES: Sample[] = [
       tagAlong: true,
       naoConcorrencia: true,
       naoConcorrenciaAnos: 2,
+      materias: 'alteração do contrato de sociedade, aumento ou redução do capital\nentrada de novos sócios\ncontracção de empréstimos ou prestação de garantias acima de 1.000.000,00 MT\nvenda ou oneração de bens do activo imobilizado\naprovação do orçamento anual e do plano de negócios\ndistribuição de dividendos',
     },
   },
 ];

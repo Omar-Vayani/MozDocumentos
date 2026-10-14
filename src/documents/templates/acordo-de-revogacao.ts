@@ -203,14 +203,23 @@ export default defineTemplate({
         en: 'Once all amounts under this agreement are paid, the parties declare they have no further claims against each other arising from the employment contract or its termination.',
       });
     }
-    if (v.devolucaoBens) {
-      clauses.push({
-        id: 'bens',
-        heading: 'Devolução de bens',
-        text: `Até à data da cessação, ${T} devolve à Empregadora todos os bens, equipamentos, documentos e cartões de acesso que lhe tenham sido confiados.`,
-        en: 'By the termination date the employee returns all company property, equipment, documents and access cards.',
-      });
-    }
+    // Return of property and the certificate in one clause: the agreement ends on the page of its last clause.
+    const certificado = `a Empregadora entrega ${aoT} o certificado de trabalho, nos termos ${doCite('certificadoTrabalho')}`;
+    clauses.push(
+      v.devolucaoBens
+        ? {
+            id: 'bens',
+            heading: 'Devolução de bens e certificado de trabalho',
+            text: `1. Até à data da cessação, ${T} devolve à Empregadora todos os bens, equipamentos, documentos e cartões de acesso que lhe tenham sido confiados.\n2. Na data da cessação, ${certificado}.`,
+            en: 'By the termination date the employee returns all company property, equipment, documents and access cards. On that date the employer gives the employee the certificate of employment.',
+          }
+        : {
+            id: 'certificado',
+            heading: 'Certificado de trabalho',
+            text: `Na data da cessação, ${certificado}.`,
+            en: 'On the termination date the employer gives the employee the certificate of employment.',
+          },
+    );
     if (v.sigilo) {
       clauses.push({
         id: 'sigilo',
@@ -219,27 +228,19 @@ export default defineTemplate({
         en: 'The parties keep the terms of this agreement confidential, except before the authorities or where disclosure is required by law.',
       });
     }
-    clauses.push(
-      {
-        id: 'revogacao',
-        heading: `Direito de revogação ${doT}`,
-        text: `Nos termos ${doCite('revogacaoAcordo')}, ${T} pode fazer cessar os efeitos do presente acordo mediante comunicação escrita à Empregadora, no prazo não superior a ${revogacaoDias} dias a contar da sua celebração, devolvendo na íntegra e de imediato o valor que tiver recebido a título de compensação. ${TCap} pode ainda enviar cópia do presente acordo ao órgão sindical da empresa e ao órgão da administração do trabalho, para efeitos de apreciação.`,
-        en: `The employee may cancel this agreement by written notice to the employer within ${revogacaoDias} days of signing, returning in full and at once any compensation received. The employee may also send a copy to the company union and the labour administration for review.`,
-      },
-      {
-        id: 'certificado',
-        heading: 'Certificado de trabalho',
-        text: `Na data da cessação, a Empregadora entrega ${aoT} o certificado de trabalho, nos termos ${doCite('certificadoTrabalho')}.`,
-        en: 'On the termination date the employer gives the employee the certificate of employment.',
-      },
-    );
+    clauses.push({
+      id: 'revogacao',
+      heading: `Direito de revogação ${doT}`,
+      text: `Nos termos ${doCite('revogacaoAcordo')}, ${T} pode fazer cessar os efeitos do presente acordo mediante comunicação escrita à Empregadora, no prazo não superior a ${revogacaoDias} dias a contar da sua celebração, devolvendo na íntegra e de imediato o valor que tiver recebido a título de compensação. ${TCap} pode ainda enviar cópia do presente acordo ao órgão sindical da empresa e ao órgão da administração do trabalho, para efeitos de apreciação.`,
+      en: `The employee may cancel this agreement by written notice to the employer within ${revogacaoDias} days of signing, returning in full and at once any compensation received. The employee may also send a copy to the company union and the labour administration for review.`,
+    });
 
     const blocks: Block[] = [
       { type: 'title', text: 'Acordo de revogação do contrato de trabalho' },
       {
         type: 'paragraph',
         id: 'partes',
-        text: `Entre:\n${employerParty(ctx, 'Empregadora')};\ne\n${workerParty(v)},\né celebrado, livremente e de boa-fé, o presente acordo de revogação do contrato de trabalho, que se rege pelas cláusulas seguintes:`,
+        text: `**Entre:**\n${employerParty(ctx, 'Empregadora')};\n**e**\n${workerParty(v)},\né celebrado, livremente e de boa-fé, o presente acordo de revogação do contrato de trabalho, que se rege pelas cláusulas seguintes:`,
         en: 'Between the employer and the employee identified above, this agreement to terminate the employment contract is freely entered into on the following terms:',
       },
       { type: 'numberedClauses', style: 'clausula', items: clauses },

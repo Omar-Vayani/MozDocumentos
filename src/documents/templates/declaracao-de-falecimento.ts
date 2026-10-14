@@ -128,7 +128,7 @@ export default defineTemplate({
       familia.push(`deixa ${quem} ${str(v.conjuge)}`);
     }
     const filhos = Number(v.filhos);
-    if (Number.isFinite(filhos) && filhos > 0) familia.push(`deixa ${filhos} ${filhos === 1 ? 'filho' : 'filhos'}`);
+    if (Number.isFinite(filhos) && filhos > 0) familia.push(`${familia.length ? '' : 'deixa '}${filhos} ${filhos === 1 ? 'filho' : 'filhos'}`);
     const causa = v.causa === 'familia' && str(v.causaFamilia)
       ? `Segundo os familiares, o falecimento deveu-se a ${str(v.causaFamilia).replace(/[.;]+$/, '')}; esta estrutura não tem competência para atestar a causa da morte.`
       : 'A causa da morte não é do conhecimento desta estrutura.';

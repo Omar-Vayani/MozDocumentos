@@ -1,8 +1,8 @@
 import { addMonths, formatMonthYear, MAX_EXTENSO, numeroPorExtenso, parseISODate, roundMoney } from '@/lib/format';
 import { defineTemplate, type Block, type SignatureColumn, type TemplateContext, type Warning } from '../model';
-import { doCite } from './_contrato-trabalho';
+import { doCite, qty } from './_contrato-trabalho';
 import {
-  blank, dateField, employerSignature, formatMoney, g, isF, l, localField, money, placeDate, refField,
+  blank, dateField, dateLong, employerSignature, formatMoney, g, isF, l, localField, money, placeDate, refField,
   splitLines, workerFields, workerSignature,
 } from './_shared';
 
@@ -204,22 +204,14 @@ export default defineTemplate({
           { label: 'Salário base', value: salario != null ? formatMoney(salario) : '' },
         ],
       },
-      { type: 'heading', text: `I. Pedido ${g(ge, 'do trabalhador', 'da trabalhadora')}` },
+      { type: 'heading', text: `I. Pedido ${g(ge, 'do trabalhador', 'da trabalhadora')} — ${dateLong(v.dataPedido)}` },
       {
         type: 'paragraph',
         id: 'pedido',
         text: `Eu, **${blank(v.trabalhadorNome)}**, venho requerer a concessão de um adiantamento sobre a minha remuneração no valor de **${formatMoney(c.valorPedido)}**${extenso(c.valorPedido)}${motivo ? `, pelo seguinte motivo: ${motivo}` : ''}.`,
         en: `I, ${blank(v.trabalhadorNome)}, request an advance on my pay of ${formatMoney(c.valorPedido)}${motivo ? `, for the following reason: ${motivo}` : ''}.`,
       },
-      {
-        type: 'paragraph',
-        id: 'consentimento',
-        text: `Para os efeitos ${doCite('descontosRemuneracao')}, autorizo a entidade empregadora a descontar o valor adiantado na minha remuneração, nos termos fixados na decisão abaixo, e, em caso de cessação do contrato de trabalho antes do reembolso integral, a descontar o saldo em dívida nas quantias que me forem devidas.`,
-        en: 'I authorise the employer to deduct the advance from my pay as set out in the approval below and, if the employment contract ends before full repayment, to deduct the outstanding balance from any amounts owed to me.',
-        keepWithNext: true,
-      },
-      { type: 'signatures', placeDate: placeDate(ctx, v.dataPedido), columns: [workerSignature(v)] },
-      { type: 'heading', text: 'II. Decisão da entidade empregadora', keepWithNext: true },
+      { type: 'heading', text: `II. Decisão da entidade empregadora — ${placeDate(ctx, v.data)}`, keepWithNext: true },
     );
 
     if (v.autorizado) {
@@ -230,39 +222,28 @@ export default defineTemplate({
           id: 'autorizacao',
           text: `Autoriza-se o adiantamento salarial a ${g(ge, 'favor do trabalhador acima identificado', 'favor da trabalhadora acima identificada')}, no valor de **${formatMoney(c.valorAut)}**${extenso(c.valorAut)}.`,
           en: `A salary advance of ${formatMoney(c.valorAut)} is approved for the employee identified above.`,
-          keepWithNext: true,
         },
       );
       if (c.prest) {
-        blocks.push(
-          {
-            type: 'paragraph',
-            id: 'desconto',
-            text: `O valor será descontado em **${c.n} prestações mensais** e sucessivas, a partir da remuneração do mês de **${formatMonthYear(mes)}**, conforme o quadro seguinte:`,
-            en: `The amount will be deducted in ${c.n} consecutive monthly instalments, starting with the pay for ${monthEn(mes)}, as shown below:`,
-          },
-          {
-            type: 'table',
-            columns: [
-              { label: 'Prestação', width: 1, align: 'center' },
-              { label: 'Salário do mês de', width: 2.4 },
-              { label: 'Valor a descontar (MT)', width: 1.8, align: 'right' },
-            ],
-            rows: c.parcelas.map((p: { mes: string; valor: number | null }, i: number) => [
-              `${i + 1}.ª`,
-              formatMonthYear(p.mes),
-              formatMoney(p.valor, false),
-            ]),
-            totals: [['Total', '', formatMoney(c.valorAut, false)]],
-          },
-        );
+        // One sentence instead of a table of equal instalments: the form stays on one page.
+        const parcelas = c.parcelas as { mes: string; valor: number | null }[];
+        const primeira = parcelas[0]?.valor ?? null;
+        const ultima = parcelas[parcelas.length - 1]?.valor ?? null;
+        const fimMes = parcelas[parcelas.length - 1]?.mes || '';
+        const valorTxt = primeira != null ? ` de **${formatMoney(primeira)}**${ultima != null && ultima !== primeira ? `, sendo a última de **${formatMoney(ultima)}**` : ''}` : '';
+        const meses = mes && fimMes ? `nas remunerações dos meses de **${formatMonthYear(mes)}** a **${formatMonthYear(fimMes)}**` : `a partir da remuneração do mês de **${formatMonthYear(mes)}**`;
+        blocks.push({
+          type: 'paragraph',
+          id: 'desconto',
+          text: `O valor será descontado em **${qty(c.n, 'prestação mensal', 'prestações mensais', true)}** e sucessivas${valorTxt}, ${meses}.`,
+          en: `The amount will be deducted in ${c.n} consecutive monthly instalments${primeira != null ? ` of ${formatMoney(primeira)}` : ''}, starting with the pay for ${monthEn(mes)}.`,
+        });
       } else {
         blocks.push({
           type: 'paragraph',
           id: 'desconto',
           text: `O valor será descontado, de uma só vez, na remuneração do mês de **${formatMonthYear(mes)}**.`,
           en: `The amount will be deducted in full from the pay for ${monthEn(mes)}.`,
-          keepWithNext: true,
         });
       }
     } else {
@@ -276,16 +257,33 @@ export default defineTemplate({
       });
     }
 
+    if (v.autorizado) {
+      // The worker's written consent to the deductions (required by law) is given under the decision,
+      // so it covers the amount and instalments actually approved.
+      blocks.push({
+        type: 'paragraph',
+        id: 'consentimento',
+        text: `Eu, **${blank(v.trabalhadorNome)}**, aceito as condições acima e autorizo, para os efeitos ${doCite('descontosRemuneracao')}, o desconto do valor adiantado na minha remuneração e, se o contrato de trabalho cessar antes do reembolso integral, do saldo em dívida nas quantias que me forem devidas.`,
+        en: 'I accept the terms above and authorise the employer to deduct the advance from my pay as set out in this decision and, if the employment contract ends before full repayment, to deduct the outstanding balance from any amounts owed to me.',
+        keepWithNext: true,
+      });
+    }
     blocks.push(
-      { type: 'signatures', placeDate: placeDate(ctx, v.data), columns: [signer(ctx)] },
       {
-        type: 'acknowledgement',
-        text: v.autorizado
-          ? `Tomei conhecimento da decisão e recebi o valor de ${formatMoney(c.valorAut)} em ___/___/______.`
-          : `Tomei conhecimento da decisão em ___/___/______.`,
-        signer: g(ge, 'O Trabalhador', 'A Trabalhadora'),
+        type: 'signatures',
+        columns: [signer(ctx), { ...workerSignature(v), role: v.autorizado ? g(ge, 'O Trabalhador', 'A Trabalhadora') : 'Tomei conhecimento' }],
       },
     );
+    if (v.autorizado) {
+      // Receipt of the money, signed when it is paid: one line keeps the form on one page.
+      blocks.push({
+        type: 'paragraph',
+        id: 'recepcao',
+        text: `**Recepção:** recebi a quantia de ${formatMoney(c.valorAut)} em ___/___/______. Assinatura: ________________________`,
+        en: `Receipt: I received ${formatMoney(c.valorAut)} on ___/___/______. Employee: __________`,
+        align: 'left',
+      });
+    }
     return blocks;
   },
 });

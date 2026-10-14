@@ -229,8 +229,8 @@ export default defineTemplate({
     ];
     if (c.inventario.length) {
       blocks.push(
-        { type: 'pageBreakHint' },
-        { type: 'title', text: 'Anexo — Inventário' },
+        { type: 'spacer', size: 'large' },
+        { type: 'heading', text: 'Anexo — Inventário', align: 'center', keepWithNext: true },
         {
           type: 'table',
           columns: [

@@ -84,7 +84,7 @@ export default defineTemplate({
     const ts = testemunhas(v);
     const lista = ts.length >= 2 ? ts : [...ts, ...Array.from({ length: 2 - ts.length }, () => ({ nome: '', documento: '', morada: '' }))];
     const quem = lista
-      .map((t) => `**${t.nome || BLANK}**, portador(a) do BI n.º ${t.documento || BLANK}${t.morada ? `, ${residenteEm(t.morada)}` : ''}`)
+      .map((t) => `**${t.nome || BLANK}**, titular do BI n.º ${t.documento.replace(/^(BI\s*)?n\.?\s*º\s*/i, '') || BLANK}${t.morada ? `, ${residenteEm(t.morada)}` : ''}`)
       .join(', e ');
     const ym = str(v.desde);
     const desde = /^\d{4}-\d{2}$/.test(ym) ? dateLong(`${ym}-01`).replace(/^\d+\.?º? de /, '') : '';

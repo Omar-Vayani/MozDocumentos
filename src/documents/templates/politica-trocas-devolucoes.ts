@@ -20,7 +20,7 @@ const EXCLUSOES = [
 export default defineTemplate({
   id: 'politica-trocas-devolucoes',
   family: 'declaracao',
-  page: 'A4',
+  page: (v) => (v.formato === 'A5' ? 'A5' : 'A4'),
   frame: 'simple',
   verticalAlign: 'center',
   noBrand: true,
@@ -33,6 +33,17 @@ export default defineTemplate({
   ],
   fields: [
     { name: 'lojaNome', type: 'text', section: 'loja', label: l('Nome da loja', 'Shop name'), default: (c) => c.profile?.nomeComercial || profileDisplayName(c.profile) || '' },
+    {
+      name: 'formato',
+      type: 'radio',
+      section: 'loja',
+      label: l('Tamanho do aviso', 'Notice size'),
+      options: [
+        { value: 'A4', label: l('A4 (afixar na loja)', 'A4 (shop poster)') },
+        { value: 'A5', label: l('A5 (balcão ou junto à caixa)', 'A5 (counter or till)') },
+      ],
+      default: 'A4',
+    },
     { name: 'mostrarLogo', type: 'toggle', section: 'loja', default: true, label: l('Mostrar o logótipo do perfil', 'Show the profile logo') },
     { name: 'garantiaMeses', type: 'number', section: 'garantia', width: 'half', min: 0, max: 120, default: 12, label: l('Garantia dos produtos novos (meses)', 'Warranty on new products (months)'), help: l('Nunca inferior ao mínimo legal para bens duradouros.', 'Never below the legal minimum for durable goods.') },
     { name: 'vendaDistancia', type: 'toggle', section: 'garantia', label: l('Também vende por telefone, internet ou ao domicílio', 'Also sells by phone, online or door to door') },
@@ -94,7 +105,7 @@ export default defineTemplate({
     const blocks: Block[] = [];
     // Poster typography: large left-aligned lines readable from the counter.
     const head = (text: string) => blocks.push({ type: 'display', text, size: 'lg', weight: 'bold', tone: 'accent', align: 'left', after: 6 });
-    const item = (text: string) => blocks.push({ type: 'display', text: `•  ${text}`, size: 'md', align: 'left', after: 5 });
+    const item = (text: string) => blocks.push({ type: 'display', text: `• ${text}`, size: 'md', align: 'left', after: 5 });
     if (v.mostrarLogo !== false) blocks.push({ type: 'logo', size: 'md' });
     if (str(v.lojaNome)) blocks.push({ type: 'display', text: str(v.lojaNome), size: 'sm', tone: 'muted', uppercase: true, after: 4 });
     blocks.push(

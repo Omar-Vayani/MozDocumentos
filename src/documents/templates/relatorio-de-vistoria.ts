@@ -147,7 +147,7 @@ export default defineTemplate({
       type: 'table',
       columns: [
         { label: 'N.º', width: 0.5, align: 'center' },
-        { label: 'Local / elemento', width: 1.8 },
+        { label: 'Local / elemento', width: 2.1 },
         { label: 'Constatação', width: 4.4 },
         { label: 'Gravidade', width: 1.1, align: 'center' },
         { label: 'Foto', width: 0.7, align: 'center' },
@@ -180,7 +180,8 @@ export default defineTemplate({
     blocks.push({
       type: 'paragraph',
       id: 'reserva',
-      text: 'O presente relatório destina-se exclusivamente ao cliente e ao fim indicado, e baseia-se nas condições observadas à data da vistoria.',
+      // The annexes are named in this closing paragraph, which stays with the signature (no annex list alone on a last page).
+      text: `O presente relatório destina-se exclusivamente ao cliente e ao fim indicado, e baseia-se nas condições observadas à data da vistoria.${anexos.length ? `\n**${anexos.length === 1 ? 'Anexo' : 'Anexos'}:** ${anexos.map((a, i) => (anexos.length === 1 ? a : `${i + 1}. ${a}`)).join('; ')}.` : ''}`,
       en: 'This report is for the client and the stated purpose only, based on conditions at the time of the inspection.',
       size: 'small',
       keepWithNext: true,
@@ -188,7 +189,6 @@ export default defineTemplate({
     const cols: SignatureColumn[] = [professionalSignature(ctx, 'O Técnico Responsável')];
     if (v.tomeiConhecimento) cols.push({ role: 'Tomei conhecimento', name: str(v.clienteNome) || undefined, detail: 'Data: ___/___/______' });
     blocks.push({ type: 'signatures', placeDate: `${ctx.place}, ${dateLong(v.data)}`, columns: cols });
-    if (anexos.length) blocks.push({ type: 'annexList', items: anexos });
     return blocks;
   },
 });

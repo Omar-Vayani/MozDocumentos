@@ -269,8 +269,8 @@ export default defineTemplate({
       },
       { type: 'numberedClauses', style: 'clausula', items: clauses },
       ...fecho(ctx, [assinatura(ctx, 'vendedor', V, true), assinatura(ctx, 'comprador', C)]),
-      { type: 'pageBreakHint' },
-      { type: 'title', text: 'Anexo I — Bens vendidos' },
+      { type: 'spacer', size: 'large' },
+      { type: 'heading', text: 'Anexo I — Bens vendidos', align: 'center', keepWithNext: true },
       {
         type: 'table',
         columns: [

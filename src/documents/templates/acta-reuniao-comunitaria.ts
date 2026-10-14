@@ -7,9 +7,18 @@
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, GENERO_OPTIONS, cite, dateField, g, l, lineItems, localField } from './_shared';
 import { dataPorExtenso, endDot, hora, paragraphs, stripNumber } from './_estado';
-import { comunidadeWarnings, str, unidadeField } from './_comunidade';
+import { comunidadeWarnings, generoDoCargo, str, unidadeField } from './_comunidade';
 
 const TERRA = /\bDUAT\b|consulta comunit|pedido de terra|atribui[cç][aã]o de terra|titula[cç][aã]o/i;
+
+/** "pela Secretária do Bairro", "pelo Régulo", "por Ana Machava". */
+function porQuem(s: string): string {
+  if (/^a\s/i.test(s)) return `pela ${s.replace(/^a\s+/i, '')}`;
+  if (/^o\s/i.test(s)) return `pelo ${s.replace(/^o\s+/i, '')}`;
+  if (/^(Secretária|Chefe da|Rainha|Régula|Comissão|Secretaria|Estrutura|Direcção)\b/i.test(s)) return `pela ${s}`;
+  if (/^(Secretário|Chefe|Régulo|Conselho|Presidente|Administrador|Comandante)\b/i.test(s)) return `pelo ${s}`;
+  return `por ${s}`;
+}
 
 export default defineTemplate({
   id: 'acta-reuniao-comunitaria',
@@ -52,7 +61,7 @@ export default defineTemplate({
     { name: 'convocadaPor', type: 'text', section: 'documento', width: 'half', label: l('Convocada por', 'Called by'), placeholder: l('Ex.: Secretária do Bairro', 'E.g. Neighbourhood Secretary') },
     { name: 'presidenteNome', type: 'text', section: 'documento', width: 'half', label: l('Quem dirigiu a reunião', 'Chaired by'), default: (c) => (c.profile?.kind === 'empresa' ? c.profile.representanteNome ?? '' : '') },
     { name: 'presidenteCargo', type: 'text', section: 'documento', width: 'half', label: l('Cargo de quem dirigiu', 'Chair’s position'), default: (c) => (c.profile?.kind === 'empresa' ? c.profile.representanteCargo ?? '' : '') },
-    { name: 'presidenteGenero', type: 'radio', section: 'documento', width: 'half', label: l('Tratamento', 'Form of address'), options: GENERO_OPTIONS, default: 'M' },
+    { name: 'presidenteGenero', type: 'radio', section: 'documento', width: 'half', label: l('Tratamento', 'Form of address'), options: GENERO_OPTIONS, default: (c) => generoDoCargo(c.profile?.kind === 'empresa' ? c.profile.representanteCargo ?? '' : '') },
     { name: 'secretarioNome', type: 'text', section: 'documento', width: 'half', label: l('Quem redigiu a acta', 'Minutes taken by') },
     { name: 'secretarioGenero', type: 'radio', section: 'documento', width: 'half', label: l('Tratamento', 'Form of address'), options: GENERO_OPTIONS, default: 'M' },
     { name: 'homens', type: 'number', section: 'presencas', width: 'third', min: 0, label: l('Homens', 'Men') },
@@ -139,7 +148,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'abertura',
-        text: `${dataPorExtenso(v.data)}, ${hora(v.horaInicio, 'pelas')}, ${onde}, realizou-se a reunião ${str(v.natureza) || 'ordinária'} ${orgao} ${doUnid}${str(v.convocadaPor) ? `, convocada ${/^(a|o)\s/i.test(str(v.convocadaPor)) ? 'por ' : 'pelo(a) '}${str(v.convocadaPor)}` : ''}, sob a direcção ${g(v.presidenteGenero, 'do Senhor', 'da Senhora')} **${pres}**${str(v.presidenteCargo) ? `, ${str(v.presidenteCargo)}` : ''}${autoridades.length ? `, com a presença de: ${autoridades.join('; ')}` : ''}, com a seguinte ordem de trabalhos:`.replace(/\s+,/g, ','),
+        text: `${dataPorExtenso(v.data)}, ${hora(v.horaInicio, 'pelas')}, ${onde}, realizou-se a reunião ${str(v.natureza) || 'ordinária'} ${orgao} ${doUnid}${str(v.convocadaPor) ? `, convocada ${porQuem(str(v.convocadaPor))}` : ''}, sob a direcção ${g(v.presidenteGenero, 'do Senhor', 'da Senhora')} **${pres}**${str(v.presidenteCargo) ? `, ${str(v.presidenteCargo)}` : ''}${autoridades.length ? `, com a presença das seguintes autoridades: ${autoridades.join('; ')}` : ''}, com a seguinte ordem de trabalhos:`.replace(/\s+,/g, ','),
         keepWithNext: true,
         en: 'Opening: date, time, place, who called and chaired the meeting, authorities present and the agenda.',
       },

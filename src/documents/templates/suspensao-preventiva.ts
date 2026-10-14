@@ -5,6 +5,7 @@ import {
   BLANK, cite, dateField, dateLong, employerName, employerSignature, exmo, g, l, localField, refField,
   splitLines, workerFields,
 } from './_shared';
+import { lc, listaTexto } from './_contrato-trabalho';
 
 const doCite = (id: LegalRefId) => {
   const c = cite(id);
@@ -142,7 +143,7 @@ export default defineTemplate({
               {
                 type: 'paragraph',
                 id: 'motivo',
-                text: `A suspensão justifica-se porque a presença de V. Ex.ª no local de trabalho pode prejudicar o normal andamento do processo, designadamente pelo seguinte: ${motivos[0].replace(/\.$/, '')}.`,
+                text: `A suspensão justifica-se porque a presença de V. Ex.ª no local de trabalho pode prejudicar o normal andamento do processo, designadamente pelo seguinte: ${lc(motivos[0].replace(/\.$/, ''))}.`,
                 en: `The suspension is justified because your presence at work could harm the procedure, namely: ${motivos[0]}`,
               },
             ]
@@ -186,15 +187,13 @@ export default defineTemplate({
       },
     ];
     if (bens.length) {
-      blocks.push(
-        {
-          type: 'paragraph',
-          id: 'bens',
-          text: `V. Ex.ª deve entregar, no início da suspensão, os seguintes bens da ${emp}, que lhe serão restituídos se regressar ao serviço:`,
-          en: 'At the start of the suspension you must hand over the following company items, which will be returned if you resume work:',
-        },
-        { type: 'list', style: 'bullet', items: bens },
-      );
+      // Items inline ("computador portátil e cartão de acesso"): the letter stays on one page.
+      blocks.push({
+        type: 'paragraph',
+        id: 'bens',
+        text: `V. Ex.ª deve entregar, no início da suspensão, os seguintes bens da ${emp}, que lhe serão restituídos se regressar ao serviço: ${listaTexto(bens.join('\n'))}.`,
+        en: `At the start of the suspension you must hand over the following company items, which will be returned if you resume work: ${bens.join('; ')}.`,
+      });
     }
     blocks.push(
       { type: 'paragraph', id: 'copia', text: `Cópia: ${v.orgaoSindical || 'Comité Sindical'}.`, size: 'small', align: 'left' },

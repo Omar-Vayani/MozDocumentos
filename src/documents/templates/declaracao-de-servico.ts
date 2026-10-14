@@ -99,7 +99,7 @@ export default defineTemplate({
     const v = ctx.values;
     const f = v.trabalhadorGenero === 'F';
     const org = (ctx.profile?.firma || '').trim();
-    const doc = str(v.trabalhadorDocNumero) ? `, ${f ? 'portadora' : 'portador'} do ${str(v.trabalhadorDocTipo) || 'BI'} n.º ${str(v.trabalhadorDocNumero)}` : '';
+    const doc = `, ${f ? 'portadora' : 'portador'} do ${str(v.trabalhadorDocTipo) || 'BI'} n.º ${str(v.trabalhadorDocNumero) || '____________'}`;
     const nuit = str(v.trabalhadorNuit) ? `, NUIT ${str(v.trabalhadorNuit)}` : '';
     const vinc = v.vinculo === 'agente' ? 'agente do Estado' : f ? 'funcionária do Estado' : 'funcionário do Estado';
     const carreira = [str(v.carreira) ? `da carreira de ${str(v.carreira)}` : '', str(v.categoria) ? `${str(v.carreira) ? '' : 'com a '}categoria ${str(v.categoria)}` : '']

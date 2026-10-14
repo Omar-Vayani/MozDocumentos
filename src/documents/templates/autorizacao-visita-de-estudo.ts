@@ -85,6 +85,7 @@ export default defineTemplate({
   documentDate: (v) => str(v.dataVisita) || undefined,
   blocks: (ctx) => {
     const v = ctx.values;
+    const destino = aDestino(semPonto(v.destino));
     const act = str(v.tipoActividade) || 'visita de estudo';
     const masc = act === 'acampamento';
     const resp = rows(v.responsaveis).filter((r) => str(r.nome));
@@ -107,7 +108,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'informacao',
-        text: `Informamos que a Escola organiza ${masc ? 'um' : 'uma'} ${act} a ${semPonto(v.destino) || BLANK}${str(v.objectivo) ? `, com o objectivo de ${semPonto(v.objectivo).replace(/^(de|para) /i, '')}` : ''}, nas condições seguintes:`,
+        text: `Informamos que a Escola organiza ${masc ? 'um' : 'uma'} ${act} ${destino || `a ${BLANK}`}${str(v.objectivo) ? `, com o objectivo de ${semPonto(v.objectivo).replace(/^(de|para) /i, '')}` : ''}, nas condições seguintes:`,
         en: 'The school is organising the trip described below.',
         keepWithNext: true,
       },
@@ -115,7 +116,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'participacao',
-        text: `A participação depende de autorização escrita do Encarregado de Educação, a entregar ao ${semPonto(v.entregarA) || 'Director de Turma'} até ${v.dataDevolucao ? dateLong(v.dataDevolucao) : BLANK}. Os alunos que não participem têm actividades lectivas na Escola. Se o custo for um obstáculo, o Encarregado pode contactar a Direcção.`,
+        text: `A participação depende de autorização escrita do Encarregado de Educação, a entregar ${/^(Directora|Professora|Coordenadora|Secretaria)\b/.test(semPonto(v.entregarA)) ? 'à' : 'ao'} ${semPonto(v.entregarA) || 'Director de Turma'} até ${v.dataDevolucao ? dateLong(v.dataDevolucao) : BLANK}. Os alunos que não participem têm actividades lectivas na Escola. Se o custo for um obstáculo, o Encarregado pode contactar a Direcção.`,
         en: 'Participation requires written consent by the stated date. Pupils who do not go have classes at school. Parents for whom the cost is a problem may contact the school.',
       },
       {
@@ -130,9 +131,18 @@ export default defineTemplate({
         type: 'box',
         cut: true,
         label: `Autorização do Encarregado de Educação — devolver até ${v.dataDevolucao ? formatDateShort(v.dataDevolucao) : '___/___/______'}`,
-        text: `Eu, ${str(v.encarregadoNome) || '________________________________'}, Encarregado(a) de Educação do(a) aluno(a) ${str(v.alunoNome) || '________________________________'}, da _____ classe, turma ____,   [   ] AUTORIZO   [   ] NÃO AUTORIZO   o meu educando a participar ${masc ? 'no' : 'na'} ${act} a ${semPonto(v.destino) || '________________'}, ${v.dataRegresso ? `de ${formatDateShort(v.dataVisita)} a ${formatDateShort(v.dataRegresso)}` : `no dia ${formatDateShort(v.dataVisita)}`}, nas condições descritas, e autorizo os professores responsáveis a tomar as medidas urgentes necessárias em caso de acidente ou doença, incluindo o transporte a uma unidade sanitária, sendo eu informado(a) de imediato.\nSaúde (alergias, medicação): ______________________   Contacto de emergência: ______________\nAssinatura: ______________________________     Data: ___/___/______`,
+        text: `Eu, ${str(v.encarregadoNome) || '________________________________'}, Encarregado(a) de Educação do(a) aluno(a) ${str(v.alunoNome) || '________________________________'}, da _____ classe, turma ____,   ☐ AUTORIZO    ☐ NÃO AUTORIZO   o meu educando a participar ${masc ? 'no' : 'na'} ${act} ${destino || 'a ________________'}, ${v.dataRegresso ? `de ${formatDateShort(v.dataVisita)} a ${formatDateShort(v.dataRegresso)}` : `no dia ${formatDateShort(v.dataVisita)}`}, nas condições descritas, e autorizo os professores responsáveis a tomar as medidas urgentes necessárias em caso de acidente ou doença, incluindo o transporte a uma unidade sanitária, sendo eu informado(a) de imediato.\nSaúde (alergias, medicação): ______________________   Contacto de emergência: ______________\nAssinatura: ______________________________     Data: ___/___/______`,
       },
     ];
     return blocks;
   },
 });
+
+/** "ao Museu…", "à Ilha de Moçambique", "a Inhambane": the preposition for a destination. */
+function aDestino(d: string): string {
+  if (!d) return '';
+  if (/^(ao|à|a|aos|às)\s/i.test(d)) return d;
+  if (/^(museu|parque|jardim|centro|instituto|porto|aeroporto|mercado|monte|forte|bairro|distrito|complexo|planetário|zoológico|campo|teatro|palácio|estádio|hospital|banco|conselho|ministério)\b/i.test(d)) return `ao ${d}`;
+  if (/^(fortaleza|praia|ilha|reserva|cidade|fábrica|escola|baía|catedral|casa|vila|barragem|biblioteca|universidade|assembleia|feira|serra|estação|quinta|machamba|empresa|central)\b/i.test(d)) return `à ${d}`;
+  return `a ${d}`;
+}

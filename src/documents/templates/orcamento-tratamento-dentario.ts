@@ -166,7 +166,8 @@ export default defineTemplate({
       },
       { type: 'amount', label: 'Total do orçamento', value: list.length ? c.total : null },
       { type: 'heading', text: 'Condições' },
-      { type: 'list', style: 'bullet', items: cond },
+      // The conditions stay with the acceptance and the signatures.
+      { type: 'list', style: 'bullet', items: cond, keepWithNext: true },
       {
         type: 'paragraph',
         id: 'aceitacao',

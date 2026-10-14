@@ -318,12 +318,13 @@ export default defineTemplate({
       },
     ];
     if (v.examinado) {
-      clauses.push({
-        id: 'estado',
-        heading: 'Estado do bem',
-        text: `${OC} declara ter examinado o bem e aceitá-lo no estado de conservação e funcionamento em que se encontra${v.estadoBem ? ` (${String(v.estadoBem).trim().replace(/\.$/, '')})` : ''}.`,
-        en: 'The Buyer declares that it has inspected the item and accepts it in its current condition.',
-      });
+      // Inspection goes with the delivery: one clause less keeps the declaration on one page.
+      clauses[1] = {
+        ...clauses[1],
+        heading: 'Entrega e estado do bem',
+        text: `${clauses[1].text} ${OC} declara ter examinado o bem e aceitá-lo no estado de conservação e funcionamento em que se encontra${v.estadoBem ? ` (${String(v.estadoBem).trim().replace(/\.$/, '')})` : ''}.`,
+        en: `${clauses[1].en} The Buyer declares that it has inspected the item and accepts it in its current condition.`,
+      };
     }
     if (veiculo) {
       clauses.push({
@@ -351,13 +352,16 @@ export default defineTemplate({
       },
       { type: 'keyValue', title: 'Identificação do bem', columns: 2, items: bemItems },
     ];
-    if (preco != null && preco > 0) blocks.push({ type: 'amount', label: 'Preço de venda', value: preco });
+    // Numbered paragraphs with run-in headings ("1. Preço e pagamento. O preço…"); the price,
+    // in figures and words, is in the first one.
     blocks.push(
-      { type: 'numberedClauses', style: 'numeric', items: clauses },
+      ...clauses.map(
+        (c, i): Block => ({ type: 'paragraph', id: c.id, text: `**${i + 1}. ${c.heading}.** ${c.text}`, en: `${i + 1}. ${c.heading}. ${c.en}` }),
+      ),
       {
         type: 'paragraph',
         id: 'fecho',
-        text: 'Por ser verdade e corresponder à vontade das partes, vai a presente declaração assinada por ambas, em dois exemplares de igual valor, ficando um em poder de cada uma.',
+        text: 'Por ser verdade, vai a presente declaração assinada por ambas as partes, em dois exemplares de igual valor, ficando um em poder de cada uma.',
         en: 'In witness whereof, this declaration is signed by both parties in two copies of equal value, one for each party.',
         keepWithNext: true,
       },

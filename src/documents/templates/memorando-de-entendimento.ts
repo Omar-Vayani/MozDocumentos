@@ -4,7 +4,9 @@
 
 import { defineTemplate, type Block, type ClauseItem, type FieldDef, type Values, type Warning } from '../model';
 import { BLANK, cite, dateLong, l, splitLines } from './_shared';
-import { assinatura, foroField, identificacao, int, juntar, partyFields, partyName, partyWarnings, quantos, semPonto, str, type Papel } from './_contratos';
+import { assinatura, foroField, identificacao, int, isEmpresa, juntar, partyFields, partyName, partyWarnings, quantos, semPonto, str, type Papel } from './_contratos';
+
+const parceria = (v: Values) => v.modelo === 'parceriaOng';
 
 const ORD = ['Primeira', 'Segunda', 'Terceira'];
 const parteRole = (i: number): Papel => {
@@ -17,7 +19,7 @@ export default defineTemplate({
   id: 'memorando-de-entendimento',
   family: 'contrato',
   sections: [
-    { id: 'documento', title: l('Local e data', 'Place and date') },
+    { id: 'documento', title: l('Modelo, local e data', 'Model, place and date') },
     { id: 'parte1', title: l('Primeira parte', 'First party'), personRole: 'outro' },
     { id: 'parte2', title: l('Segunda parte', 'Second party'), personRole: 'outro' },
     { id: 'parte3', title: l('Terceira parte (opcional)', 'Third party (optional)'), personRole: 'outro' },
@@ -25,14 +27,29 @@ export default defineTemplate({
     { id: 'natureza', title: l('Natureza, vigência e assinaturas', 'Nature, term and signatures') },
   ],
   fields: [
+    {
+      name: 'modelo',
+      type: 'radio',
+      section: 'documento',
+      label: l('Modelo', 'Model'),
+      options: [
+        { value: 'memorando', label: l('Memorando de entendimento', 'Memorandum of understanding') },
+        { value: 'parceriaOng', label: l('Acordo de parceria com ONG ou associação', 'Partnership agreement with an NGO or association') },
+      ],
+      default: 'memorando',
+      help: l(
+        'O acordo de parceria obriga as partes e acrescenta cláusulas sobre relatórios, prestação de contas e natureza apolítica das actividades.',
+        'The partnership agreement binds the parties and adds clauses on reporting, accountability and the non-political nature of the activities.',
+      ),
+    },
     { name: 'local', type: 'text', section: 'documento', width: 'half', label: l('Local de assinatura', 'Place of signing'), default: (c) => c.profile?.localPadrao || c.profile?.morada?.cidade || 'Maputo' },
     { name: 'data', type: 'date', section: 'documento', width: 'half', required: true, label: l('Data de assinatura', 'Signing date'), default: (c) => c.today },
-    ...partyFields('parte1', { fromProfile: true, tipoDefault: 'empresa' }),
+    ...partyFields('parte1', { fromProfile: true, tipoDefault: 'empresa', osfl: true }),
     { name: 'parte1Sigla', type: 'text', section: 'parte1', width: 'half', label: l('Nome abreviado (opcional)', 'Short name (optional)'), placeholder: l('Ex.: ABC', 'E.g. ABC') },
-    ...partyFields('parte2', { tipoDefault: 'empresa' }),
+    ...partyFields('parte2', { tipoDefault: 'empresa', osfl: true }),
     { name: 'parte2Sigla', type: 'text', section: 'parte2', width: 'half', label: l('Nome abreviado (opcional)', 'Short name (optional)') },
     { name: 'terceiraParte', type: 'toggle', section: 'parte3', label: l('Há uma terceira parte', 'There is a third party') },
-    ...partyFields('parte3', { tipoDefault: 'empresa' }).map(terceira),
+    ...partyFields('parte3', { tipoDefault: 'empresa', osfl: true }).map(terceira),
     terceira({ name: 'parte3Sigla', type: 'text', section: 'parte3', width: 'half', label: l('Nome abreviado (opcional)', 'Short name (optional)') }),
 
     {
@@ -56,6 +73,21 @@ export default defineTemplate({
       section: 'natureza',
       label: l('O memorando é juridicamente vinculativo', 'The MoU is legally binding'),
       help: l('Em regra, um memorando é uma declaração de intenções: só as cláusulas de confidencialidade, vigência e litígios obrigam. Active se quiser que todo o memorando obrigue as partes.', 'Usually an MoU is a statement of intent: only confidentiality, term and disputes clauses bind. Turn on to make the whole MoU binding.'),
+      showIf: (v) => !parceria(v),
+    },
+    {
+      name: 'relatoriosPeriodicidade',
+      type: 'select',
+      section: 'natureza',
+      width: 'half',
+      label: l('Relatórios de actividades', 'Activity reports'),
+      options: [
+        { value: 'trimestrais', label: l('Trimestrais', 'Quarterly') },
+        { value: 'semestrais', label: l('Semestrais', 'Half-yearly') },
+        { value: 'anuais', label: l('Anuais', 'Yearly') },
+      ],
+      default: 'semestrais',
+      showIf: (v) => parceria(v),
     },
     { name: 'exclusividadeNegocial', type: 'toggle', section: 'natureza', label: l('Exclusividade nas negociações até uma data', 'Exclusive negotiations until a date') },
     { name: 'exclusividadeAte', type: 'date', section: 'natureza', width: 'half', label: l('Exclusividade até', 'Exclusive until'), showIf: (v) => Boolean(v.exclusividadeNegocial) },
@@ -71,7 +103,18 @@ export default defineTemplate({
     const w: Warning[] = [...partyWarnings(v, 'parte1', 'primeira parte', 'first party'), ...partyWarnings(v, 'parte2', 'segunda parte', 'second party')];
     if (v.terceiraParte) w.push(...partyWarnings(v, 'parte3', 'terceira parte', 'third party'));
     if (!str(v.objecto)) w.push({ level: 'error', field: 'objecto', message: l('Indique o objecto do memorando.', 'Enter the purpose.') });
-    w.push({
+    const ps = ['parte1', 'parte2', ...(v.terceiraParte ? ['parte3'] : [])];
+    const ongEstrangeira = ps.some((p) => isEmpresa(v, p) && v[`${p}Natureza`] === 'ong');
+    if (parceria(v) || ongEstrangeira) {
+      w.push({
+        level: 'info',
+        message: l(
+          `Uma ONG estrangeira só pode actuar em Moçambique com autorização do Ministério dos Negócios Estrangeiros e Cooperação (MINEC) (${cite('assocOngEstrangeira')}) e não pode realizar nem promover acções de natureza política. Confirme a autorização e indique-a na identificação da ONG; as associações nacionais indicam o despacho de reconhecimento.`,
+          'A foreign NGO may only operate in Mozambique with authorisation from the Ministry of Foreign Affairs and Cooperation (MINEC) and may not carry out political activity. Check the authorisation and state it in the NGO’s identification; national associations state their recognition order.',
+        ),
+      });
+    }
+    if (!parceria(v)) w.push({
       level: 'info',
       field: 'vinculativo',
       message: l(
@@ -94,6 +137,8 @@ export default defineTemplate({
     const roles = ps.map((_, i) => parteRole(i));
     const aviso = int(v.avisoDenunciaDias);
     const anos = int(v.duracaoAnos);
+    const pc = parceria(v);
+    const M = pc ? 'Acordo' : 'Memorando';
 
     const partyParas: Block[] = ps.map((p, i) => {
       const sigla = semPonto(v[`${p}Sigla`]);
@@ -106,12 +151,12 @@ export default defineTemplate({
     });
     const considerandos = splitLines(v.considerandos);
 
-    const naoVinc = !v.vinculativo;
+    const naoVinc = !pc && !v.vinculativo;
     const items: ClauseItem[] = [];
     items.push({
       id: 'objecto',
       heading: 'Objecto',
-      text: `O presente Memorando tem por objecto ${semPonto(v.objecto).replace(/^(o|a)\s+/i, '') || BLANK}.`,
+      text: `O presente ${M} tem por objecto ${semPonto(v.objecto).replace(/^(o|a)\s+/i, '') || BLANK}.`,
       en: `Purpose: ${v.objecto || '—'}.`,
     });
     const areas = splitLines(v.areas);
@@ -120,7 +165,7 @@ export default defineTemplate({
         id: 'areas',
         heading: 'Áreas de cooperação',
         text: 'A cooperação entre as Partes desenvolve-se, designadamente, nas seguintes áreas:',
-        items: areas.map((a, i) => `${semPonto(a)}${i === areas.length - 1 ? '.' : ';'}`),
+        items: areas.map((a, i) => `${semPonto(a).replace(/^./, (x) => x.toLowerCase())}${i === areas.length - 1 ? '.' : ';'}`),
         en: 'Cooperation covers, in particular, the areas listed.',
       });
     }
@@ -140,8 +185,8 @@ export default defineTemplate({
       id: 'coordenacao',
       heading: 'Coordenação',
       text: focais.length
-        ? `Para a execução do presente Memorando, as Partes designam os seguintes pontos focais: ${focais.map(semPonto).join('; ')}. A substituição de um ponto focal é comunicada por escrito.`
-        : 'Cada Parte designa, por escrito, um ponto focal responsável pela coordenação das actividades previstas no presente Memorando.',
+        ? `Para a execução do presente ${M}, as Partes designam os seguintes pontos focais: ${focais.map(semPonto).join('; ')}. A substituição de um ponto focal é comunicada por escrito.`
+        : `Cada Parte designa, por escrito, um ponto focal responsável pela coordenação das actividades previstas no presente ${M}.`,
       en: 'Each party names a focal point to coordinate the activities.',
     });
     items.push({
@@ -150,11 +195,27 @@ export default defineTemplate({
       text: 'Cada Parte suporta os custos das suas próprias actividades, salvo acordo escrito específico em contrário.',
       en: 'Each party bears its own costs unless agreed otherwise in writing.',
     });
+    if (pc) {
+      items.push(
+        {
+          id: 'relatorios',
+          heading: 'Relatórios e prestação de contas',
+          text: `As Partes elaboram relatórios ${str(v.relatoriosPeriodicidade) || 'semestrais'} das actividades realizadas ao abrigo do presente ${M} e prestam contas, entre si e perante os respectivos financiadores, da utilização dos fundos e bens afectos à parceria, conservando os documentos de suporte.`,
+          en: 'The parties report periodically on the activities and account for the funds and goods used in the partnership, keeping supporting records.',
+        },
+        {
+          id: 'apolitica',
+          heading: 'Natureza das actividades',
+          text: `As actividades desenvolvidas ao abrigo do presente ${M} têm natureza exclusivamente social, humanitária ou de desenvolvimento, não podendo as Partes realizar ou promover, no seu âmbito, acções de natureza política ou partidária.`,
+          en: 'The activities are solely social, humanitarian or developmental; no political or party-political action may be carried out under this agreement.',
+        },
+      );
+    }
     if (v.exclusividadeNegocial) {
       items.push({
         id: 'exclusividade',
         heading: 'Exclusividade',
-        text: `Até ${dateLong(v.exclusividadeAte)}, nenhuma das Partes negoceia com terceiros acordos com o mesmo objecto do presente Memorando.`,
+        text: `Até ${dateLong(v.exclusividadeAte)}, nenhuma das Partes negoceia com terceiros acordos com o mesmo objecto do presente ${M}.`,
         en: `Until ${v.exclusividadeAte || '—'}, neither party negotiates the same subject with others.`,
       });
     }
@@ -169,25 +230,25 @@ export default defineTemplate({
     items.push({
       id: 'confidencialidade',
       heading: 'Confidencialidade',
-      text: 'As Partes mantêm confidenciais as informações não públicas trocadas no âmbito do presente Memorando, durante a sua vigência e após a sua cessação, salvo autorização escrita da Parte que as forneceu ou obrigação legal.',
+      text: `As Partes mantêm confidenciais as informações não públicas trocadas no âmbito do presente ${M}, durante a sua vigência e após a sua cessação, salvo autorização escrita da Parte que as forneceu ou obrigação legal.`,
       en: 'Non-public information exchanged is confidential during and after the MoU.',
     });
     const vincIds = ['Confidencialidade', 'Vigência e cessação', 'Resolução de diferendos', ...(v.exclusividadeNegocial ? ['Exclusividade'] : []), ...(v.logotipos ? ['Uso de nomes e logotipos'] : [])];
     items.push({
       id: 'natureza',
-      heading: 'Natureza do Memorando',
+      heading: `Natureza do ${M}`,
       text: naoVinc
-        ? `O presente Memorando constitui uma declaração de intenções e não cria obrigações juridicamente vinculativas entre as Partes, com excepção do disposto nos artigos sobre ${juntar(vincIds.map((s) => s.toLowerCase()))}. A execução das actividades aqui previstas é objecto de contratos ou acordos específicos, celebrados por escrito.`
-        : 'O presente Memorando cria obrigações juridicamente vinculativas para as Partes, que se comprometem a cumpri-lo de boa-fé. As actividades concretas podem ser detalhadas em acordos específicos, celebrados por escrito.',
+        ? `O presente ${M} constitui uma declaração de intenções e não cria obrigações juridicamente vinculativas entre as Partes, com excepção do disposto nos artigos sobre ${juntar(vincIds.map((s) => s.toLowerCase()))}. A execução das actividades aqui previstas é objecto de contratos ou acordos específicos, celebrados por escrito.`
+        : `O presente ${M} cria obrigações juridicamente vinculativas para as Partes, que se comprometem a cumpri-lo de boa-fé. As actividades concretas podem ser detalhadas em acordos específicos, celebrados por escrito.`,
       en: naoVinc ? 'This MoU is a statement of intent and is not legally binding, except the confidentiality, term and dispute provisions (and exclusivity/logo clauses if any).' : 'This MoU is legally binding.',
     });
     items.push({
       id: 'vigencia',
       heading: 'Vigência e cessação',
       text: [
-        `O presente Memorando entra em vigor na data da sua assinatura e vigora pelo período de ${quantos(anos, 'ano', 'anos')}${v.renovacao ? ', renovando-se automaticamente por iguais períodos' : ''}.`,
-        'O Memorando pode ser revisto a todo o tempo, por acordo escrito das Partes.',
-        `Qualquer das Partes pode denunciar o Memorando mediante comunicação escrita às demais, com a antecedência mínima de ${quantos(aviso, 'dia', 'dias')}, sem prejuízo da conclusão das actividades em curso.`,
+        `O presente ${M} entra em vigor na data da sua assinatura e vigora pelo período de ${quantos(anos, 'ano', 'anos')}${v.renovacao ? ', renovando-se automaticamente por iguais períodos' : ''}.`,
+        `O ${M} pode ser revisto a todo o tempo, por acordo escrito das Partes.`,
+        `Qualquer das Partes pode denunciar o ${M} mediante comunicação escrita às demais, com a antecedência mínima de ${quantos(aviso, 'dia', 'dias')}, sem prejuízo da conclusão das actividades em curso.`,
       ]
         .map((t, i) => `${i + 1}. ${t}`)
         .join('\n'),
@@ -196,7 +257,7 @@ export default defineTemplate({
     items.push({
       id: 'diferendos',
       heading: 'Resolução de diferendos',
-      text: `O presente Memorando rege-se pela lei moçambicana. Os diferendos são resolvidos por negociação directa entre as Partes e, na sua falta, pelo ${semPonto(v.foro) || 'tribunal judicial competente'}.`,
+      text: `O presente ${M} rege-se pela lei moçambicana. Os diferendos são resolvidos por negociação directa entre as Partes e, na sua falta, pelo ${semPonto(v.foro) || 'tribunal judicial competente'}.`,
       en: 'Mozambican law applies; disputes are settled by negotiation or, failing that, by the competent court.',
     });
 
@@ -205,7 +266,7 @@ export default defineTemplate({
     const sig = (p: string, i: number) => ({ ...assinatura(ctx, p, parteRole(i), i === 0), role: `Pela ${roles[i].n}` });
     const cols = ps.map(sig);
     const blocks: Block[] = [
-      { type: 'title', text: 'Memorando de entendimento' },
+      { type: 'title', text: pc ? 'Acordo de parceria' : 'Memorando de entendimento' },
       ...partyParas,
     ];
     if (considerandos.length) {
@@ -218,7 +279,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'celebracao',
-        text: 'As Partes acordam celebrar o presente Memorando de Entendimento, que se rege pelos artigos seguintes:',
+        text: `As Partes acordam celebrar o presente ${pc ? 'Acordo de Parceria' : 'Memorando de Entendimento'}, que se rege pelos artigos seguintes:`,
         en: 'The parties agree this Memorandum of Understanding on the following terms:',
       },
       { type: 'numberedClauses', style: 'artigo', items },

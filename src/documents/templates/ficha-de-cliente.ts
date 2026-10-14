@@ -120,17 +120,24 @@ export default defineTemplate({
       { type: 'tags', items: [v.situacao === 'actualizacao' ? 'ACTUALIZAÇÃO' : 'NOVO CLIENTE'] },
       { type: 'title', text: 'Ficha de cliente', subtitle: `e pedido de abertura de crédito${str(v.ref) ? ` · Cliente n.º ${str(v.ref)}` : ''}` },
       { type: 'heading', text: '1. Identificação do cliente' },
+      // Long values on full-width rows; short ones two per row.
       {
         type: 'keyValue',
         columns: 1,
         items: [
           { label: emp ? 'Firma' : 'Nome', value: val(v.clienteNome) },
+          { label: 'Actividade', value: val(v.clienteActividade) },
+          { label: 'Sede / morada', value: val(v.clienteMorada) },
+        ],
+      },
+      {
+        type: 'keyValue',
+        columns: 2,
+        items: [
           { label: 'NUIT', value: val(v.clienteNuit) },
           { label: emp ? 'NUEL' : 'BI / DIRE n.º', value: val(v.clienteNuel) },
           { label: 'Licença / alvará', value: val(v.clienteLicenca) },
-          { label: 'Actividade', value: val(v.clienteActividade) },
           { label: 'Telefone', value: val(v.clienteTelefone) },
-          { label: 'Sede / morada', value: val(v.clienteMorada) },
           { label: 'Email', value: val(v.clienteEmail) },
           { label: 'Pessoa de contacto', value: val(v.contactoNome) },
           { label: 'Email para facturas', value: val(v.contactoFacturas) },
@@ -154,17 +161,32 @@ export default defineTemplate({
       { type: 'heading', text: '3. Pagamento e crédito pedido' },
       {
         type: 'keyValue',
-        columns: 1,
+        columns: 2,
         items: [
           { label: 'Banco', value: val(v.banco) },
           { label: 'NIB', value: val(v.nib) },
           { label: 'Limite pedido', value: limite != null ? moneyText(limite) : `${LINE} MT` },
           { label: 'Prazo de pagamento', value: prazo ? `${prazo} dias após a factura` : `${'_____'} dias após a factura` },
           { label: 'Compras mensais previstas', value: volume != null ? moneyText(volume) : `${LINE} MT` },
-          { label: 'Referências comerciais', value: str(v.referencias).split(/\n+/).filter(Boolean).join('; ') || LINE },
         ],
       },
+      { type: 'keyValue', columns: 1, items: [{ label: 'Referências comerciais', value: str(v.referencias).split(/\n+/).filter(Boolean).join('; ') || LINE }] },
     );
+    if (v.listaDocumentos) {
+      blocks.push(
+        { type: 'note', text: '**Documentos a juntar (cópias):**', en: 'Documents to attach (copies):', keepWithNext: true },
+        {
+          type: 'checklist',
+          columns: 2,
+          items: [
+            emp ? 'Certidão de registo comercial (NUEL)' : 'Bilhete de Identidade ou DIRE',
+            'Cartão ou declaração de NUIT',
+            'Licença, alvará ou certidão de actividade',
+            emp ? 'Identificação dos representantes' : 'Comprovativo de morada',
+          ].map((label) => ({ label, checked: false })),
+        },
+      );
+    }
 
     const clausulas: ClauseItem[] = [
       {
@@ -216,21 +238,6 @@ export default defineTemplate({
         label: `Reservado a ${fornecedor}`,
         text: 'Limite aprovado: _______________ MT   ·   Prazo: _____ dias   ·   Código de cliente: __________\nAprovado por: ________________________   ·   Data: ___/___/______   ·   Assinatura: ______________',
       });
-    }
-    if (v.listaDocumentos) {
-      blocks.push(
-        { type: 'note', text: '**Documentos a juntar (cópias):**', en: 'Documents to attach (copies):', keepWithNext: true },
-        {
-          type: 'checklist',
-          columns: 2,
-          items: [
-            emp ? 'Certidão de registo comercial (NUEL)' : 'Bilhete de Identidade ou DIRE',
-            'Cartão ou declaração de NUIT',
-            'Licença, alvará ou certidão de actividade',
-            emp ? 'Identificação dos representantes' : 'Comprovativo de morada',
-          ].map((label) => ({ label, checked: false })),
-        },
-      );
     }
     return blocks;
   },

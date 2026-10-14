@@ -112,7 +112,7 @@ export default defineTemplate({
         id: 'objecto',
         heading: 'Objecto',
         text: `${C.O}${ocam ? `, inscrit${C.f ? 'a' : 'o'} na Ordem dos Contabilistas e Auditores de Moçambique sob o n.º ${ocam},` : ''} presta ${K.ao} os seguintes serviços:`,
-        items: lista.length ? lista : ['____________________'],
+        items: lista.length ? lista.map((x, i) => `${x}${i === lista.length - 1 ? '.' : ';'}`) : ['____________________'],
         en: 'The accountant provides the client with the services listed.',
       },
       {
@@ -195,10 +195,12 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'celebracao',
-        text: 'É celebrado o presente contrato de prestação de serviços, que se rege pelas cláusulas seguintes:',
+        text: 'é celebrado o presente contrato de prestação de serviços, que se rege pelas cláusulas seguintes:',
         en: 'This services contract is made on the following terms:',
       },
-      { type: 'numberedClauses', style: 'clausula', items },
+      // The last clause travels with the closing and the signatures, so they never stand alone on a page.
+      { type: 'numberedClauses', style: 'clausula', items: items.slice(0, -1) },
+      { type: 'numberedClauses', style: 'clausula', items: items.slice(-1), start: items.length, keepWithNext: true },
       ...fecho(ctx, [
         (() => {
           const col = assinatura(ctx, 'contabilista', C, true);

@@ -212,7 +212,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'quitacao',
-        text: `Com o recebimento destas importâncias, ${f ? 'a declarante' : 'o declarante'} declara que nada mais tem a receber da **${empresa}**, seja a que título for, em consequência da celebração, execução ou cessação do contrato de trabalho, e dá-lhe plena e integral quitação.`,
+        text: `Com o recebimento destas importâncias, ${f ? 'a declarante' : 'o declarante'} dá plena e integral quitação a **${empresa}**, nada mais tendo a receber, seja a que título for, em consequência da celebração, execução ou cessação do contrato de trabalho.`,
         en: `Having received these amounts, the declarant states that nothing further is owed by ${empresa} on any ground arising from the employment contract or its termination, and gives it full and final release.`,
       },
       {

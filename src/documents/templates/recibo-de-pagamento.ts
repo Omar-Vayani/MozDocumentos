@@ -244,7 +244,10 @@ export default defineTemplate({
     const pagadorPt = `**${blank(v.pagadorNome)}**${v.pagadorNuit ? `, NUIT ${v.pagadorNuit}` : ''}`;
     const valorPt = valor != null && valor > 0 ? formatMoney(valor) : formatMoney(null);
     const titulo = v.natureza === 'sinal' ? 'a título de sinal' : v.natureza === 'adiantamento' ? 'a título de adiantamento por conta do preço' : '';
-    const contrato = titulo && clean(v.contratoReferencia) ? `, no âmbito de ${clean(v.contratoReferencia)}` : '';
+    const ref = clean(v.contratoReferencia);
+    // "no âmbito do contrato-promessa…", "da encomenda n.º …": the article follows the first word.
+    const art = /^(contrato|or[çc]amento|acordo|pedido)\b/i.test(ref) ? 'do' : /^(encomenda|proposta|factura|nota|requisi[çc][ãa]o)\b/i.test(ref) ? 'da' : 'de';
+    const contrato = titulo && ref ? `, no âmbito ${art} ${ref}` : '';
     const referente = `${titulo ? `${titulo}${contrato}, ` : ''}${itens.length > 1 ? 'referente ao seguinte:' : `referente a ${itens[0] || blank('')}.`}`;
 
     const blocks: Block[] = [

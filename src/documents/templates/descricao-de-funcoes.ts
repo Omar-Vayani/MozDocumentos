@@ -2,6 +2,12 @@ import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, dateField, dateLong, g, l, localField, refField, splitLines, workerFields } from './_shared';
 
 const trim = (s: unknown) => String(s ?? '').trim();
+/** "a; b; c" without the items' own final punctuation. */
+const joinList = (items: string[]) =>
+  items
+    .map((x) => x.replace(/[.;]+$/, ''))
+    .map((x, i) => (i > 0 && /^[A-ZÀ-Ý][a-zà-ÿ]/.test(x) ? x.charAt(0).toLowerCase() + x.slice(1) : x))
+    .join('; ');
 const sentence = (s: string) => (/[.!?:]$/.test(s) ? s : `${s}.`);
 
 export default defineTemplate({
@@ -158,31 +164,20 @@ export default defineTemplate({
       },
       { type: 'heading', text: '2. Responsabilidades e tarefas' },
       { type: 'list', style: 'numeric', items: resp.length ? resp.map(sentence) : [BLANK, BLANK, BLANK] },
-      { type: 'heading', text: '3. Requisitos do cargo' },
+      { type: 'heading', text: condicoes.length ? '3. Requisitos e condições de trabalho' : '3. Requisitos do cargo' },
       {
         type: 'keyValue',
         columns: 1,
         items: [
           { label: 'Formação académica', value: trim(v.formacao) || BLANK },
           { label: 'Experiência profissional', value: trim(v.experiencia) || BLANK },
+          // Short lists read well on one row each and keep the description on one page.
+          ...(comp.length ? [{ label: 'Competências', value: joinList(comp) }] : []),
+          ...(outros.length ? [{ label: 'Outros requisitos', value: joinList(outros) }] : []),
+          ...(condicoes.length ? [{ label: 'Condições de trabalho', value: joinList(condicoes) }] : []),
         ],
       },
     ];
-    if (comp.length) {
-      blocks.push(
-        { type: 'paragraph', id: 'competenciasIntro', text: '**Competências:**', align: 'left', editable: false, keepWithNext: true },
-        { type: 'list', style: 'bullet', items: comp },
-      );
-    }
-    if (outros.length) {
-      blocks.push(
-        { type: 'paragraph', id: 'outrosIntro', text: '**Outros requisitos:**', align: 'left', editable: false, keepWithNext: true },
-        { type: 'list', style: 'bullet', items: outros },
-      );
-    }
-    if (condicoes.length) {
-      blocks.push({ type: 'heading', text: '4. Condições de trabalho' }, { type: 'list', style: 'bullet', items: condicoes.map(sentence) });
-    }
     blocks.push(
       {
         type: 'paragraph',
@@ -194,7 +189,6 @@ export default defineTemplate({
       },
       {
         type: 'signatures',
-        placeDate: `${ctx.place}, ${dateLong(v.data)}`,
         columns: [
           { role: 'Elaborado por', name: trim(v.elaboradoNome) || undefined, detail: trim(v.elaboradoCargo) || undefined },
           { role: 'Aprovado por', name: trim(v.aprovadoNome) || undefined, detail: trim(v.aprovadoCargo) || undefined, image: 'both' },

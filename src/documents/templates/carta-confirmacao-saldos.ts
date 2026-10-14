@@ -139,9 +139,8 @@ export default defineTemplate({
       {
         type: 'box',
         cut: true,
-        label: `Confirmação a enviar a ${str(v.auditorNome) || 'o auditor'}`,
-        text: `${str(v.destinatarioNome) || BLANK} declara que, em ${formatDateShort(v.dataReferencia)}, o saldo de ${empresa} nos seus registos é de ____________________ MT, a favor de ______________________.\n[   ] Concordamos com o saldo indicado.     [   ] Não concordamos; a diferença explica-se como segue:\n\nNome e cargo: ________________________   Assinatura e carimbo: _______________   Data: ___/___/____`,
-        lines: 1,
+        label: `Confirmação a enviar ${str(v.auditorNome) ? `a ${str(v.auditorNome)}` : 'ao auditor'}`,
+        text: `${str(v.destinatarioNome) || BLANK} declara que, em ${formatDateShort(v.dataReferencia)}, o saldo de ${empresa} nos seus registos é de ____________________ MT, a favor de ______________________.\n☐ Concordamos com o saldo indicado.\n☐ Não concordamos; a diferença explica-se como segue: _________________________\n\nNome e cargo: ______________________________________   Data: ___/___/______\nAssinatura e carimbo: ______________________________________`,
       },
     );
     return blocks;

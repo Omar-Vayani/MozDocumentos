@@ -6,8 +6,8 @@
 
 import { diffDays } from '@/lib/format';
 import { defineTemplate, type Block, type SignatureColumn, type Warning } from '../model';
-import { BLANK, dateField, dateLong, employerName, isF, l, localField, placeDate, splitLines } from './_shared';
-import { alunoFields, num, semPonto, str } from './_educacao';
+import { BLANK, dateField, dateLong, employerName, GENERO_OPTIONS, isF, l, localField, placeDate, splitLines } from './_shared';
+import { alunoFields, intervalo, num, semPonto, str } from './_educacao';
 
 export default defineTemplate({
   id: 'declaracao-de-estagio',
@@ -46,6 +46,7 @@ export default defineTemplate({
     { name: 'dataFim', type: 'date', section: 'estagio', width: 'half', required: true, label: l('Fim', 'End') },
     { name: 'cargaHoraria', type: 'number', section: 'estagio', width: 'half', min: 0, label: l('Carga horária total (horas)', 'Total hours') },
     { name: 'supervisorNome', type: 'text', section: 'estagio', width: 'half', label: l('Supervisor / orientador', 'Supervisor') },
+    { name: 'supervisorGenero', type: 'radio', section: 'estagio', width: 'half', label: l('Tratamento do supervisor', "Supervisor's form of address"), options: GENERO_OPTIONS, default: 'M' },
     { name: 'supervisorCargo', type: 'text', section: 'estagio', width: 'half', label: l('Cargo do supervisor', "Supervisor's position") },
     { name: 'actividades', type: 'textarea', section: 'estagio', rows: 5, label: l('Actividades desenvolvidas (uma por linha)', 'Tasks (one per line)') },
     { name: 'remuneracao', type: 'select', section: 'estagio', width: 'half', label: l('Remuneração', 'Pay'), options: [
@@ -92,7 +93,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'corpo',
-        text: `Declara-se, para os devidos efeitos, que **${str(v.alunoNome) || BLANK}**${doc}, estudante do curso de ${semPonto(v.curso) || BLANK} ${/^(a|o) /i.test(str(v.instituicaoEnsino)) ? 'd' : 'da '}${semPonto(v.instituicaoEnsino) || BLANK}, ${concluido ? 'realizou' : 'está a realizar'} ${empresa}${str(v.departamento) ? `, no ${semPonto(v.departamento).replace(/^(no|na) /i, '')}` : ''}, ${tipo}, ${concluido ? `no período de ${dateLong(v.dataInicio)} a ${dateLong(v.dataFim)}` : `desde ${dateLong(v.dataInicio)}, com termo previsto para ${dateLong(v.dataFim)}`}${horas ? `, com a carga horária total de ${horas} horas` : ''}${str(v.supervisorNome) ? `, sob a orientação de ${semPonto(v.supervisorNome)}${str(v.supervisorCargo) ? `, ${semPonto(v.supervisorCargo)}` : ''}` : ''}.`,
+        text: `Declara-se, para os devidos efeitos, que **${str(v.alunoNome) || BLANK}**${doc}, estudante do curso de ${semPonto(v.curso) || BLANK} ${/^(a|o) /i.test(str(v.instituicaoEnsino)) ? 'd' : 'da '}${semPonto(v.instituicaoEnsino) || BLANK}, ${concluido ? 'realizou' : 'está a realizar'} ${empresa}${str(v.departamento) ? `, no ${semPonto(v.departamento).replace(/^(no|na) /i, '')}` : ''}, ${tipo}, ${concluido ? `no período ${v.dataInicio && v.dataFim ? intervalo(str(v.dataInicio), str(v.dataFim)) : `de ${dateLong(v.dataInicio)} a ${dateLong(v.dataFim)}`}` : `desde ${dateLong(v.dataInicio)}, com termo previsto para ${dateLong(v.dataFim)}`}${horas ? `, com a carga horária total de ${horas} horas` : ''}${str(v.supervisorNome) ? `, sob a orientação de ${semPonto(v.supervisorNome)}${str(v.supervisorCargo) ? `, ${semPonto(v.supervisorCargo)}` : ''}` : ''}.`,
         en: 'This is to certify that the student completed (or is doing) the internship at this organisation in the stated period, under the stated supervisor.',
       },
     ];
@@ -106,13 +107,13 @@ export default defineTemplate({
       blocks.push({
         type: 'paragraph',
         id: 'avaliacao',
-        text: `${Est} demonstrou ${semPonto(v.comportamento) || BLANK}${str(v.classificacao) ? `, tendo obtido na avaliação do supervisor a classificação de ${semPonto(v.classificacao)}` : ''}.`,
+        text: `${Est} demonstrou ${semPonto(v.comportamento) || BLANK}${str(v.classificacao) ? `, tendo obtido na avaliação ${isF(v.supervisorGenero) ? 'da supervisora' : 'do supervisor'} a classificação de ${semPonto(v.classificacao)}` : ''}.`,
         en: "Supervisor's assessment.",
       });
     if (v.remuneracao)
       blocks.push({ type: 'paragraph', id: 'remuneracao', text: v.remuneracao === 'nao' ? 'O estágio não foi remunerado.' : `O estágio foi acompanhado de um subsídio pago pela entidade.`, en: v.remuneracao === 'nao' ? 'The internship was unpaid.' : 'The internship carried an allowance.' });
     const cols: SignatureColumn[] = [{ role: str(v.assinanteCargo) || 'A Direcção', name: str(v.assinanteNome) || undefined, image: 'both' }];
-    if (v.supervisorAssina !== false && str(v.supervisorNome)) cols.unshift({ role: 'O Supervisor do Estágio', name: semPonto(v.supervisorNome) });
+    if (v.supervisorAssina !== false && str(v.supervisorNome)) cols.unshift({ role: isF(v.supervisorGenero) ? 'A Supervisora do Estágio' : 'O Supervisor do Estágio', name: semPonto(v.supervisorNome) });
     blocks.push(
       {
         type: 'paragraph',

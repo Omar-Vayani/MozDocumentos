@@ -349,9 +349,9 @@ export default defineTemplate({
       },
     ];
     const cols: SignatureColumn[] = (ms.length ? (so ? [m0] : ms) : [null]).map((m) => ({
-      role: m?.representante ? `Pela ${m.nome || BLANK}` : so ? (fUnico ? 'A Sócia Única' : 'O Sócio Único') : m?.f ? 'A Sócia' : 'O Sócio',
+      role: m?.representante ? (so ? 'A Sócia Única' : 'A Sócia') : so ? (fUnico ? 'A Sócia Única' : 'O Sócio Único') : m?.f ? 'A Sócia' : 'O Sócio',
       name: m ? (m.representante ? m.representante.split(',')[0].trim() : m.nome) || undefined : undefined,
-      detail: [m?.representante ? m.representante.split(',').slice(1).join(',').trim() : '', v.datasAssinatura ? 'Data: ___/___/______' : ''].filter(Boolean).join('\n') || undefined,
+      detail: [m?.representante ? [m.representante.split(',').slice(1).join(',').trim(), m.nome].filter(Boolean).join(', ') : '', v.datasAssinatura ? 'Data: ___/___/______' : ''].filter(Boolean).join('\n') || undefined,
     }));
     blocks.push(...signatureRows(cols, `${ctx.place}, ${dateLong(v.data)}`));
     if (v.reconhecimento) comReconhecimento(blocks);

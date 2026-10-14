@@ -4,7 +4,7 @@ import {
   BLANK, cite, dateField, dateLong, employerName, employerSignature, exmo, g, l, localField, refField,
   splitLines, workerFields,
 } from './_shared';
-import { nExt } from './_contrato-trabalho';
+import { listaTexto, nExt, recusaBox } from './_contrato-trabalho';
 
 export default defineTemplate({
   id: 'nota-de-culpa',
@@ -192,7 +192,7 @@ export default defineTemplate({
       blocks.push({
         type: 'paragraph',
         id: 'tempoLugar',
-        text: `Os factos ocorreram ${v.dataInfraccao ? `em ${dateLong(v.dataInfraccao)}` : ''}${v.localFactos ? `${v.dataInfraccao ? ', ' : ''}em ${v.localFactos}` : ''}.`,
+        text: `Os factos ocorreram ${v.dataInfraccao ? `em ${dateLong(v.dataInfraccao)}` : ''}${v.localFactos ? `${v.dataInfraccao ? ', ' : ''}no seguinte local: ${String(v.localFactos).trim().replace(/\.$/, '')}` : ''}.`,
         en: `The facts occurred ${v.dataInfraccao ? `on ${v.dataInfraccao}` : ''}${v.localFactos ? ` at ${v.localFactos}` : ''}.`,
       });
     }
@@ -200,7 +200,7 @@ export default defineTemplate({
       type: 'paragraph',
       id: 'deveres',
       text: v.deveres
-        ? `Tais factos, a provarem-se, constituem infracção disciplinar por violação dos seguintes deveres: ${String(v.deveres).trim().replace(/\.$/, '')}.`
+        ? `Tais factos, a provarem-se, constituem infracção disciplinar por violação dos seguintes deveres: ${listaTexto(v.deveres)}.`
         : `Tais factos, a provarem-se, constituem infracção disciplinar por violação dos deveres ${g(ge, 'do trabalhador', 'da trabalhadora')} previstos na Lei do Trabalho${pessoa ? '' : ' e no regulamento interno da empresa'}.`,
       en: 'If proven, these facts constitute a disciplinary offence for breach of the employee’s duties.',
     });
@@ -236,17 +236,7 @@ export default defineTemplate({
         signer: g(ge, 'O Trabalhador', 'A Trabalhadora'),
       },
     );
-    if (v.testemunhas) {
-      blocks.push(
-        {
-          type: 'note',
-          text: `Em caso de recusa: ${g(ge, 'o trabalhador', 'a trabalhadora')} recusou receber a presente nota de culpa em ___/___/______, às ____:____ horas, o que os trabalhadores abaixo assinados confirmam, nos termos do ${cite('notaCulpaPrazoEmissao')}.`,
-          en: 'If refused: the employee refused to receive this charge on the date stated, as confirmed by the co-workers signing below.',
-          keepWithNext: true,
-        },
-        { type: 'signatures', columns: [{ role: 'Testemunha' }, { role: 'Testemunha (órgão sindical)' }] },
-      );
-    }
+    if (v.testemunhas) blocks.push(recusaBox(`Em caso de recusa: ${g(ge, 'o trabalhador', 'a trabalhadora')} recusou receber a presente nota de culpa em ___/___/______, às ____:____ horas, o que os trabalhadores abaixo assinados confirmam, nos termos do ${cite('notaCulpaPrazoEmissao')}.`, 'Testemunha (órgão sindical)'));
     return blocks;
   },
 });

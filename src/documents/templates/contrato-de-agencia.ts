@@ -120,8 +120,8 @@ export default defineTemplate({
     clauses.push({
       id: 'objecto',
       heading: 'Objecto',
-      text: `${P.O} encarrega ${A.o}, que aceita, de promover por conta ${P.de}, de modo autónomo e estável e mediante retribuição, a celebração de contratos de venda dos seguintes produtos ou serviços${produtos.length ? '' : `: ${BLANK}`}.`,
-      items: produtos.length ? produtos.map((p, i) => `${p}${i === produtos.length - 1 ? '.' : ';'}`) : undefined,
+      text: `${P.O} encarrega ${A.o}, que aceita, de promover por conta ${P.de}, de modo autónomo e estável e mediante retribuição, a celebração de contratos de venda dos seguintes produtos ou serviços${produtos.length ? ':' : `: ${BLANK}.`}`,
+      items: produtos.length ? produtos.map((p, i) => `${/^[A-ZÁÉÍÓÚ][a-záéíóúâêôãõç]/.test(p) ? p.charAt(0).toLowerCase() + p.slice(1) : p}${i === produtos.length - 1 ? '.' : ';'}`) : undefined,
       en: 'The Principal appoints the Agent to promote, independently and on a stable basis, sales of the listed products or services for a commission.',
     });
     clauses.push({
@@ -155,7 +155,7 @@ export default defineTemplate({
         `promover activamente os produtos ${P.de} na zona, com zelo e boa-fé;`,
         `seguir as instruções razoáveis ${P.de} quanto a preços, condições de venda e imagem comercial;`,
         `informar mensalmente ${P.ao} sobre as encomendas angariadas, a situação do mercado e a solvabilidade dos clientes;`,
-        str(v.objectivos) ? `procurar atingir os seguintes objectivos: ${semPonto(v.objectivos)};` : 'procurar atingir os objectivos de vendas acordados por escrito com o principal;',
+        str(v.objectivos) ? `procurar atingir os seguintes objectivos: ${semPonto(v.objectivos)};` : `procurar atingir os objectivos de vendas acordados por escrito com ${P.o};`,
         'suportar as despesas da sua actividade, salvo acordo escrito em contrário.',
       ],
       en: 'The Agent promotes the products diligently, follows reasonable instructions, reports monthly and bears its own costs.',

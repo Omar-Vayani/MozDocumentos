@@ -197,7 +197,7 @@ export default defineTemplate({
       disp(t2, 'md', { uppercase: true, tone: 'muted', after: 2 }),
       { type: 'ornament', style: v.tricolour ? 'tricolour' : 'double' },
       disp(merito ? 'É atribuído a' : 'Certifica-se que', 'sm', { italic: true, tone: 'muted', after: 4 }),
-      disp(nome, 'xl', { italic: true, fit: true, after: 2 }),
+      disp(nome, 'xxl', { italic: true, fit: true, after: 2 }),
       { type: 'ornament', style: 'rule', width: 'medium' },
       disp(corpo, 'md', { after: cls && !merito ? 2 : 12 }),
     ];

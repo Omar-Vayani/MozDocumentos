@@ -270,8 +270,8 @@ export default defineTemplate({
       },
       { type: 'numberedClauses', style: 'clausula', items: clauses },
       ...fecho(ctx, [assinatura(ctx, 'fornecedor', F, true), assinatura(ctx, 'cliente', C)]),
-      { type: 'pageBreakHint' },
-      { type: 'title', text: 'Anexo I — Produtos, especificações e preços' },
+      { type: 'spacer', size: 'large' },
+      { type: 'heading', text: 'Anexo I — Produtos, especificações e preços', align: 'center', keepWithNext: true },
       {
         type: 'table',
         columns: [

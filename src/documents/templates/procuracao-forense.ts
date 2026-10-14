@@ -128,7 +128,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'constituicao',
-        text: `${partyDesc(v, 'outorgante')}, constitui ${advogados}, a quem confere os mais amplos poderes forenses em Direito permitidos, para ${oOutorgante} representar em juízo e fora dele, em quaisquer tribunais, repartições públicas e demais autoridades${varios ? ', podendo agir em conjunto ou separadamente' : ''}${ambito ? `, designadamente ${ambito}` : ''}.`,
+        text: `${partyDesc(v, 'outorgante', { docBlank: true })}, constitui ${advogados}, a quem confere os mais amplos poderes forenses em Direito permitidos, para ${oOutorgante} representar em juízo e fora dele, em quaisquer tribunais, repartições públicas e demais autoridades${varios ? ', podendo agir em conjunto ou separadamente' : ''}${ambito ? `, designadamente ${ambito}` : ''}.`,
         en: 'The client named above appoints the lawyer(s) named above, with the broadest litigation powers allowed by law, to represent the client in and out of court, before any court, public office or authority.',
       },
     ];

@@ -135,7 +135,7 @@ export default defineTemplate({
         id: 'beneficios',
         heading: 'Benefícios',
         text: ben.length ? 'A bolsa compreende os seguintes benefícios:' : `A bolsa compreende os benefícios seguintes: ${BLANK}.`,
-        items: ben.map((r) => `${semPonto(r.descricao)}${money(r.valor) != null ? `, no valor de ${formatMoney(money(r.valor))}` : ''}${str(r.periodicidade) ? ` (${semPonto(r.periodicidade)})` : ''};`),
+        items: ben.map((r) => `${semPonto(r.descricao)}${money(r.valor) != null ? `, no valor de ${formatMoney(money(r.valor))}` : ''}${str(r.periodicidade) ? ` (${semPonto(r.periodicidade)})` : ''};`).map((t, i, a) => (i === a.length - 1 ? t.replace(/;$/, '.') : t)),
         en: 'Benefits of the scholarship.',
       },
       {
@@ -205,7 +205,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'partes',
-        text: `Entre:\n${employerParty(ctx, 'Entidade Concedente')};\ne\n${bolseiroParty(v)}${enc ? `, ${min ? 'menor, ' : ''}representad${f ? 'a' : 'o'} neste acto pel${fe ? 'a sua encarregada' : 'o seu encarregado'} de educação **${enc}**${str(v.encarregadoDocNumero) ? `, ${fe ? 'portadora' : 'portador'} do BI n.º ${str(v.encarregadoDocNumero)}` : ''}` : ''},\né celebrado o presente termo de compromisso, que se rege pelas cláusulas seguintes:`,
+        text: `Entre:\n${employerParty(ctx, 'Entidade Concedente')};\ne\n${bolseiroParty(v)}${enc ? `, ${min ? `menor, representad${f ? 'a' : 'o'} neste acto pel${fe ? 'a sua encarregada' : 'o seu encarregado'} de educação` : `com a intervenção d${fe ? 'a sua encarregada' : 'o seu encarregado'} de educação`} **${enc}**${str(v.encarregadoDocNumero) ? `, ${fe ? 'portadora' : 'portador'} do BI n.º ${str(v.encarregadoDocNumero)}` : ''}` : ''},\né celebrado o presente termo de compromisso, que se rege pelas cláusulas seguintes:`,
         en: 'Between the sponsor and the student (represented by the parent if a minor), this scholarship agreement is made on the following terms:',
       },
       { type: 'numberedClauses', style: 'clausula', items: clausulas },

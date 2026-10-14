@@ -93,8 +93,8 @@ const casado = (v: Values, p: string) => !isEmpresa(v, p) && ['casado', 'união 
  * the first party defaults from the issuing profile. With `conjuge`, a married
  * individual gets the spouse's name and ID (for the consent signature).
  */
-export function partyFields(p: string, opts: { fromProfile?: boolean; conjuge?: boolean; tipoDefault?: 'pessoa' | 'empresa' } = {}): FieldDef[] {
-  const { fromProfile = false, conjuge = false, tipoDefault = 'pessoa' } = opts;
+export function partyFields(p: string, opts: { fromProfile?: boolean; conjuge?: boolean; tipoDefault?: 'pessoa' | 'empresa'; osfl?: boolean } = {}): FieldDef[] {
+  const { fromProfile = false, conjuge = false, tipoDefault = 'pessoa', osfl = false } = opts;
   const pessoaRaw = workerFields(['nome', 'genero', 'estadoCivil', 'nacionalidade', 'docTipo', 'docNumero', 'docEmissao', 'docLocal', 'nuit', 'morada'], p, p).map(
     (f) => ({ ...f, showIf: (v: Values) => !isEmpresa(v, p) }),
   );
@@ -114,6 +114,33 @@ export function partyFields(p: string, opts: { fromProfile?: boolean; conjuge?: 
       default: fromProfile ? (c) => (c.profile?.kind === 'empresa' ? 'empresa' : c.profile?.kind === 'pessoa' ? 'pessoa' : tipoDefault) : tipoDefault,
     },
     ...pessoa,
+    ...(osfl
+      ? [
+          {
+            name: `${p}Natureza`,
+            type: 'select',
+            section: p,
+            label: l('Natureza da entidade', 'Kind of entity'),
+            options: NATUREZA_OPTIONS,
+            default: (c: DefaultsContext) => (fromProfile && c.profile?.kind === 'empresa' && c.profile.sector === 'associacoes' ? 'associacao' : 'sociedade'),
+            showIf: showEmp,
+          } satisfies FieldDef,
+          {
+            name: `${p}Reconhecimento`,
+            type: 'text',
+            section: p,
+            label: l('Reconhecimento ou registo (opcional)', 'Recognition or registration (optional)'),
+            placeholder: l('Ex.: reconhecida por despacho do Governador da Província de Maputo de 3 de Maio de 2015', 'E.g. recognised by order of the Provincial Governor of 3 May 2015'),
+            help: l(
+              'Como a entidade obteve personalidade jurídica: despacho de reconhecimento (associações), registo no Ministério da Justiça (igrejas) ou autorização do Ministério dos Negócios Estrangeiros e Cooperação (ONG estrangeiras).',
+              'How the entity obtained legal personality: recognition order (associations), registration with the Ministry of Justice (churches) or authorisation of the Ministry of Foreign Affairs (foreign NGOs).',
+            ),
+            default: (c: DefaultsContext) =>
+              fromProfile && c.profile?.kind === 'empresa' && c.profile.sector === 'associacoes' && c.profile.licenca ? c.profile.licenca.charAt(0).toLowerCase() + c.profile.licenca.slice(1) : '',
+            showIf: (v: Values) => isEmpresa(v, p) && isOsfl(v, p),
+          } satisfies FieldDef,
+        ]
+      : []),
     {
       name: `${p}EmpresaNome`,
       type: 'text',
@@ -160,6 +187,27 @@ export function partyFields(p: string, opts: { fromProfile?: boolean; conjuge?: 
   return fields;
 }
 
+/** Kinds of organisation a party may be (only with `partyFields(p, { osfl: true })`). */
+export const NATUREZA_OPTIONS = [
+  { value: 'sociedade', label: l('Sociedade comercial ou empresa', 'Company') },
+  { value: 'associacao', label: l('Associação sem fins lucrativos', 'Non-profit association') },
+  { value: 'confissao', label: l('Igreja ou confissão religiosa', 'Church or religious body') },
+  { value: 'fundacao', label: l('Fundação', 'Foundation') },
+  { value: 'ong', label: l('ONG estrangeira', 'Foreign NGO') },
+  { value: 'publica', label: l('Entidade pública (escola, hospital, município)', 'Public body (school, hospital, municipality)') },
+];
+
+const NATUREZA_TEXTO: Record<string, string> = {
+  associacao: 'associação sem fins lucrativos',
+  confissao: 'confissão religiosa',
+  fundacao: 'fundação',
+  ong: 'organização não-governamental estrangeira',
+  publica: 'instituição pública',
+};
+
+/** A non-profit organisation (association, church, foundation, NGO) rather than a company. */
+export const isOsfl = (v: Values, p: string) => isEmpresa(v, p) && ['associacao', 'confissao', 'fundacao', 'ong'].includes(str(v[`${p}Natureza`]));
+
 export type Papel = { n: string; f: boolean; o: string; O: string; de: string; ao: string; pelo: string };
 
 /** Role noun with articles, agreeing with the party's gender (companies take the role's grammatical gender). */
@@ -179,10 +227,13 @@ export function identificacao(v: Values, p: string): string {
   if (isEmpresa(v, p)) {
     const rep = get('RepNome');
     const cargo = get('RepCargo');
+    const natureza = NATUREZA_TEXTO[get('Natureza')] ?? '';
     return [
       `**${get('EmpresaNome') || BLANK}**`,
+      natureza,
+      natureza ? semPonto(get('Reconhecimento')) : '',
       `com sede em ${semPonto(get('EmpresaSede')) || BLANK}`,
-      get('EmpresaNuel') ? `matriculada na Conservatória do Registo das Entidades Legais sob o NUEL ${get('EmpresaNuel')}` : '',
+      get('EmpresaNuel') ? `${natureza ? 'registada' : 'matriculada'} na Conservatória do Registo das Entidades Legais sob o NUEL ${get('EmpresaNuel')}` : '',
       `titular do NUIT ${get('EmpresaNuit') || BLANK}`,
       `neste acto representada por ${rep || BLANK}${cargo ? `, na qualidade de ${cargo}` : ''}, com poderes para o acto`,
     ]

@@ -120,7 +120,7 @@ export default defineTemplate({
   documentDate: (v) => str(v.inscricaoData) || undefined,
   blocks: (ctx) => {
     const v = ctx.values;
-    const sexo = (g: unknown) => (v.emBranco ? 'M [   ]   F [   ]' : g === 'F' ? 'Feminino' : g === 'M' ? 'Masculino' : 'M [   ]   F [   ]');
+    const sexo = (g: unknown) => (v.emBranco ? '☐ M     ☐ F' : g === 'F' ? 'Feminino' : g === 'M' ? 'Masculino' : '☐ M     ☐ F');
     const data = (k: string) => (v.emBranco || !str(v[k]) ? '___/___/______' : formatDateShort(v[k]));
     const doc = (t: string, n: string) => (v.emBranco ? `${B}` : [str(v[t]), str(v[n])].filter(Boolean).join(' n.º ') || B);
     const blocks: Block[] = [
@@ -128,7 +128,7 @@ export default defineTemplate({
       {
         type: 'box',
         label: 'Inscrição (a preencher pela Secretaria)',
-        text: [`N.º: ${val(v, 'inscricaoNumero', '__________')}`, `Data: ${data('inscricaoData')}`, `Classe / curso: ${val(v, 'classe', '______________')}`, `Turno: ${val(v, 'turno', '______________')}`, 'Turma atribuída: ________  Processo n.º: ________'].join('\n'),
+        text: [`N.º: ${val(v, 'inscricaoNumero', '__________')}`, `Data: ${data('inscricaoData')}`, `Classe / curso: ${val(v, 'classe', '______________')}`, `Turno: ${val(v, 'turno', '______________')}`, 'Turma: ________    Processo n.º: ________'].join('\n'),
         width: 'half',
       },
       { type: 'box', label: 'Fotografia', text: ' ', lines: 3, width: 'half', align: 'right' },
@@ -183,7 +183,7 @@ export default defineTemplate({
       n++;
     }
     const chk = (k: string) => !v.emBranco && Boolean(v[k]);
-    const box = (on: boolean) => (on && !v.emBranco ? '[X]' : '[   ]');
+    const box = (on: boolean) => (on && !v.emBranco ? '☑' : '☐');
     const docs = [
       { label: 'Cópia do BI / cédula / certidão de nascimento', checked: chk('docIdentificacao') },
       { label: 'Certificado ou declaração da classe anterior', checked: chk('docCertificado') },

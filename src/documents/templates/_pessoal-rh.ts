@@ -140,8 +140,8 @@ export function qualidadeParental(v: unknown, genero: unknown): string {
 
 // ---------------------------------------------------------------- Entities
 
-const ENT_F = /^(administra[cç][aã]o|direc[cç][aã]o|conservat[oó]ria|autoridade|embaixada|reparti[cç][aã]o|secretaria|pol[ií]cia|esquadra|delega[cç][aã]o|procuradoria|comiss[aã]o|inspec[cç][aã]o|alf[aâ]ndega|c[aâ]mara|localidade|sec[cç][aã]o)\b/i;
-const ENT_M = /^(minist[eé]rio|tribunal|conselho|servi[cç]o|munic[ií]pio|posto|gabinete|consulado|cart[oó]rio|centro|departamento|governo|comando|distrito|banco|instituto)\b/i;
+const ENT_F = /^(administra[cç][aã]o|direc[cç][aã]o|conservat[oó]ria|autoridade|embaixada|reparti[cç][aã]o|secretaria|pol[ií]cia|esquadra|delega[cç][aã]o|procuradoria|comiss[aã]o|inspec[cç][aã]o|alf[aâ]ndega|c[aâ]mara|localidade|sec[cç][aã]o|entidade|empresa|associa[cç][aã]o|funda[cç][aã]o|sociedade|universidade|escola|igreja|ag[eê]ncia|organiza[cç][aã]o|rep[uú]blica|prov[ií]ncia|cidade|regi[aã]o)\b/i;
+const ENT_M = /^(minist[eé]rio|tribunal|conselho|servi[cç]o|munic[ií]pio|posto|gabinete|consulado|cart[oó]rio|centro|departamento|governo|comando|distrito|banco|instituto|fundo|hospital|programa|projecto)\b/i;
 
 /** "da Administração…", "do Tribunal…", "de Maria Silva"; keeps an article the user already typed. */
 export function deEntidade(e: string): string {

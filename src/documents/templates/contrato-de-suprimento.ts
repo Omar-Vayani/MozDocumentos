@@ -226,7 +226,7 @@ export default defineTemplate({
         en: 'Made in two copies of equal value, one for each party.',
         keepWithNext: true,
       },
-      ...signatureRows([parteSignature(v, 'socio', OS), ...companyColumns(ctx, reps)]),
+      ...signatureRows([parteSignature(v, 'socio', OS), ...companyColumns(ctx, reps, 'A Sociedade')]),
     ];
     return blocks;
   },

@@ -47,7 +47,7 @@ export default defineTemplate({
   blocks: (ctx) => {
     const v = ctx.values;
     const out: Block[] = [];
-    if (str(v.evento)) out.push(disp(str(v.evento), 'xs', { uppercase: true, tone: 'muted', fit: true, after: 2 }));
+    if (str(v.evento)) out.push(disp(str(v.evento), 'sm', { uppercase: true, tone: 'muted', fit: true, after: 2 }));
     out.push(disp(str(v.titulo) || 'Menu', 'xxl', { italic: true, tone: 'accent', fit: true, after: 0 }));
     out.push({ type: 'ornament', style: 'rule' });
     const grupos: { seccao: string; itens: Record<string, unknown>[] }[] = [];
@@ -57,11 +57,13 @@ export default defineTemplate({
       if (last && last.seccao === s) last.itens.push(r);
       else grupos.push({ seccao: s, itens: [r] });
     }
+    // A short menu is set one size larger so the card is filled.
+    const big = grupos.reduce((n, gr) => n + gr.itens.length, 0) <= 8;
     for (const gr of grupos.slice(0, 8)) {
-      if (gr.seccao) out.push(disp(gr.seccao, 'xs', { uppercase: true, tone: 'accent', after: 2 }));
+      if (gr.seccao) out.push(disp(gr.seccao, big ? 'sm' : 'xs', { uppercase: true, tone: 'accent', after: 3 }));
       for (const it of gr.itens.slice(0, 6)) {
-        out.push(disp(str(it.prato), 'sm', { fit: str(it.prato).length > 40, after: str(it.descricao) ? 0 : 2 }));
-        if (str(it.descricao)) out.push(disp(str(it.descricao), 'xs', { italic: true, tone: 'muted', after: 2 }));
+        out.push(disp(str(it.prato), big ? 'md' : 'sm', { fit: str(it.prato).length > (big ? 32 : 40), after: str(it.descricao) ? 0 : 3 }));
+        if (str(it.descricao)) out.push(disp(str(it.descricao), big ? 'sm' : 'xs', { italic: true, tone: 'muted', after: 3 }));
       }
       out.push({ type: 'spacer', size: 'small' });
     }

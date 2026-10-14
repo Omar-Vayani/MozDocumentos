@@ -107,20 +107,20 @@ export default defineTemplate({
 
     const blocks: Block[] = [
       { type: 'logo', size: 'md' },
-      { type: 'display', text: profileDisplayName(p) || ' ', size: 'xs', tone: 'muted', uppercase: true, after: 10 },
-      { type: 'display', text: compra ? 'Vale de compra' : 'Vale de oferta', size: 'xl', weight: 'bold', tone: 'accent', uppercase: true, after: 4 },
+      { type: 'display', text: profileDisplayName(p) || ' ', size: 'sm', tone: 'muted', uppercase: true, after: 10 },
+      { type: 'display', text: compra ? 'Vale de compra' : 'Vale de oferta', size: 'xxl', weight: 'bold', tone: 'accent', uppercase: true, after: 4 },
       { type: 'ornament', style: 'tricolour' },
       { type: 'spacer', size: 'small' },
       valor != null
-        ? { type: 'display', text: formatMoney(valor), size: 'xxl', weight: 'bold', after: 4, fit: true }
-        : { type: 'display', text: str(v.servico) || '______________________', size: 'md', weight: 'bold', after: 4 },
+        ? { type: 'display', text: formatMoney(valor), size: 'xxxl', weight: 'bold', after: 4, fit: true }
+        : { type: 'display', text: str(v.servico) || '______________________', size: 'lg', weight: 'bold', after: 4 },
     ];
-    if (valor != null && str(v.servico)) blocks.push({ type: 'display', text: str(v.servico), size: 'sm', after: 3 });
-    if (linhas.length) blocks.push({ type: 'display', text: linhas.join('\n'), size: 'sm', italic: true, after: 10 });
+    if (valor != null && str(v.servico)) blocks.push({ type: 'display', text: str(v.servico), size: 'md', after: 3 });
+    if (linhas.length) blocks.push({ type: 'display', text: linhas.join('\n'), size: 'md', italic: true, after: 10 });
     blocks.push(
-      { type: 'display', text: `Válido até ${v.validade ? formatDateShort(v.validade) : '___/___/______'}   ·   N.º ${numero || '________'}`, size: 'sm', weight: 'bold', after: 6 },
-      { type: 'display', text: condicoes, size: 'xs', tone: 'muted', after: 4 },
-      { type: 'display', text: `Emitido em ${formatDateShort(v.dataEmissao)}   ·   Carimbo: ______________`, size: 'xs', tone: 'muted', after: 0 },
+      { type: 'display', text: `Válido até ${v.validade ? formatDateShort(v.validade) : '___/___/______'}   ·   N.º ${numero || '________'}`, size: 'md', weight: 'bold', after: 6 },
+      { type: 'display', text: condicoes, size: 'sm', tone: 'muted', after: 5 },
+      { type: 'display', text: `Emitido em ${formatDateShort(v.dataEmissao)}   ·   Carimbo: ______________`, size: 'sm', tone: 'muted', after: 0 },
     );
     return blocks;
   },

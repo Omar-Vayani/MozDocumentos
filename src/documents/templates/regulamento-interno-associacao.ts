@@ -1,6 +1,6 @@
 import { defineTemplate, type Block, type ClauseItem, type Warning } from '../model';
 import { BLANK, cite, dateLong, formatMoney, l, money } from './_shared';
-import { entidadeNome, num, quantos, str } from './_associacoes';
+import { deNomeSimples, entidadeNome, num, quantos, str } from './_associacoes';
 
 // Regulamento interno de uma associação: detailed rules under the statutes,
 // approved by the general meeting. Modules are switched on and off.
@@ -42,7 +42,7 @@ export default defineTemplate({
       {
         id: 'objecto',
         heading: 'Objecto',
-        text: `O presente regulamento desenvolve os estatutos da ${nome} e estabelece as regras de admissão de membros, quotas, disciplina, eleições e funcionamento interno. Em caso de dúvida, prevalecem os estatutos e a lei.`,
+        text: `O presente regulamento desenvolve os estatutos ${deNomeSimples(nome)} e estabelece as regras de admissão de membros, quotas, disciplina, eleições e funcionamento interno. Em caso de dúvida, prevalecem os estatutos e a lei.`,
         en: 'Purpose: these rules develop the statutes; the statutes and the law prevail.',
       },
       {
@@ -85,31 +85,35 @@ export default defineTemplate({
         text: '1. Os membros e os titulares dos órgãos actuam com honestidade, respeito e lealdade para com a Associação.\n2. O titular de um órgão que tenha interesse pessoal num assunto declara-o e não participa na respectiva deliberação.\n3. É proibido usar os bens, o nome ou os fundos da Associação em benefício pessoal ou para fins político-partidários.',
         en: 'Conduct: honesty; declare conflicts and abstain; no personal or party-political use of assets.',
       });
-    if (v.modComunicacoes !== false)
+    const com = v.modComunicacoes !== false;
+    const dados = v.modDados !== false;
+    const comTxt = [
+      'Sem prejuízo das formalidades exigidas pela lei e pelos estatutos para a convocatória da Assembleia Geral, a Associação pode comunicar com os membros por correio electrónico, SMS ou grupos de mensagens.',
+      'Cada membro mantém actualizados os seus contactos junto do Secretário-Geral.',
+    ];
+    const dadosTxt = 'Os dados pessoais dos membros são usados apenas para a gestão da Associação, guardados em local seguro e não são cedidos a terceiros sem consentimento do membro, salvo obrigação legal.';
+    if (com || dados) {
+      const partes = [...(com ? comTxt : []), ...(dados ? [dadosTxt] : [])];
       items.push({
-        id: 'comunicacoes',
-        heading: 'Comunicações',
-        text: '1. Sem prejuízo das formalidades exigidas pela lei e pelos estatutos para a convocatória da Assembleia Geral, a Associação pode comunicar com os membros por correio electrónico, SMS ou grupos de mensagens.\n2. Cada membro mantém actualizados os seus contactos junto do Secretário-Geral.',
-        en: 'Communications: email, SMS or messaging groups as a complement to the legal notice; members keep contacts up to date.',
+        id: com && dados ? 'comunicacoesDados' : com ? 'comunicacoes' : 'dados',
+        heading: com && dados ? 'Comunicações e dados pessoais' : com ? 'Comunicações' : 'Dados pessoais',
+        text: partes.length === 1 ? partes[0] : partes.map((t, i) => `${i + 1}. ${t}`).join('\n'),
+        en: 'Communications by email, SMS or messaging groups as a complement to the legal notice; members keep contacts up to date; personal data used only to run the association.',
       });
-    if (v.modDados !== false)
-      items.push({
-        id: 'dados',
-        heading: 'Dados pessoais',
-        text: 'Os dados pessoais dos membros são usados apenas para a gestão da Associação, guardados em local seguro e não são cedidos a terceiros sem consentimento do membro, salvo obrigação legal.',
-        en: 'Members’ personal data are used only to run the association, kept safe and not shared without consent unless the law requires.',
-      });
-    items.push({
+    }
+    const vigor: ClauseItem = {
       id: 'vigor',
       heading: 'Entrada em vigor',
-      text: `O presente regulamento entra em vigor na data da sua aprovação pela Assembleia Geral${str(v.dataAprovacao) ? `, em ${dateLong(v.dataAprovacao)}` : ''}.`,
+      text: `O presente regulamento foi aprovado pela Assembleia Geral em ${dateLong(v.dataAprovacao)} e entra em vigor na data da sua aprovação.`,
       en: 'Entry into force on approval by the general meeting.',
-    });
+    };
     const blocks: Block[] = [
-      { type: 'title', text: 'Regulamento Interno', subtitle: nome },
+      // The letterhead already names the association: repeat it only when it differs.
+      { type: 'title', text: 'Regulamento Interno', subtitle: nome === entidadeNome(ctx) ? undefined : nome },
       { type: 'numberedClauses', style: 'artigo', items },
-      { type: 'paragraph', id: 'aprovado', text: `Aprovado pela Assembleia Geral em ${dateLong(v.dataAprovacao)}.`, en: 'Approved by the general meeting.', keepWithNext: true },
-      { type: 'signatures', columns: [{ role: 'O(A) Presidente da Mesa da Assembleia Geral', name: str(v.presidenteMesa) || undefined }] },
+      // The last article travels with the approval line and the signature (no lonely signature page).
+      { type: 'numberedClauses', style: 'artigo', items: [vigor], start: items.length + 1, keepWithNext: true },
+      { type: 'signatures', columns: [{ role: 'O(A) Presidente da Mesa', name: str(v.presidenteMesa) || undefined, detail: 'da Assembleia Geral' }] },
     ];
     return blocks;
   },

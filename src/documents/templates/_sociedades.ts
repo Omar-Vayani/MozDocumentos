@@ -324,7 +324,8 @@ export function socioIdent(s: Socio): string {
 export function socioSignature(s: Socio): SignatureColumn {
   if (s.tipo === 'empresa') {
     const [nome, ...cargo] = s.representante.split(',');
-    return { role: `Pela ${s.nome || BLANK}`, name: str(nome) || undefined, detail: cargo.join(',').trim() || undefined };
+    // A long company name in the role would wrap and push its signature line below the others.
+    return { role: 'A Sócia', name: str(nome) || undefined, detail: [cargo.join(',').trim(), s.nome].filter(Boolean).join(', ') || undefined };
   }
   return { role: isF(s.genero) ? 'A Sócia' : 'O Sócio', name: s.nome || undefined };
 }
@@ -362,15 +363,20 @@ export function representadaPor(reps: { nome: string; cargo: string }[]): string
   return `neste acto representada por ${juntar(reps.map((r) => `${r.nome || BLANK}${r.cargo ? `, na qualidade de ${r.cargo}` : ''}`))}, com poderes para o acto`;
 }
 
-export function companyColumns(ctx: TemplateContext, reps: { nome: string; cargo: string }[]): SignatureColumn[] {
+/**
+ * Signature columns for the company's representatives. With `role` (e.g. "A Sociedade", when the
+ * company is a designated party beside others), the company name moves to the detail line so the
+ * role stays on one line and the signature lines of a row stay aligned.
+ */
+export function companyColumns(ctx: TemplateContext, reps: { nome: string; cargo: string }[], role?: string): SignatureColumn[] {
   const p = ctx.profile?.kind === 'empresa' ? ctx.profile : null;
   // The profile's signature and stamp belong to its representative only.
   const owner = p ? reps.findIndex((r) => r.nome && r.nome === p.representanteNome) : -1;
   const imageAt = p ? (owner >= 0 ? owner : reps.every((r) => !r.nome) ? 0 : -1) : -1;
   return (reps.length ? reps : [{ nome: '', cargo: '' }]).map((r, i) => ({
-    role: `Pela ${sociedadeNome(ctx.values)}`,
+    role: role ?? `Pela ${sociedadeNome(ctx.values)}`,
     name: r.nome || undefined,
-    detail: r.cargo || undefined,
+    detail: (role ? [r.cargo, str(ctx.values.sociedadeFirma)].filter(Boolean).join(', ') : r.cargo) || undefined,
     image: i === imageAt ? 'both' : undefined,
   }));
 }

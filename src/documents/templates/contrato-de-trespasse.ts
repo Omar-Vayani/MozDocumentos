@@ -279,7 +279,7 @@ export default defineTemplate({
       clauses.push({
         id: 'naoConcorrencia',
         heading: 'Não concorrência',
-        text: `${T.O} não exerce, directa ou indirectamente, actividade concorrente com a do estabelecimento trespassado${str(v.naoConcorrenciaArea) ? ` em ${semPonto(v.naoConcorrenciaArea)}` : ' na sua área de influência'}, durante ${quantos(anosNC, 'ano', 'anos')} a contar da data da entrega.`,
+        text: `${T.O} não exerce, directa ou indirectamente, actividade concorrente com a do estabelecimento trespassado${str(v.naoConcorrenciaArea) ? `, na seguinte área: ${semPonto(v.naoConcorrenciaArea)},` : ' na sua área de influência'}, durante ${quantos(anosNC, 'ano', 'anos')} a contar da data da entrega.`,
         en: `The Transferor will not compete${v.naoConcorrenciaArea ? ` in ${v.naoConcorrenciaArea}` : ' in the area'} for ${anosNC} years from handover.`,
       });
     }
@@ -313,8 +313,8 @@ export default defineTemplate({
     ];
     if (c.equipamento.length) {
       blocks.push(
-        { type: 'pageBreakHint' },
-        { type: 'title', text: 'Anexo I — Mobiliário, equipamento e utensílios' },
+        { type: 'spacer', size: 'large' },
+        { type: 'heading', text: 'Anexo I — Mobiliário, equipamento e utensílios', align: 'center', keepWithNext: true },
         {
           type: 'table',
           columns: [

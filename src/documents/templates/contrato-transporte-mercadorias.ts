@@ -165,7 +165,7 @@ export default defineTemplate({
         heading: 'Mercadorias',
         text: `As mercadorias a transportar são as seguintes${totalDeclarado ? `, com o valor declarado total de ${valorTexto(totalDeclarado)}` : ''}:`,
         items: merc.length
-          ? merc.map((m) => [str(m.descricao), str(m.embalagem), str(m.quantidade), money(m.valor) != null ? `valor declarado ${fm(money(m.valor))} MT` : ''].filter(Boolean).join(', '))
+          ? merc.map((m, i) => `${[str(m.descricao), str(m.embalagem), str(m.quantidade), money(m.valor) != null ? `valor declarado ${fm(money(m.valor))} MT` : ''].filter(Boolean).join(', ')}${i === merc.length - 1 ? '.' : ';'}`)
           : ['____________________'],
         en: 'The goods are as listed, with their declared value.',
       },
@@ -234,7 +234,7 @@ export default defineTemplate({
         { p: 'expedidor', role: E, en: 'shipper' },
         { p: 'transportador', role: T, en: 'carrier' },
       ]),
-      { type: 'paragraph', id: 'celebracao', text: 'É celebrado o presente contrato de transporte, que se rege pelas cláusulas seguintes:', en: 'This contract of carriage is made on the following terms:' },
+      { type: 'paragraph', id: 'celebracao', text: 'é celebrado o presente contrato de transporte, que se rege pelas cláusulas seguintes:', en: 'This contract of carriage is made on the following terms:' },
       { type: 'numberedClauses', style: 'clausula', items },
       ...fecho(ctx, [assinatura(ctx, 'expedidor', E, true), assinatura(ctx, 'transportador', T)]),
     ];

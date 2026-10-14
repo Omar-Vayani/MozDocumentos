@@ -202,12 +202,6 @@ export default defineTemplate({
         id: 'validade',
         text: `${v.substabelecer ? `${OProc} pode substabelecer, no todo ou em parte, com ou sem reserva, os poderes ora conferidos.` : 'Os poderes ora conferidos não podem ser substabelecidos.'} ${v.validade ? `A presente procuração é válida até ${dateLong(v.validade)}, salvo revogação anterior.` : 'A presente procuração mantém-se válida até ser revogada pela sociedade.'}`,
         en: `${v.substabelecer ? 'The attorney may delegate these powers.' : 'The powers may not be delegated.'} ${v.validade ? `Valid until ${v.validade}, unless revoked earlier.` : 'Valid until revoked by the company.'}`,
-      },
-      {
-        type: 'paragraph',
-        id: 'fecho',
-        text: 'Por ser verdade, vai a presente procuração assinada pelos representantes da sociedade e autenticada com o respectivo carimbo.',
-        en: 'In witness whereof this power of attorney is signed by the company’s representatives and stamped.',
         keepWithNext: true,
       },
       ...companySignatures(ctx, reps, `${ctx.place}, ${dateLong(v.data)}`),

@@ -201,40 +201,28 @@ export default defineTemplate({
         type: 'keyValue',
         columns: 1,
         items: [
-          { label: 'Data', value: dataComDia(v.dataAudicao) },
-          { label: 'Hora', value: hora(v.horaAudicao) },
+          { label: 'Data e hora', value: `${dataComDia(v.dataAudicao)}, às ${hora(v.horaAudicao)}` },
           { label: 'Local', value: v.localAudicao || BLANK },
           ...(v.instrutor ? [{ label: 'Conduzida por', value: String(v.instrutor) }] : []),
         ],
       },
-      {
-        type: 'paragraph',
-        id: 'objecto',
-        text: 'A audição destina-se a ouvir V. Ex.ª sobre os factos constantes da nota de culpa e a permitir-lhe apresentar pessoalmente a sua defesa.',
-        en: 'The hearing is to hear you on the facts in the charge and to let you present your defence in person.',
-      },
     ];
-    if (v.acompanhamento) {
-      blocks.push({
-        type: 'paragraph',
-        id: 'acompanhamento',
-        text: 'V. Ex.ª pode fazer-se acompanhar por um representante do comité sindical ou por advogado.',
-        en: 'You may be accompanied by a union committee representative or by a lawyer.',
-      });
-    }
-    if (v.provas) {
-      blocks.push({
-        type: 'paragraph',
-        id: 'provas',
-        text: 'Pode ainda apresentar as testemunhas que pretenda que sejam ouvidas e os documentos que considere relevantes para a sua defesa.',
-        en: 'You may also bring the witnesses you wish to be heard and any documents relevant to your defence.',
-      });
-    }
+    // Purpose, company and evidence in one paragraph: the notice stays on one page.
+    const extras = [
+      v.acompanhamento ? 'V. Ex.ª pode fazer-se acompanhar por um representante do comité sindical ou por advogado' : '',
+      v.provas ? `${v.acompanhamento ? 'pode ainda' : 'V. Ex.ª pode'} apresentar testemunhas e os documentos que considere relevantes para a sua defesa` : '',
+    ].filter(Boolean);
+    blocks.push({
+      type: 'paragraph',
+      id: 'objecto',
+      text: `A audição destina-se a ouvir V. Ex.ª sobre os factos da nota de culpa e a permitir-lhe apresentar pessoalmente a sua defesa.${extras.length ? ` ${extras.join(' e ')}.` : ''}`,
+      en: `The hearing is to hear you on the facts in the charge and to let you present your defence in person.${v.acompanhamento ? ' You may be accompanied by a union committee representative or by a lawyer.' : ''}${v.provas ? ' You may also bring witnesses and documents relevant to your defence.' : ''}`,
+    });
     blocks.push(
       {
         type: 'paragraph',
         id: 'impedimento',
-        text: 'Se, por motivo justificado, V. Ex.ª não puder comparecer, deve comunicá-lo por escrito antes da data marcada, indicando o motivo, para que seja designada nova data. A falta injustificada não impede o prosseguimento do processo.',
+        text: 'Não podendo comparecer por motivo justificado, V. Ex.ª deve comunicá-lo por escrito, com indicação do motivo, antes da data marcada. A falta injustificada não impede o prosseguimento do processo.',
         en: 'If you cannot attend for a justified reason, inform us in writing before the date, stating the reason, so that a new date can be set. An unjustified absence does not stop the procedure.',
       },
       { type: 'paragraph', id: 'copia', text: `Cópia: ${v.orgaoSindical || 'Comité Sindical'}.`, size: 'small', align: 'left' },

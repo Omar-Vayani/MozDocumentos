@@ -169,7 +169,7 @@ export default defineTemplate({
     );
 
     const tRows: string[][] = [];
-    if (!aviso && money(v.saldoAnterior)) tRows.push(['', 'Saldo anterior', '', '', '', '', fm(money(v.saldoAnterior) ?? 0)]);
+    if (!aviso && money(v.saldoAnterior)) tRows.push(['', '', 'Saldo anterior', '', '', '', fm(money(v.saldoAnterior) ?? 0)]);
     for (const m of movs) {
       tRows.push([m.data ? formatDateShort(m.data) : '', m.doc, m.descricao, m.vencimento ? formatDateShort(m.vencimento) : '', fm(m.debito), fm(m.credito), aviso ? '' : moneyText(m.saldo).replace(' MT', '')]);
     }
@@ -177,18 +177,18 @@ export default defineTemplate({
     blocks.push({
       type: 'table',
       columns: [
-        { label: 'Data', width: 1.05, align: 'center' },
-        { label: 'Documento', width: 1.6 },
-        { label: 'Descrição', width: 1.85 },
-        { label: 'Venc.', width: 1.05, align: 'center' },
-        { label: 'Débito', width: 1.5, align: 'right' },
-        { label: 'Crédito', width: 1.5, align: 'right' },
-        ...(aviso ? [] : [{ label: 'Saldo', width: 1.65, align: 'right' as const }]),
+        { label: 'Data', width: 1.3, align: 'center' },
+        { label: 'Documento', width: 1.8 },
+        { label: 'Descrição', width: 1.9 },
+        { label: 'Venc.', width: 1.3, align: 'center' },
+        { label: 'Débito', width: 1.3, align: 'right' },
+        { label: 'Crédito', width: 1.3, align: 'right' },
+        ...(aviso ? [] : [{ label: 'Saldo', width: 1.3, align: 'right' as const }]),
       ],
       rows: aviso ? tRows.map((r) => r.slice(0, 6)) : tRows,
       totals: aviso
-        ? [['', 'Total', '', '', fm(c.debitos) || '0,00', fm(c.creditos) || '0,00'], ['', saldo < 0 ? 'Saldo a favor do cliente' : 'Valor a pagar', '', '', '', moneyText(Math.abs(saldo)).replace(' MT', '')]]
-        : [['', 'Totais', '', '', fm(c.debitos) || '0,00', fm(c.creditos) || '0,00', ''], ['', saldo < 0 ? 'Saldo a favor do cliente' : 'Saldo a pagar', '', '', '', '', moneyText(Math.abs(saldo)).replace(' MT', '')]],
+        ? [['', '', 'Total', '', fm(c.debitos) || '0,00', fm(c.creditos) || '0,00'], ['', '', saldo < 0 ? 'Saldo a favor do cliente' : 'Valor a pagar', '', '', moneyText(Math.abs(saldo)).replace(' MT', '')]]
+        : [['', '', 'Totais', '', fm(c.debitos) || '0,00', fm(c.creditos) || '0,00', ''], ['', '', saldo < 0 ? 'Saldo a favor do cliente' : 'Saldo a pagar', '', '', '', moneyText(Math.abs(saldo)).replace(' MT', '')]],
       note: 'Valores em meticais (MT).',
     });
 
@@ -245,7 +245,7 @@ export default defineTemplate({
         type: 'box',
         cut: true,
         label: 'Confirmação do saldo',
-        text: `${str(v.clienteNome) || BLANK} confirma que o saldo em ${formatDateShort(v.data)} é de ____________________ MT.\n[   ] Concordamos com o saldo indicado.   [   ] Não concordamos, pelas razões seguintes:`,
+        text: `${str(v.clienteNome) || BLANK} confirma que o saldo em ${formatDateShort(v.data)} é de ____________________ MT.\n☐ Concordamos com o saldo indicado.   ☐ Não concordamos, pelas razões seguintes:`,
         lines: 2,
       });
       blocks.push({ type: 'signatures', columns: [{ role: 'O Cliente (assinatura e carimbo)', detail: 'Data: ___/___/______' }] });

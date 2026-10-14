@@ -37,6 +37,8 @@ const sumOf = (rows: Linha[], k: keyof Linha) => roundMoney(rows.reduce((t, r) =
 export default defineTemplate({
   id: 'folha-de-salarios',
   family: 'mapa',
+  // Landscape: one row per employee with every amount, as payroll registers are kept.
+  page: 'A4-paisagem',
   sections: [
     { id: 'documento', title: l('Período e pagamento', 'Period and payment') },
     { id: 'trabalhadores', title: l('Trabalhadores', 'Employees') },
@@ -237,9 +239,21 @@ export default defineTemplate({
     const p = ctx.profile;
     const dep = Boolean(v.colunaDependentes);
     const nome = (r: Linha) => r.nome || BLANK;
-    const idRows = linhas.map((r, i) => [String(i + 1), nome(r), r.cargo || '—', r.nuit || '—', r.inss || '—', ...(dep ? [String(r.dependentes)] : [])]);
-    const remRows = linhas.map((r, i) => [String(i + 1), nome(r), fm(r.base), fm(r.subsidios), fm(r.extra), fm(r.bruto)]);
-    const descRows = linhas.map((r, i) => [String(i + 1), nome(r), fm(r.inssT), fm(r.irps), fm(r.outros), fm(r.descontos), fm(r.liquido)]);
+    const rows = linhas.map((r, i) => [
+      String(i + 1),
+      nome(r),
+      r.nuit || '—',
+      r.inss || '—',
+      ...(dep ? [String(r.dependentes)] : []),
+      fm(r.base),
+      fm(r.subsidios),
+      fm(r.extra),
+      fm(r.bruto),
+      fm(r.inssT),
+      fm(r.irps),
+      fm(r.outros),
+      fm(r.liquido),
+    ]);
     const empty = (n: number) => [Array.from({ length: n }, (_, i) => (i === 1 ? BLANK : ''))];
 
     const blocks: Block[] = [
@@ -252,52 +266,45 @@ export default defineTemplate({
           { label: 'Entidade empregadora', value: employerName(ctx) },
           { label: 'NUIT', value: p?.nuit || BLANK },
           { label: 'N.º de contribuinte do INSS', value: p?.inss || BLANK },
-          { label: 'Período', value: formatMonthYear(v.periodo) },
-          { label: 'Data de pagamento', value: dateLong(v.data) },
           { label: 'Número de trabalhadores', value: String(linhas.length) },
         ],
       },
       {
         type: 'table',
-        caption: '1. Trabalhadores',
+        caption: 'Remunerações, descontos e valor líquido (MT)',
         columns: [
-          { label: 'N.º', width: 0.45, align: 'center' },
-          { label: 'Nome', width: 2.6 },
-          { label: 'Cargo', width: 1.9 },
-          { label: 'NUIT', width: 1.3 },
-          { label: 'N.º INSS', width: 1.3 },
-          ...(dep ? [{ label: 'Dep.', width: 0.6, align: 'center' as const }] : []),
+          { label: 'N.º', width: 0.35, align: 'center' },
+          { label: 'Nome', width: 2.5 },
+          { label: 'NUIT', width: 0.95 },
+          { label: 'N.º INSS', width: 0.95 },
+          ...(dep ? [{ label: 'Dep.', width: 0.45, align: 'center' as const }] : []),
+          { label: 'Salário base', width: 1.1, align: 'right' },
+          { label: 'Subsídios', width: 1.0, align: 'right' },
+          { label: 'H. extra', width: 1.0, align: 'right' },
+          { label: 'Ilíquido', width: 1.1, align: 'right' },
+          { label: `INSS (${formatPercent(c.taxaT)})`, width: 1.0, align: 'right' },
+          { label: 'IRPS', width: 0.95, align: 'right' },
+          { label: 'Outros', width: 0.95, align: 'right' },
+          { label: 'Líquido', width: 1.1, align: 'right' },
         ],
-        rows: idRows.length ? idRows : empty(dep ? 6 : 5),
-      },
-      {
-        type: 'table',
-        caption: '2. Remunerações (MT)',
-        columns: [
-          { label: 'N.º', width: 0.45, align: 'center' },
-          { label: 'Nome', width: 2.4 },
-          { label: 'Salário base', width: 1.35, align: 'right' },
-          { label: 'Subsídios', width: 1.35, align: 'right' },
-          { label: 'Horas extra', width: 1.35, align: 'right' },
-          { label: 'Total ilíquido', width: 1.45, align: 'right' },
+        rows: rows.length ? rows : empty(dep ? 13 : 12),
+        totals: [
+          [
+            '',
+            'Totais',
+            '',
+            '',
+            ...(dep ? [''] : []),
+            fm(c.totalBase),
+            fm(c.totalSubsidios),
+            fm(c.totalExtra),
+            fm(c.totalBruto),
+            fm(c.inssTrabalhadores),
+            fm(c.totalIrps),
+            fm(c.totalOutros),
+            fm(c.totalLiquido),
+          ],
         ],
-        rows: remRows.length ? remRows : empty(6),
-        totals: [['', 'Totais', fm(c.totalBase), fm(c.totalSubsidios), fm(c.totalExtra), fm(c.totalBruto)]],
-      },
-      {
-        type: 'table',
-        caption: '3. Descontos e valor líquido (MT)',
-        columns: [
-          { label: 'N.º', width: 0.45, align: 'center' },
-          { label: 'Nome', width: 2.1 },
-          { label: `INSS (${formatPercent(c.taxaT)})`, width: 1.25, align: 'right' },
-          { label: 'IRPS', width: 1.25, align: 'right' },
-          { label: 'Outros', width: 1.25, align: 'right' },
-          { label: 'Descontos', width: 1.3, align: 'right' },
-          { label: 'Líquido', width: 1.4, align: 'right' },
-        ],
-        rows: descRows.length ? descRows : empty(7),
-        totals: [['', 'Totais', fm(c.inssTrabalhadores), fm(c.totalIrps), fm(c.totalOutros), fm(c.totalDescontos), fm(c.totalLiquido)]],
         note: c.irpsTableActive
           ? 'IRPS calculado pela tabela de retenção na fonte em vigor, salvo nos casos em que o valor foi indicado manualmente.'
           : 'IRPS indicado manualmente (a tabela de retenção na fonte não está configurada).',
@@ -305,7 +312,7 @@ export default defineTemplate({
       {
         type: 'keyValue',
         title: 'Resumo do mês',
-        columns: 1,
+        columns: 2,
         items: [
           { label: 'Total ilíquido', value: formatMoney(c.totalBruto) },
           { label: `INSS — trabalhadores (${formatPercent(c.taxaT)})`, value: formatMoney(c.inssTrabalhadores) },

@@ -13,6 +13,8 @@ const isInterp = (v: Record<string, unknown>) => v.tipo === 'interpelacao';
 export default defineTemplate({
   id: 'aviso-de-quotas-condominio',
   family: 'carta',
+  // The monthly notice is a half sheet (A5); the formal demand is a full A4 letter.
+  page: (v) => (isInterp(v) ? 'A4' : 'A5'),
   sections: [
     { id: 'documento', title: l('Tipo e data', 'Type and date') },
     { id: 'condomino', title: l('Condómino', 'Owner') },

@@ -4,7 +4,8 @@
 // receiving body decides whether it also needs the local administration's visto.
 
 import { defineTemplate, type Block, type Warning } from '../model';
-import { BLANK, dateField, g, l, localField, moneyText } from './_shared';
+import { BLANK, dateField, g, l, localField } from './_shared';
+import { moneyExt } from './_advocacia';
 import {
   assinaturaBlocks,
   assinaturaFields,
@@ -118,7 +119,7 @@ export default defineTemplate({
     const agregado = Number.isFinite(n) && n > 0
       ? `O agregado familiar é composto por ${n} ${n === 1 ? 'pessoa' : 'pessoas'}${Number.isFinite(menores) && menores > 0 ? `, das quais ${menores} ${menores === 1 ? 'menor' : 'menores'}` : ''}`
       : `O agregado familiar é composto por ${BLANK} pessoas`;
-    const rend = str(v.rendimentoMensal) ? `, com um rendimento mensal estimado em ${moneyText(v.rendimentoMensal)}` : '';
+    const rend = str(v.rendimentoMensal) ? `, com um rendimento mensal estimado em ${moneyExt(v.rendimentoMensal)}` : '';
     const sits = SITUACOES.filter((s) => v[`sit_${s.value}`]).map((s) => (f ? s.f : s.m));
     if (str(v.outraSituacao)) sits.push(str(v.outraSituacao).replace(/[.;]+$/, '').replace(/^./, (c) => c.toLowerCase()));
 

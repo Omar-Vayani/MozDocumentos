@@ -6,7 +6,7 @@ import { addDays, formatPercent } from '@/lib/format';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, cite, dateLong, l, money } from './_shared';
 import { int, lines, num, semPonto, str, valorTexto } from './_contratos';
-import { assinaturasObra, IVA_OPTIONS, mt, obraFields, obraKeyValue, partesObraFields, qt, r2, signatureRows, UNIDADES } from './_construcao';
+import { assinaturasObra, IVA_OPTIONS, mt, obraFields, partesObraFields, qt, r2, signatureRows, UNIDADES } from './_construcao';
 
 const MOTIVOS = [
   { value: 'dono', label: l('Pedido do dono da obra', 'Owner’s request'), pt: 'pedido do Dono da Obra' },
@@ -106,9 +106,19 @@ export default defineTemplate({
     const rows = (c.itens as Item[]).map((i) => [i.artigo, i.descricao, i.unidade, qt(i.quantidade), mt(i.preco), mt(i.total)]);
     const totals: string[][] = [['', v.ivaRegime === 'acrescido' ? 'Valor sem IVA' : 'Valor total', '', '', '', mt(c.valor)]];
     if (v.ivaRegime === 'acrescido') totals.push(['', `IVA (${formatPercent(c.taxa)})`, '', '', '', mt(c.iva)], ['', 'Total com IVA', '', '', '', mt(c.total)]);
+    // One compact identification line (the parties are named in the signature block), so the order fits one page.
+    const contrato = [str(v.contratoRef), v.contratoData ? `de ${dateLong(v.contratoData)}` : ''].filter(Boolean).join(' ');
+    const cabecalho: Block = {
+      type: 'paragraph',
+      id: 'obra',
+      text: `**Obra:** ${str(v.obraDesignacao) || BLANK}, ${str(v.obraLocal) || BLANK}.${contrato ? ` **Contrato:** ${contrato}.` : ''}`,
+      en: 'Works, site and contract.',
+      align: 'left',
+    };
     const blocks: Block[] = [
       { type: 'title', text: `Ordem de Execução de Trabalhos a Mais n.º ${v.numero || BLANK}`, subtitle: `${ctx.place}, ${dateLong(v.data)}` },
-      obraKeyValue(v),
+      // The parties are named in the signature block: the header keeps only the works and the contract.
+      cabecalho,
       {
         type: 'paragraph',
         id: 'motivo',
@@ -138,16 +148,12 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'prazo',
-        text: c.prorr
-          ? `O prazo de execução é prorrogado por ${c.prorr} ${c.prorr === 1 ? 'dia' : 'dias'}${c.novoFim ? `, passando a obra a terminar em ${dateLong(c.novoFim)}` : ''}.`
-          : 'Os trabalhos a mais são executados dentro do prazo contratual em curso, sem prorrogação.',
-        en: c.prorr ? 'The completion period is extended.' : 'No extension of time.',
-      },
-      {
-        type: 'paragraph',
-        id: 'pagamento',
-        text: `Os trabalhos são pagos ${v.pagamento === 'conclusao' ? 'após a sua conclusão, verificada pelo Dono da Obra' : 'nos autos de medição seguintes, como trabalhos a mais aprovados'}, mantendo-se inalteradas as demais condições do contrato.`,
-        en: 'Payment terms; all other contract terms stay the same.',
+        text: `${
+          c.prorr
+            ? `O prazo de execução é prorrogado por ${c.prorr} ${c.prorr === 1 ? 'dia' : 'dias'}${c.novoFim ? `, passando a obra a terminar em ${dateLong(c.novoFim)}` : ''}.`
+            : 'Os trabalhos a mais são executados dentro do prazo contratual em curso, sem prorrogação.'
+        } Os trabalhos são pagos ${v.pagamento === 'conclusao' ? 'após a sua conclusão, verificada pelo Dono da Obra' : 'nos autos de medição seguintes, como trabalhos a mais aprovados'}, mantendo-se inalteradas as demais condições do contrato.`,
+        en: `${c.prorr ? 'The completion period is extended.' : 'No extension of time.'} Payment terms; all other contract terms stay the same.`,
         keepWithNext: true,
       },
       ...signatureRows(assinaturasObra(v, { dono: 'Autorizo — O Dono da Obra', empreiteiro: 'Aceito — O Empreiteiro', fiscal: 'Visto — A Fiscalização' })),
