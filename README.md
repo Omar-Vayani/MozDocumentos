@@ -2,14 +2,15 @@
 
 By **Omar Vayani**. © 2026 Omar Vayani. All rights reserved — proprietary software, see [`LICENSE`](LICENSE).
 
-A client-side web app that generates 115 professional documents for Mozambique — employment contracts and payslips, civil and commercial contracts, court filings, company articles and resolutions, public-administration correspondence, family and personal declarations — following Lei n.º 13/2023 (Lei do Trabalho), the Civil and Commercial Codes and related rules.
+A client-side web app that generates 220 professional documents for Mozambique — employment contracts and payslips, civil and commercial contracts, court filings, company articles and resolutions, public-administration correspondence, medical certificates and prescriptions, school declarations, association statutes, construction records, community-authority declarations, invitations, certificates and cards — following Lei n.º 13/2023 (Lei do Trabalho), the Civil and Commercial Codes and related rules.
 
 - **No backend, no account.** Everything runs in the browser; data stays on the device (IndexedDB).
 - **Portuguese first.** UI in Portuguese and English; documents are always generated in Portuguese, with an optional English reading aid and, for some documents, bilingual output.
 - **One renderer.** Documents are vector PDFs made with `@react-pdf/renderer` in a web worker. The on-screen preview is the same PDF drawn with pdf.js, so preview, download and print are identical A4.
 - **Not an official service.** It does not replace legal advice.
 - **Tools.** Net-salary, leave, notice and compensation calculators, and payslips for the whole team in one PDF.
-- **For every kind of user.** Employers and workers, individuals and families, lawyers (court filings with the OAM card number), companies (articles of association, resolutions, share transfers) and public bodies (ofícios, informações, despachos, circulares with the "República de Moçambique" header and emblem).
+- **For every kind of user.** Users choose their areas — business, personal, law, health, public administration, community authorities, education, associations and churches, construction and property — and see those documents first; search always covers everything, with other areas listed separately. Profiles carry what each area needs: professional order and number (OAM, Ordem dos Médicos, OrdEM…), licences and permits, the "República de Moçambique" header and emblem for public bodies.
+- **Every paper size.** A4 portrait and landscape, A5, A6, DL envelopes and 85 × 55 mm cards; small formats print several to an A4 sheet with cutting marks. Short documents are fitted to one page automatically.
 - **Document families.** Letters, contracts, declarations, court filings, official correspondence, minutes, tables and receipts each follow one page convention (see `docs/TEMPLATES.md`).
 - **Official documents print plain.** Anything filed with a court, notary, registry or public body carries no app branding or decoration; other documents carry a small "Documentos MZ" line and a document ID, also stored in the PDF metadata.
 - **Customisable.** Six letterhead layouts, image sizes for logo, signature and stamp, text size and spacing, background text (CÓPIA, CONFIDENCIAL…), footer note and tagline.

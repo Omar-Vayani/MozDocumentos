@@ -322,10 +322,13 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       return (
         <Fragment key={key}>
           {block.items.map((item, i) => {
-            // The heading needs room for a line of its text below it (the text's own
-            // orphan control then keeps two), so it is never left alone at the foot
-            // of a page. A larger presence moves whole clauses and leaves gaps.
-            const ahead = theme.bodySize * theme.lineHeight * 1.2;
+            // The heading needs room below it for the start of its text: with orphan
+            // and widow control a paragraph of up to three lines cannot break, so it
+            // needs all of them; a longer one needs two. Never more, or whole
+            // clauses move and leave gaps.
+            const first = (item.text ?? item.items?.[0] ?? '').split('\n')[0];
+            const n = textLines(theme, first, 1);
+            const ahead = theme.bodySize * theme.lineHeight * (n <= 3 ? n : 2) + 2;
             const heading =
               block.style === 'numeric' ? (
                 <Text style={{ ...para(env), fontWeight: 700, marginBottom: 2, color: theme.heading }}>{clauseHeading('numeric', i + (block.start ?? 1) - 1, item)}</Text>

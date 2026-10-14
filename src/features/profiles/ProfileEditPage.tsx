@@ -318,7 +318,19 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
           </Select>
         )}
       </FieldWrap>
-      {!publicBody ? (
+      {company && d.sector === 'associacoes' ? (
+        <Text
+          className="sm:col-span-2"
+          label={tx('Reconhecimento e registo (opcional)', 'Recognition and registration (optional)')}
+          value={d.licenca}
+          onChange={(v) => set({ licenca: v })}
+          hint={tx(
+            'Aparece no cabeçalho. Ex.: Reconhecida pelo Despacho do Ministro da Justiça de 12/03/2019, BR III Série n.º 54',
+            'Printed in the letterhead. E.g. the recognition order and Official Gazette reference.',
+          )}
+        />
+      ) : null}
+      {!publicBody && !(company && d.sector === 'associacoes') ? (
         <>
           <FieldWrap label={tx('Ordem profissional (opcional)', 'Professional order (optional)')} hint={tx('Aparece por baixo da assinatura, com o número.', 'Printed under the signature, with the number.')}>
             {({ id, describedBy }) => (
@@ -344,7 +356,13 @@ function ProfileForm({ initial, isNew }: { initial: Profile; isNew: boolean }) {
           <Text label={tx('N.º de inscrição / carteira profissional', 'Registration / card number')} value={d.ordemNumero ?? d.oamCarteira} onChange={(v) => set({ ordemNumero: v })} />
           {company ? (
             <Text
-              label={tx('Licença ou alvará do estabelecimento (opcional)', 'Establishment licence (optional)')}
+              label={
+                d.sector === 'construcao'
+                  ? tx('Alvará (opcional)', 'Contractor permit (optional)')
+                  : d.sector === 'educacao'
+                    ? tx('Autorização de funcionamento (opcional)', 'Operating licence (optional)')
+                    : tx('Licença ou alvará do estabelecimento (opcional)', 'Establishment licence (optional)')
+              }
               value={d.licenca}
               onChange={(v) => set({ licenca: v })}
               hint={tx('Ex.: licença da clínica, alvará de empreiteiro, autorização da escola.', 'E.g. clinic licence, contractor permit, school authorisation.')}
