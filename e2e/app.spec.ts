@@ -32,8 +32,8 @@ test('search finds documents in Portuguese, without accents and in English', asy
   ]) {
     await search.fill(q);
     const results = page.locator('#catalog-results li h3');
-    const top = (await results.allTextContents()).slice(0, 4);
-    expect(top, q).toContain(title);
+    // Results update as the user types: wait for them to settle.
+    await expect.poll(async () => (await results.allTextContents()).slice(0, 4), { message: q }).toContain(title);
   }
 });
 
