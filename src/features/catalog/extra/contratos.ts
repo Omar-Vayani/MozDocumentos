@@ -49,7 +49,7 @@ export const CATALOG_CONTRATOS: TemplateMeta[] = [
       pt: 'Para emprestar dinheiro a uma pessoa ou empresa, com ou sem juros, plano de reembolso e fiador. A assinatura do mutuário é reconhecida no notário.',
       en: 'To lend money to a person or company, with or without interest, a repayment plan and a guarantor. The borrower’s signature is certified by a notary.',
     },
-    tags: ['mutuo', 'emprestimo', 'emprestar dinheiro', 'juros', 'prestacoes', 'fiador', 'divida', 'loan', 'loan agreement', 'lend money', 'iou'],
+    tags: ['mutuo', 'emprestimo', 'emprestar dinheiro', 'juros', 'prestacoes', 'fiador', 'divida', 'loan', 'loan agreement', 'lend money', 'iou', 'empréstimo entre particulares', 'emprestimo entre particulares', 'empréstimo com juros'],
     legalRefs: ['mutuoForma', 'mutuoJuros', 'codigoCivilPrestacoes', 'creditoLicenca', 'reconhecimentoNotarial'],
     related: ['declaracao-de-divida', 'recibo-de-pagamento', 'declaracao-de-quitacao'],
     lastReviewed: REVIEWED,

@@ -115,7 +115,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'declaracao',
-        text: `${identificacao(v, 'fiador')}, declara que se constitui ${fiador}${v.principalPagador ? ` e ${pagador}` : ''} de ${identCurta(v, 'devedor')}, na qualidade de ${D.n}, por todas as obrigações por ${D.f || isEmpresa(v, 'devedor') ? 'esta' : 'este'} assumidas perante ${identificacao(v, 'credor')}, na qualidade de ${C.n.toLowerCase()}, no âmbito do ${contrato}.`,
+        text: `${identificacao(v, 'fiador')}, declara que se constitui ${fiador}${v.principalPagador ? ` e ${pagador}` : ''} de ${identCurta(v, 'devedor')}, na qualidade de ${D.n}, por todas as obrigações por ${D.f || isEmpresa(v, 'devedor') ? 'esta' : 'este'} assumidas perante ${identCurta(v, 'credor')}, na qualidade de ${C.n.toLowerCase()}, no âmbito do ${contrato}.`,
         en: 'The guarantor named above declares that they guarantee all obligations of the debtor towards the creditor under the contract described.',
       },
       {
@@ -141,16 +141,14 @@ export default defineTemplate({
       keepWithNext: true,
     });
 
+    const conj = conjugeColumn(v, 'fiador');
+    if (conj) blocks.push({ type: 'paragraph', id: 'consentimento', text: consentimentoTexto(v, 'fiador', F) ?? '', en: 'The guarantor’s spouse consents.', keepWithNext: true });
     blocks.push({
       type: 'signatures',
       keepWithNext: true,
       placeDate: `${ctx.place}, ${dateLong(v.data)}`,
-      columns: [{ role: F.O, name: partyName(v, 'fiador') || undefined, image: ctx.profile?.kind === 'pessoa' ? 'signature' : undefined }],
+      columns: [{ role: F.O, name: partyName(v, 'fiador') || undefined, image: ctx.profile?.kind === 'pessoa' ? 'signature' : undefined }, ...(conj ? [conj] : [])],
     });
-    const conj = conjugeColumn(v, 'fiador');
-    if (conj) {
-      blocks.push({ type: 'paragraph', id: 'consentimento', text: consentimentoTexto(v, 'fiador', F) ?? '', en: 'The guarantor’s spouse consents.', keepWithNext: true }, { type: 'signatures', columns: [conj], keepWithNext: true });
-    }
     blocks.push(
       { type: 'paragraph', id: 'aceitacao', text: `${C.O} aceita a presente fiança.`, en: 'The creditor accepts this guarantee.', keepWithNext: true },
       {
@@ -160,6 +158,7 @@ export default defineTemplate({
             ? { role: C.O, name: str(v.credorRepNome) || undefined, detail: [str(v.credorRepCargo), str(v.credorEmpresaNome)].filter(Boolean).join(', ') || undefined, image: ctx.profile?.kind === 'empresa' ? 'both' : undefined }
             : { role: C.O, name: partyName(v, 'credor') || undefined },
         ],
+        keepWithNext: Boolean(v.reconhecimento),
       },
     );
     if (v.reconhecimento) {

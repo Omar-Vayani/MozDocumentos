@@ -196,7 +196,7 @@ export default defineTemplate({
 
     return contratoBlocks(ctx, {
       title: 'Contrato de cessão de exploração',
-      subtitle: `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} "${nome}"`,
+      subtitle: nome !== BLANK ? nome : undefined,
       parties: [
         { p: 'cedente', role: A, en: 'Owner' },
         { p: 'cessionario', role: B, en: 'Operator' },

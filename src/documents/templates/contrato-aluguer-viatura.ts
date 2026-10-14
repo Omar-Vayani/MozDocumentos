@@ -3,7 +3,7 @@
 // price, kilometres, fuel, insurance excess and deposit, permitted use, fines,
 // accidents and late return, with a check-out / check-in inspection sheet.
 
-import { diffDays, roundMoney } from '@/lib/format';
+import { diffDays, formatNumber, roundMoney } from '@/lib/format';
 import { defineTemplate, type Block, type ClauseItem, type Values, type Warning } from '../model';
 import { BLANK, cite, dateLong, formatMoney, l, money } from './_shared';
 import {
@@ -126,7 +126,7 @@ export default defineTemplate({
       id: 'objecto',
       heading: 'Objecto',
       text: numerar([
-        `Pelo presente contrato, ${L.o} dá de aluguer ${T.ao}, sem condutor, a viatura ${viatura}, em bom estado de funcionamento, com os documentos e o equipamento descritos no auto de entrega anexo${Number(v.kmSaida) > 0 ? `, com ${Number(v.kmSaida)} km no conta-quilómetros` : ''}.`,
+        `Pelo presente contrato, ${L.o} dá de aluguer ${T.ao}, sem condutor, a viatura ${viatura}, em bom estado de funcionamento, com os documentos e o equipamento descritos no auto de entrega anexo${Number(v.kmSaida) > 0 ? `, com ${formatNumber(Number(v.kmSaida), 0)} km no conta-quilómetros` : ''}.`,
         `A viatura só pode ser conduzida ${T.pelo}${conds.length ? ` e pelos seguintes condutores adicionais: ${conds.map((x) => `${x.nome}${x.carta ? ` (carta n.º ${x.carta})` : ''}`).join('; ')}` : ''}, todos com carta de condução válida.`,
       ]),
       en: `Self-drive hire of ${v.marca || '—'} (${v.matricula || '—'}), in good order with the papers and equipment listed in the annex; only the hirer${conds.length ? ' and the named additional drivers' : ''} may drive.`,
@@ -209,7 +209,7 @@ export default defineTemplate({
           { label: 'Na entrega', width: 1.6 },
           { label: 'Na devolução', width: 1.6 },
         ],
-        rows: ITENS_VISTORIA.map((i) => [i, i === 'Quilometragem' && Number(v.kmSaida) > 0 ? `${Number(v.kmSaida)} km` : ' ', ' ']),
+        rows: ITENS_VISTORIA.map((i) => [i, i === 'Quilometragem' && Number(v.kmSaida) > 0 ? `${formatNumber(Number(v.kmSaida), 0)} km` : ' ', ' ']),
       },
       { type: 'box', label: 'Danos existentes à saída (riscos, amolgadelas, vidros) — assinale no esquema ou descreva', space: 45 },
       { type: 'box', label: 'Danos verificados na devolução', lines: 3 },
@@ -242,7 +242,7 @@ export default defineTemplate({
       beforeClauses: [],
     }).map((blk) =>
       blk.type === 'paragraph' && blk.id === 'parte_locatario'
-        ? { ...blk, text: blk.text.replace(/, adiante (designad[oa]) por/, `, titular da carta de condução n.º ${str(v.locatarioCarta) || BLANK}${v.locatarioCartaValidade ? `, válida até ${dateLong(v.locatarioCartaValidade)}` : ''}${str(v.locatarioTelefone) ? `, telefone ${str(v.locatarioTelefone)}` : ''}, adiante $1 por`) }
+        ? { ...blk, text: (str(v.locatarioNuit) ? blk.text : blk.text.replace(/, titular do NUIT _+/, '')).replace(/, adiante (designad[oa]) por/, `, titular da carta de condução n.º ${str(v.locatarioCarta) || BLANK}${v.locatarioCartaValidade ? `, válida até ${dateLong(v.locatarioCartaValidade)}` : ''}${str(v.locatarioTelefone) ? `, telefone ${str(v.locatarioTelefone)}` : ''}, adiante $1 por`) }
         : blk,
     );
   },

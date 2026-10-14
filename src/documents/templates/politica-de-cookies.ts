@@ -103,7 +103,7 @@ export default defineTemplate({
           rows: linhas.map((r: Linha) => [r.nome || BLANK, r.fornecedor || 'Próprio', r.finalidade || BLANK, r.duracao || BLANK]),
         }]
       : [];
-    const blocks: Block[] = [...politicaHeader(ctx, 'Política de cookies', v.versaoData, site !== BLANK ? site : undefined), { type: 'paragraph', id: 'intro', text: `Esta política explica como o site ${site} utiliza cookies e tecnologias semelhantes, e como pode escolher quais aceita.`, en: 'This policy explains how the site uses cookies and how you can choose which to accept.' }, { type: 'numberedClauses', style: 'numeric', items: items.slice(0, 2) }, ...quadroCookies, { type: 'numberedClauses', style: 'numeric', items: items.slice(2), start: 3 }];
+    const blocks: Block[] = [...politicaHeader(ctx, 'Política de cookies', v.versaoData, site !== BLANK ? site : undefined), { type: 'numberedClauses', style: 'numeric', items: items.slice(0, 2) }, ...quadroCookies, { type: 'numberedClauses', style: 'numeric', items: items.slice(2), start: 3 }];
     return blocks;
   },
 });

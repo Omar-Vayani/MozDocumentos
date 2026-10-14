@@ -65,6 +65,7 @@ export default defineTemplate({
     },
 
     { name: 'menorNome', type: 'text', section: 'menorSec', label: l('Nome do menor', 'Minor’s name'), showIf: menor },
+    { name: 'menorGenero', type: 'radio', section: 'menorSec', width: 'half', label: l('Sexo', 'Sex'), options: [{ value: 'M', label: l('Menino', 'Boy') }, { value: 'F', label: l('Menina', 'Girl') }], default: 'M', showIf: menor },
     { name: 'menorNascimento', type: 'date', section: 'menorSec', width: 'half', label: l('Data de nascimento', 'Date of birth'), showIf: menor },
     { name: 'menorAssina', type: 'toggle', section: 'menorSec', default: false, label: l('O menor também assina (concordância)', 'The minor also signs (agreement)'), help: l('Recomendado para crianças mais velhas e adolescentes: a opinião da criança conta de acordo com a idade e a maturidade.', 'Recommended for older children and teenagers: the child’s view counts according to age and maturity.'), showIf: menor },
 
@@ -108,14 +109,16 @@ export default defineTemplate({
     const v = ctx.values;
     const f = isF(v.genero);
     const m = menor(v);
+    const mf = isF(v.menorGenero);
+    const doMenor = mf ? 'da menor' : 'do menor';
     const doc = `${f ? 'portadora' : 'portador'} do ${v.docTipo === 'Passaporte' ? 'Passaporte' : v.docTipo === 'DIRE' ? 'DIRE' : 'Bilhete de Identidade'} n.º ${str(v.docNumero) || BLANK}`;
     const parent = v.parentesco === 'pai' ? 'pai' : v.parentesco === 'mae' ? 'mãe' : f ? 'tutora' : 'tutor';
     const quem = [`**${str(v.nome) || BLANK}**`, doc, `residente em ${semPonto(v.morada) || BLANK}`, str(v.contacto) ? `telefone ${str(v.contacto)}` : ''].filter(Boolean).join(', ');
-    const menorTxt = m ? `, na qualidade de ${parent} e ${v.parentesco === 'tutor' ? 'representante legal' : 'em exercício do poder parental'} do menor **${str(v.menorNome) || BLANK}**${v.menorNascimento ? `, nascido em ${dateLong(v.menorNascimento)}` : ''}` : '';
+    const menorTxt = m ? `, na qualidade de ${parent} e ${v.parentesco === 'tutor' ? 'representante legal' : 'em exercício do poder parental'} ${doMenor} **${str(v.menorNome) || BLANK}**${v.menorNascimento ? `, ${mf ? 'nascida' : 'nascido'} em ${dateLong(v.menorNascimento)}` : ''}` : '';
     const benef = str(v.beneficiarioNome) && str(v.beneficiarioNome) !== (ctx.profile ? (ctx.profile.kind === 'empresa' ? ctx.profile.firma : ctx.profile.nome) : '') ? `**${str(v.beneficiarioNome)}**` : entidadeTexto(ctx.profile, str(v.beneficiarioNome));
     const oque = [v.usaImagem ? 'a imagem' : '', v.usaVoz ? 'a voz' : '', v.usaNome ? 'o nome e o testemunho' : ''].filter(Boolean);
     const oqueTxt = oque.length ? oque.join(oque.length > 2 ? ', ' : ' e ').replace(/, ([^,]*)$/, ' e $1') : 'a imagem';
-    const dele = m ? 'do menor' : f ? 'da signatária' : 'do signatário';
+    const dele = m ? doMenor : f ? 'da signatária' : 'do signatário';
     const meios = MEIOS.filter((x) => v[x.name]).map((x) => x.texto);
     const meiosTxt = meios.length ? meios.join('; ') : BLANK;
     const prazoTxt = v.prazoTipo === 'indeterminado' ? 'por tempo indeterminado' : `até ${dateLong(v.prazoFim)}`;
@@ -141,7 +144,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'condicoes',
-        text: `${v.edicao ? 'As imagens e as gravações podem ser editadas, cortadas e montadas, desde que não seja alterado o seu sentido. ' : 'As imagens e as gravações não podem ser alteradas, salvo correcções técnicas. '}É proibida qualquer utilização que ofenda a honra, a reputação ou o decoro ${dele}, que ${m ? 'o exponha a risco' : 'a exponha a ridículo'}, ou com fim diferente do indicado.${m ? ' Não é divulgada a morada nem a escola do menor.' : ''}`,
+        text: `${v.edicao ? 'As imagens e as gravações podem ser editadas, cortadas e montadas, desde que não seja alterado o seu sentido. ' : 'As imagens e as gravações não podem ser alteradas, salvo correcções técnicas. '}É proibida qualquer utilização que ofenda a honra, a reputação ou o decoro ${dele}, que ${m ? `${mf ? 'a' : 'o'} exponha a risco` : 'a exponha a ridículo'}, ou com fim diferente do indicado.${m ? ` Não é divulgada a morada nem a escola ${doMenor}.` : ''}`,
         en: `${v.edicao ? 'Editing and cropping allowed without changing meaning. ' : 'No alterations except technical corrections. '}No use that harms honour, reputation or decency, or for another purpose.${m ? ' The minor’s address and school are not disclosed.' : ''}`,
       },
       {

@@ -7,7 +7,7 @@ import { BLANK, cite, dateLong, formatMoney, l, money, splitLines } from './_sha
 import {
   arbitragemField, assinatura, clausulasFinais, documentoFields, fecho, foroField, int, numerar, papel, partesBlocks, partyName, partyWarnings, quantos, testemunhasField, valorTexto,
 } from './_contratos';
-import { fechoJunto, itensLista, partyFieldsWhen, semPonto, str } from './_familia';
+import { fechoJunto, itensLista, partyFieldsWhen, semPonto } from './_familia';
 
 export default defineTemplate({
   id: 'contrato-promessa-arrendamento',

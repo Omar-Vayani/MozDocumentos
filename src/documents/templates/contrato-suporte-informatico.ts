@@ -146,7 +146,8 @@ export default defineTemplate({
       ]),
       en: 'Support hours and channels as stated; each request gets a ticket number. Times are counted in support hours from logging.',
     });
-    const quadro = NIVEIS.map((n) => [n.nome, n.def, prazo(v[`sla_${n.k}_resp`], 'hora'), prazo(v[`sla_${n.k}_res`], 'hora')]);
+    const hh = (x: unknown) => (Number(x) > 0 ? `${String(x).replace('.', ',')} h` : BLANK);
+    const quadro = NIVEIS.map((n) => [n.nome, n.def, hh(v[`sla_${n.k}_resp`]), hh(v[`sla_${n.k}_res`])]);
     cl.push({
       id: 'sla',
       heading: 'Níveis de serviço',
@@ -223,9 +224,9 @@ export default defineTemplate({
         type: 'table',
         columns: [
           { label: 'Prioridade', width: 1 },
-          { label: 'Definição', width: 3.4 },
-          { label: 'Resposta', width: 1.2 },
-          { label: 'Resolução', width: 1.2 },
+          { label: 'Definição', width: 3.6 },
+          { label: 'Resposta', width: 1, align: 'right' },
+          { label: 'Resolução', width: 1, align: 'right' },
         ],
         rows: quadro,
         note: `Tempos máximos em horas do horário de suporte (${semPonto(v.horario) || BLANK}).${temDisp ? ` Disponibilidade mensal garantida dos sistemas críticos: ${pctTxt(v.disponibilidade)}.` : ''}`,
