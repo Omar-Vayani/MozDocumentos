@@ -6,7 +6,7 @@
 
 import { addWorkingDays, diffDays } from '@/lib/format';
 import { defineTemplate, type Block, type Warning } from '../model';
-import { BLANK, cite, dateField, dateLong, l, lineItems, localField } from './_shared';
+import { BLANK, cite, dateField, dateLong, l, localField } from './_shared';
 import { linhas, nosTermos, ponto, str } from './_rh-politicas';
 
 type P = { diasUteis: number; diasEssenciais: number };

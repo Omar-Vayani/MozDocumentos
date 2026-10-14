@@ -240,7 +240,7 @@ export const CATALOG_PESSOAL_RH: TemplateMeta[] = [
       pt: 'Para fixar e afixar o horário de cada sector, com intervalos e descanso, para visto da administração do trabalho.',
       en: 'To set and post each department’s hours, breaks and rest days, for stamping by the labour administration.',
     },
-    tags: ['horário de trabalho', 'mapa de horário', 'horário', 'turnos', 'intervalo', 'afixação', 'work schedule', 'shifts', 'working hours'],
+    tags: ['horário de trabalho', 'mapa de horário', 'horário', 'turnos', 'intervalo', 'afixação', 'work schedule', 'shifts', 'working hours', 'alteração de horário', 'alteracao de horario', 'aviso de mudança de horário'],
     legalRefs: ['horarioTrabalho', 'horarioComunicacao', 'periodoNormalTrabalho', 'intervaloDescanso', 'descansoSemanal'],
     related: ['mapa-de-ferias', 'comunicado-interno'],
     lastReviewed: REVIEWED,

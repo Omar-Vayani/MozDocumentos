@@ -435,7 +435,8 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
               wrap={!canKeep(theme, Math.max(...r.map((c, ci) => textLines(theme, c, widths[ci] / total, theme.bodySize - 1))) * (theme.bodySize - 1) * 1.4 + 8)}
               // The last row goes with the totals: a totals row never starts a page alone.
               minPresenceAhead={ri === block.rows.length - 1 && block.totals?.length ? block.totals.length * (theme.bodySize + 9) : undefined}
-              style={{ flexDirection: 'row', borderBottomWidth: 0.4, borderBottomColor: '#d6dad7', backgroundColor: ri % 2 === 1 ? theme.wash : undefined }}
+              // Rows left blank to be filled in by hand keep a writable height.
+              style={{ flexDirection: 'row', minHeight: (theme.bodySize - 1) * 1.4 + 9, borderBottomWidth: 0.4, borderBottomColor: '#d6dad7', backgroundColor: ri % 2 === 1 ? theme.wash : undefined }}
             >
               {r.map((c, i) => cell(c, i))}
             </View>
@@ -985,7 +986,7 @@ export function estimateHeight(b: Block, theme: Theme): number {
     case 'articulado':
       return b.sections.reduce((h, sec) => h + (sec.heading ? 24 : 0) + sec.items.reduce((x, it) => x + lines(it, 0.88) * lineH + theme.gap, 0), 0);
     case 'box':
-      return 24 + lines(b.text, b.width === 'half' ? 0.45 : 0.95) * lineH + (b.lines ?? 0) * 15.4 + (b.space ?? 0) * MM_PT;
+      return 24 + lines(b.text, b.width === 'half' ? 0.45 : 0.95) * lineH + (b.lines ?? 0) * 15.4 + (b.space ?? 0) * MM_PT + (b.cut ? 24 : 0);
     case 'tags':
       return 20;
     case 'display':

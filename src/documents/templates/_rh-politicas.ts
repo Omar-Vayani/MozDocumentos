@@ -189,7 +189,7 @@ export function policyBlocks(
   blocks.push({ type: 'numberedClauses', style: 'artigo', items: o.artigos });
   blocks.push({ type: 'numberedClauses', style: 'artigo', items: [o.vigor], start: o.artigos.length + 1, keepWithNext: true });
   blocks.push({ type: 'signatures', placeDate: placeDate(ctx, ctx.values.dataAprovacao), columns: [aprovadorSignature(ctx, o.signatario)] });
-  if (ctx.values.declaracaoRecepcao !== false) blocks.push({ type: 'spacer', size: 'small' }, recepcaoBox(o.recepcao));
+  if (ctx.values.declaracaoRecepcao !== false) blocks.push(recepcaoBox(o.recepcao));
   return blocks;
 }
 
