@@ -8,6 +8,9 @@ import { BLANK, dateLong, formatMoney, l, money } from './_shared';
 import { lines, semPonto, str } from './_contratos';
 import { issuer, linhas } from './_digital';
 
+/** A short blank for narrow table cells. */
+const CELL = '______';
+
 const REGIMES: Record<string, string> = {
   so: 'Só alojamento',
   pa: 'Alojamento e pequeno-almoço',
@@ -141,8 +144,8 @@ export default defineTemplate({
           { label: 'Total (MT)', width: 1.4, align: 'right' },
         ],
         rows: c.linhas.length
-          ? c.linhas.map((q: Quarto & { total: number | null }) => [q.tipo || BLANK, String(q.quantidade || 1), REGIMES[q.regime] ?? BLANK, q.preco != null ? formatMoney(q.preco, false) : BLANK, q.total != null ? formatMoney(q.total, false) : BLANK])
-          : [[BLANK, '', '', '', '']],
+          ? c.linhas.map((q: Quarto & { total: number | null }) => [q.tipo || CELL, String(q.quantidade || 1), REGIMES[q.regime] ?? CELL, q.preco != null ? formatMoney(q.preco, false) : CELL, q.total != null ? formatMoney(q.total, false) : CELL])
+          : [[CELL, '', '', '', '']],
         totals: [
           ...(money(v.valorExtras) != null ? [['Extras', '', '', '', formatMoney(money(v.valorExtras), false)]] : []),
           ['Total da estadia', '', '', '', formatMoney(c.total, false)],

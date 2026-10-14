@@ -385,7 +385,7 @@ export const CATALOG_DIGITAL: TemplateMeta[] = [
       'viatura sem condutor', 'caução', 'franquia', 'vistoria', 'check-out', 'car rental agreement', 'vehicle hire', 'car hire',
     ],
     legalRefs: ['turAluguerViatura', 'codigoCivilMora'],
-    related: ['autorizacao-uso-viatura', 'contrato-de-comodato', 'contrato-transporte-passageiros'],
+    related: ['autorizacao-uso-viatura', 'contrato-de-comodato', 'contrato-transporte-passageiros', 'contrato-de-aluguer'],
     lastReviewed: REVIEWED,
     popularity: 4,
     sectors: ['particular'],

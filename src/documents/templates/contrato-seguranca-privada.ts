@@ -14,6 +14,9 @@ import {
 } from './_contratos';
 import { clCessacao, clConfidencialidade, clForcaMaior, contratoBlocks, formaPagamentoFields, ivaField, ivaTexto, modoPagamento, prazo, titularDe } from './_digital';
 
+/** A short blank for narrow table cells. */
+const CELL = '______';
+
 type Posto = { local: string; horario: string; vigilantes: number | null; armado: string; preco: number | null };
 const postos = (v: Values): Posto[] =>
   lines(v.postos)
@@ -194,8 +197,8 @@ export default defineTemplate({
               { label: 'Armado', width: 0.8 },
               { label: 'Preço mensal (MT)', width: 1.4, align: 'right' },
             ],
-            rows: ps.map((p) => [p.local, p.horario || BLANK, p.vigilantes != null ? String(p.vigilantes) : BLANK, p.armado === 'sim' ? 'Sim' : 'Não', p.preco != null ? formatMoney(p.preco, false) : BLANK]),
-            totals: [['Total mensal', '', '', '', c.total != null ? formatMoney(c.total, false) : BLANK]],
+            rows: ps.map((p) => [p.local, p.horario || CELL, p.vigilantes != null ? String(p.vigilantes) : CELL, p.armado === 'sim' ? 'Sim' : 'Não', p.preco != null ? formatMoney(p.preco, false) : CELL]),
+            totals: [['Total mensal', '', '', '', c.total != null ? formatMoney(c.total, false) : CELL]],
           }
         : { type: 'box', label: 'Posto, horário, vigilantes, armado e preço', lines: 5 },
     ];

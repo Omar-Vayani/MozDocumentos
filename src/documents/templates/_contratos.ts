@@ -424,6 +424,9 @@ export function fecho(
     blocks.push({ type: 'signatures', columns: extra.slice(0, 3) });
   }
   if (v.testemunhas) {
+    // The witnesses sign on the same page as the parties.
+    const prev = blocks[blocks.length - 1];
+    if (prev.type === 'signatures') prev.keepWithNext = true;
     blocks.push({
       type: 'signatures',
       columns: [

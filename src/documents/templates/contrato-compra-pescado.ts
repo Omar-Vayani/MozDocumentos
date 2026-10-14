@@ -12,6 +12,9 @@ import {
 } from './_contratos';
 import { clForcaMaior, contratoBlocks, formaPagamentoFields, modoPagamento, prazo, titularDe } from './_digital';
 
+/** A short blank for narrow table cells. */
+const CELL = '______';
+
 type Esp = { especie: string; apresentacao: string; calibre: string; preco: number | null; quantidade: string };
 const especies = (v: Values): Esp[] =>
   lines(v.especies)
@@ -111,7 +114,7 @@ export default defineTemplate({
         { label: 'Preço/kg (MT)', width: 1.2, align: 'right' },
         { label: 'Qtd. estimada', width: 1.2 },
       ],
-      rows: es.length ? es.map((e) => [e.especie, e.apresentacao || BLANK, e.calibre || '—', e.preco != null ? formatMoney(e.preco, false) : BLANK, e.quantidade || '—']) : [[BLANK, '', '', '', '']],
+      rows: es.length ? es.map((e) => [e.especie, e.apresentacao || CELL, e.calibre || '—', e.preco != null ? formatMoney(e.preco, false) : CELL, e.quantidade || '—']) : [[CELL, '', '', '', '']],
     };
     const cl2: ClauseItem[] = [];
     if (v.revisaoPreco) {

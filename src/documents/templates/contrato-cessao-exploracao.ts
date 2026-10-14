@@ -12,6 +12,9 @@ import {
 } from './_contratos';
 import { clForcaMaior, contratoBlocks, formaPagamentoFields, ivaField, ivaTexto, modoPagamento, prazo } from './_digital';
 
+/** A short blank for narrow table cells. */
+const CELL = '______';
+
 type Item = { item: string; quantidade: string; estado: string };
 const inventario = (v: Values): Item[] =>
   lines(v.inventario)
@@ -188,7 +191,7 @@ export default defineTemplate({
               { label: 'Quantidade', width: 1, align: 'right' },
               { label: 'Estado', width: 1.6 },
             ],
-            rows: inv.map((x, i) => [String(i + 1), x.item, x.quantidade || BLANK, x.estado || BLANK]),
+            rows: inv.map((x, i) => [String(i + 1), x.item, x.quantidade || CELL, x.estado || CELL]),
           }
         : { type: 'box', label: 'Equipamento, quantidade e estado', lines: 12 },
       { type: 'signatures', columns: [assinatura(ctx, 'cedente', A), assinatura(ctx, 'cessionario', B)] },

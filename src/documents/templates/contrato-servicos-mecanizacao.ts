@@ -12,6 +12,9 @@ import {
 } from './_contratos';
 import { contratoBlocks, formaPagamentoFields, modoPagamento } from './_digital';
 
+/** A short blank for narrow table cells. */
+const CELL = '______';
+
 type Op = { operacao: string; quantidade: number | null; unidade: string; preco: number | null };
 const ops = (v: Values): Op[] =>
   lines(v.operacoes)
@@ -107,8 +110,8 @@ export default defineTemplate({
         { label: 'Preço (MT)', width: 1.3, align: 'right' },
         { label: 'Total (MT)', width: 1.4, align: 'right' },
       ],
-      rows: c.ops.length ? c.ops.map((o: Op & { total: number | null }) => [o.operacao, o.quantidade != null ? String(o.quantidade).replace('.', ',') : BLANK, U[o.unidade] ?? o.unidade, o.preco != null ? formatMoney(o.preco, false) : BLANK, o.total != null ? formatMoney(o.total, false) : BLANK]) : [[BLANK, '', '', '', '']],
-      totals: [['Total estimado', '', '', '', c.total != null ? formatMoney(c.total, false) : BLANK]],
+      rows: c.ops.length ? c.ops.map((o: Op & { total: number | null }) => [o.operacao, o.quantidade != null ? String(o.quantidade).replace('.', ',') : CELL, U[o.unidade] ?? o.unidade, o.preco != null ? formatMoney(o.preco, false) : CELL, o.total != null ? formatMoney(o.total, false) : CELL]) : [[CELL, '', '', '', '']],
+      totals: [['Total estimado', '', '', '', c.total != null ? formatMoney(c.total, false) : CELL]],
     };
     const cl2: ClauseItem[] = [];
     cl2.push({

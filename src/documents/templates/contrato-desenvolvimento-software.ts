@@ -6,7 +6,7 @@
 
 import { formatDateShort, roundMoney } from '@/lib/format';
 import { defineTemplate, type Block, type ClauseItem, type Values, type Warning } from '../model';
-import { BLANK, cite, dateLong, formatMoney, l, money } from './_shared';
+import { cite, dateLong, formatMoney, l, money } from './_shared';
 import {
   arbitragemField, assinatura, documentoFields, foroField, lines, numerar, papel, partyFields, partyName, partyWarnings, semPonto, str,
   testemunhasField, valorTexto,
@@ -15,6 +15,9 @@ import {
   clAutonomia, clCessacao, clConfidencialidade, clDadosPessoais, clForcaMaior, contratoBlocks, formaPagamentoFields, ivaField, ivaTexto,
   linhas, modoPagamento, prazo,
 } from './_digital';
+
+/** A short blank for narrow table cells. */
+const CELL = '______';
 
 const TIPOS: Record<string, { o: string; nome: string }> = {
   software: { o: 'um sistema informático (software) desenvolvido à medida', nome: 'software' },
@@ -333,8 +336,8 @@ export default defineTemplate({
               { label: 'Data', width: 1.4 },
               { label: 'Valor (MT)', width: 1.5, align: 'right' },
             ],
-            rows: fs.map((f, i) => [String(i + 1), f.fase || BLANK, f.entrega ? formatDateShort(f.entrega) : BLANK, f.valor != null ? formatMoney(f.valor, false) : BLANK]),
-            totals: [['', 'Total', '', c.total != null ? formatMoney(c.total, false) : BLANK]],
+            rows: fs.map((f, i) => [String(i + 1), f.fase || CELL, f.entrega ? formatDateShort(f.entrega) : CELL, f.valor != null ? formatMoney(f.valor, false) : CELL]),
+            totals: [['', 'Total', '', c.total != null ? formatMoney(c.total, false) : CELL]],
           },
         ]
       : [];

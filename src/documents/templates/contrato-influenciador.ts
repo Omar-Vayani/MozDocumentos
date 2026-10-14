@@ -11,6 +11,9 @@ import {
 } from './_contratos';
 import { clAutonomia, clCessacao, clConfidencialidade, clForcaMaior, contratoBlocks, formaPagamentoFields, ivaField, ivaTexto, modoPagamento, prazo } from './_digital';
 
+/** A short blank for narrow table cells. */
+const CELL = '______';
+
 type Ent = { plataforma: string; formato: string; quantidade: string; data: string };
 const entregaveis = (v: Values): Ent[] =>
   lines(v.entregaveis)
@@ -170,7 +173,7 @@ export default defineTemplate({
               { label: 'Quantidade', width: 1, align: 'right' },
               { label: 'Data limite', width: 1.2 },
             ],
-            rows: ents.map((e) => [e.plataforma || BLANK, e.formato || BLANK, e.quantidade || BLANK, e.data ? formatDateShort(e.data) : 'Durante a campanha']),
+            rows: ents.map((e) => [e.plataforma || CELL, e.formato || CELL, e.quantidade || CELL, e.data ? formatDateShort(e.data) : 'Durante a campanha']),
           },
         ]
       : [{ type: 'box', label: 'Plataforma, formato, quantidade e data', lines: 4 }];

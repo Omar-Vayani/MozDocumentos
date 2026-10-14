@@ -12,6 +12,9 @@ import {
 } from './_contratos';
 import { formaPagamentoFields, modoPagamento, prazo } from './_digital';
 
+/** A short blank for narrow table cells. */
+const CELL = '______';
+
 type Animal = { especie: string; quantidade: string; descricao: string; marca: string };
 const animais = (v: Values): Animal[] =>
   lines(v.animais)
@@ -178,7 +181,7 @@ export default defineTemplate({
             { label: 'Sexo, idade, cor', width: 2.4 },
             { label: 'Marca ou sinal', width: 1.8 },
           ],
-          rows: an.map((a) => [a.especie, a.quantidade || BLANK, a.descricao || ' ', a.marca || ' ']),
+          rows: an.map((a) => [a.especie, a.quantidade || CELL, a.descricao || ' ', a.marca || ' ']),
         }
       : { type: 'box', label: 'Animais entregues (espécie, número, sexo, idade, marca)', lines: 5 };
 
@@ -192,8 +195,9 @@ export default defineTemplate({
       { type: 'numberedClauses', style: 'clausula', items: cl.slice(0, 1) },
       quadro,
       { type: 'numberedClauses', style: 'clausula', items: cl.slice(1), start: 2 },
-      ...fecho(ctx, [assinatura(ctx, 'proprietario', D, true), assinatura(ctx, 'criador', C)]),
+      ...fecho(ctx, [assinatura(ctx, 'proprietario', D, true), assinatura(ctx, 'criador', C)]).map((b) => (b.type === 'signatures' ? { ...b, keepWithNext: true } : b)),
     ];
+    if (v.visto) blocks[blocks.length - 1] = { ...blocks[blocks.length - 1], keepWithNext: true } as Block;
     if (v.visto) blocks.push({ type: 'box', label: 'Visto da autoridade comunitária (nome, cargo, assinatura e carimbo)', lines: 2, dashed: true });
     return blocks;
   },

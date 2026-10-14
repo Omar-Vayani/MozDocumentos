@@ -631,7 +631,7 @@ export const CATALOG_FAMILIA: TemplateMeta[] = [
       'equipment rental',
     ],
     legalRefs: ['famAluguer'],
-    related: ['autorizacao-uso-viatura', 'contrato-de-comodato', 'contrato-de-deposito'],
+    related: ['autorizacao-uso-viatura', 'contrato-de-comodato', 'contrato-de-deposito', 'contrato-aluguer-viatura'],
     lastReviewed: REVIEWED,
     sectors: ['empresa', 'particular'],
   },

@@ -141,8 +141,9 @@ export default defineTemplate({
       ]),
       { type: 'paragraph', id: 'celebracao', text: 'É celebrado o presente contrato de parceria agrícola, que se rege pelas cláusulas seguintes:', en: 'This farming partnership agreement is made on the following terms:' },
       { type: 'numberedClauses', style: 'clausula', items: cl },
-      ...fecho(ctx, [assinatura(ctx, 'titular', T, true), assinatura(ctx, 'parceiro', P)]),
+      ...fecho(ctx, [assinatura(ctx, 'titular', T, true), assinatura(ctx, 'parceiro', P)]).map((b) => (b.type === 'signatures' ? { ...b, keepWithNext: true } : b)),
     ];
+    if (v.visto) blocks[blocks.length - 1] = { ...blocks[blocks.length - 1], keepWithNext: true } as Block;
     if (v.visto) blocks.push({ type: 'box', label: 'Visto da autoridade comunitária (nome, cargo, assinatura e carimbo)', lines: 2, dashed: true });
     return blocks;
   },

@@ -12,6 +12,9 @@ import {
 } from './_contratos';
 import { clForcaMaior, contratoBlocks, formaPagamentoFields, ivaField, ivaTexto, modoPagamento, prazo, titularDe } from './_digital';
 
+/** A short blank for narrow table cells. */
+const CELL = '______';
+
 type Viagem = { data: string; hora: string; origem: string; destino: string };
 const viagens = (v: Values): Viagem[] =>
   lines(v.itinerario)
@@ -172,7 +175,7 @@ export default defineTemplate({
               { label: 'Partida', width: 2.4 },
               { label: 'Destino', width: 2.4 },
             ],
-            rows: vs.map((x) => [x.data ? formatDateShort(x.data) : BLANK, x.hora || BLANK, x.origem || BLANK, x.destino || BLANK]),
+            rows: vs.map((x) => [x.data ? formatDateShort(x.data) : CELL, x.hora || CELL, x.origem || CELL, x.destino || CELL]),
           }
         : { type: 'box', label: 'Data, hora, partida e destino de cada viagem', lines: 5 },
     ];

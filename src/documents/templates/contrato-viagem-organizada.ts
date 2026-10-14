@@ -11,6 +11,9 @@ import {
 } from './_contratos';
 import { contratoBlocks, formaPagamentoFields, linhas, modoPagamento, titularDe } from './_digital';
 
+/** A short blank for narrow table cells. */
+const CELL = '______';
+
 type Dia = { dia: string; programa: string };
 const programa = (v: Values): Dia[] =>
   lines(v.programa)
@@ -180,7 +183,7 @@ export default defineTemplate({
       { type: 'spacer', size: 'medium' },
       { type: 'heading', text: 'Anexo — Programa', align: 'center' },
       prog.length
-        ? { type: 'table', columns: [{ label: 'Dia', width: 1.2 }, { label: 'Programa', width: 5.4 }], rows: prog.map((d) => [d.dia || BLANK, d.programa || BLANK]) }
+        ? { type: 'table', columns: [{ label: 'Dia', width: 1.2 }, { label: 'Programa', width: 5.4 }], rows: prog.map((d) => [d.dia || CELL, d.programa || CELL]) }
         : { type: 'box', label: 'Programa dia a dia', lines: 6 },
     ];
 
