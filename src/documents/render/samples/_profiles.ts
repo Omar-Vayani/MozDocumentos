@@ -120,6 +120,12 @@ export function doctor(): Issuer {
   return { profile: p, assets: {} };
 }
 
+/** Another organisation built on company(): drop the construction company's logo and stamp. */
+function signatureOnly(p: Profile, assets: Record<string, RenderAsset>): Issuer {
+  p.branding = { ...p.branding, logoAssetId: undefined, stampAssetId: undefined };
+  return { profile: p, assets: assets.sig ? { sig: assets.sig } : {} };
+}
+
 /** A private clinic. */
 export function clinic(): Issuer {
   const { profile: p, assets } = company();
@@ -133,7 +139,7 @@ export function clinic(): Issuer {
     email: 'geral@sorrisosaudavel.co.mz',
     website: '',
   });
-  return { profile: p, assets };
+  return signatureOnly(p, assets);
 }
 
 /** A private school. */
@@ -149,7 +155,7 @@ export function school(): Issuer {
     email: 'secretaria@horizonte.ac.mz',
     website: '',
   });
-  return { profile: p, assets };
+  return signatureOnly(p, assets);
 }
 
 /** An association (non-profit). */

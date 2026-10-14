@@ -50,6 +50,8 @@ export type Theme = {
   indent: number;
   /** No decoration: official documents (courts, registries, public bodies). */
   plain: boolean;
+  /** Black and grey only (funeral notices): no colour images. */
+  mono?: boolean;
   /** Tighter spacing and a smaller letterhead so receipts and tables fit one page. */
   compact: boolean;
   format: PageFormat;

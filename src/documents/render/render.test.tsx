@@ -64,7 +64,7 @@ describe('templates render without overflow', () => {
           const theme = makeTheme(fx.profile.branding, undefined, {}, { format, family: t.family });
           // Small formats print several per A4 sheet: check page bounds only.
           const imposed = format === 'A6' || format === 'cartao';
-          const numbered = !imposed && !['A6', 'DL', 'cartao'].includes(format) && !t.frame && t.verticalAlign !== 'center';
+          const numbered = !imposed && !['A6', 'DL', 'cartao'].includes(format) && !t.frame && !t.noBrand && t.verticalAlign !== 'center';
           const res = await renderPdf({
             templateId: id,
             values,
@@ -128,8 +128,8 @@ describe('templates render without overflow', () => {
               strict.push(`p${p} list label "${last[0].str.trim()}" left alone at the foot of the page`);
             }
           }
-          // "Página N de M" on every page.
-          for (let p = 1; numbered && p <= doc.numPages; p++) {
+          // "Página N de M" on every page of a document longer than one page.
+          for (let p = 1; numbered && doc.numPages > 1 && p <= doc.numPages; p++) {
             const text = (await (await doc.getPage(p)).getTextContent()).items.map((i) => ('str' in i ? i.str : '')).join(' ');
             expect(text, `${fx.name}/${mode} page number p${p}`).toContain(`Página ${p} de ${doc.numPages}`);
           }

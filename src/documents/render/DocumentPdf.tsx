@@ -41,7 +41,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
   const styledBranding = branding && tStyle?.font ? { ...branding, font: tStyle.font } : branding;
   const baseTheme = makeTheme(styledBranding, families, presentation, { family, plain: official || publicBody, format });
   // Black-and-grey documents (funeral notices) ignore the profile colour.
-  const theme = tStyle?.mono ? { ...baseTheme, accent: '#222222', accentTint: '#ececec', heading: '#111111', wash: '#f3f3f3' } : baseTheme;
+  const theme = tStyle?.mono ? { ...baseTheme, mono: true, accent: '#222222', accentTint: '#ececec', heading: '#111111', wash: '#f3f3f3' } : baseTheme;
   const PW = theme.page.width;
   const PH = theme.page.height;
   const isCompany = profile?.kind === 'empresa';
@@ -67,6 +67,8 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
     signature: presentation.showSignature === false ? undefined : asset(branding?.signatureAssetId),
     stamp: presentation.showStamp === false ? undefined : asset(branding?.stampAssetId),
     logo: asset(branding?.logoAssetId),
+    centred: Boolean(frame) || template.verticalAlign === 'center',
+    publicBody,
   };
 
   // Footer: fixed on every page; its height is reserved in the bottom padding.
@@ -74,7 +76,8 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
   const footerImg = showLetterhead && !official && !small ? asset(branding?.footerAssetId) : undefined;
   const footerImgH = footerImg ? Math.min((PW * footerImg.height) / Math.max(1, footerImg.width), 30 * MM) : 0;
   // Certificates and other framed or centred single pages carry no page numbers.
-  const pageNumbers = !pageOnly && !small && !imposed && !frame && template.verticalAlign !== 'center' && (branding?.pageNumbers ?? true);
+  // Only on documents of more than one page (see the render below); never on personal designed pieces.
+  const pageNumbers = !pageOnly && !small && !imposed && !frame && !template.noBrand && template.verticalAlign !== 'center' && (branding?.pageNumbers ?? true);
   const lineCount = fLines.reduce((n, l) => n + Math.min(2, estimateLines(l, theme.contentWidth - (pageNumbers ? 95 : 5))), 0);
   const footerTextH = lineCount * 10 + (pageNumbers || lineCount ? 10 : 0);
   const footerBottom = footerImgH + (small ? 3 : 8) * MM;
@@ -94,6 +97,16 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
   const wmText = (presentation.watermarkText ?? '').trim().toLocaleUpperCase('pt').slice(0, 24);
   const wmTextSize = wmText ? Math.min(96, (PW * 0.78) / (wmText.length * 0.62)) : 0;
 
+  // Court filings name the case, not the catalogue title.
+  const processo = blocks.find((b): b is Extract<Block, { type: 'courtHeader' }> => b.type === 'courtHeader')?.processo;
+  // Other documents: their own title (a variant may retitle the document), else the catalogue title.
+  const titleBlock = blocks.find((b): b is Extract<Block, { type: 'title' }> => b.type === 'title')?.text;
+  const ownTitle = !titleBlock
+    ? ''
+    : titleBlock === titleBlock.toLocaleUpperCase('pt')
+      ? titleBlock.charAt(0) + titleBlock.slice(1).toLocaleLowerCase('pt')
+      : titleBlock;
+  const runningRight = family === 'peca' ? (processo ? `Processo n.º ${processo}` : '') : ownTitle || template.formalTitle;
   const runningLeft = [refNumber ? `N/Ref.ª ${refNumber}` : '', showLetterhead ? profileDisplayName(profile) : '']
     .filter(Boolean)
     .join(' · ');
@@ -148,7 +161,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
           </View>
         ) : null}
 
-        {frame ? <Frame kind={frame} w={PW} h={PH} inset={Math.max(4, fmt.margin * 0.45) * MM} accent={theme.plain ? theme.text : theme.accent} /> : null}
+        {frame ? <Frame kind={frame} w={PW} h={PH} inset={(small ? Math.max(4, fmt.margin * 0.45) : Math.max(10, fmt.margin * 0.45)) * MM} accent={theme.plain ? theme.text : theme.accent} /> : null}
 
         {branding?.pageBorder && !official && !frame ? (
           <View
@@ -198,11 +211,11 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
                   paddingBottom: 2,
                 }}
               >
-                <Text style={{ fontSize: 7.5, color: theme.muted, width: '60%', maxLines: 1, textOverflow: 'ellipsis' }}>
+                <Text style={{ fontSize: 7.5, color: theme.muted, width: '60%', maxLines: 1, textOverflow: 'ellipsis' }} hyphenationCallback={(w) => [w]}>
                   {runningLeft}
                 </Text>
-                <Text style={{ fontSize: 7.5, color: theme.muted, width: '38%', textAlign: 'right', maxLines: 1, textOverflow: 'ellipsis' }}>
-                  {template.formalTitle}
+                <Text style={{ fontSize: 7.5, color: theme.muted, width: '38%', textAlign: 'right', maxLines: 1, textOverflow: 'ellipsis' }} hyphenationCallback={(w) => [w]}>
+                  {runningRight}
                 </Text>
               </View>
             ) : null
@@ -266,7 +279,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
               color: theme.muted,
               textAlign: 'right',
             }}
-            render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`}
+            render={({ pageNumber, totalPages }) => (totalPages > 1 ? `Página ${pageNumber} de ${totalPages}` : '')}
           />
         ) : null}
 

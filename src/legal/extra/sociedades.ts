@@ -69,7 +69,7 @@ export const LEGAL_SOCIEDADES = {
       en: 'The company keeps up-to-date information on its beneficial owners. A member must report any change in identification details to the company within 30 days.',
     },
     law: 'codigoComercial',
-    article: 'art. 99',
+    article: 'art. 99.º',
     value: 30, // dias
     sourceUrl: 'https://www.dlapiperafrica.com/en/mozambique/insights/2022/The-Beneficial-Owner-under-the-New-Commercial-Code-.html',
     lastVerified: V,

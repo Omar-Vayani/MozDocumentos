@@ -19,7 +19,14 @@ export type BlockEnv = {
   stamp?: RenderAsset;
   /** The issuing profile's logo, for the `logo` block. */
   logo?: RenderAsset;
+  /** Designed, centred pages (certificates, invitations): signatures are centred and narrower. */
+  centred?: boolean;
+  /** Public bodies and community authorities: a single signature is centred. */
+  publicBody?: boolean;
 };
+
+/** Names and positions are never hyphenated ("Nhantum-bo"). */
+const noHyphens = (w: string) => [w];
 
 const DISPLAY_PT = { xxxl: 44, xxl: 30, xl: 22, lg: 16, md: 13, sm: 10.5, xs: 8.5 } as const;
 
@@ -132,7 +139,7 @@ function SignatureColumnView({
 }: {
   col: SignatureColumn;
   env: BlockEnv;
-  width: string;
+  width: string | number;
   /** Shared by all columns so the signature lines line up. */
   area: number;
   roleHeight: number;
@@ -146,7 +153,7 @@ function SignatureColumnView({
     <View style={{ width, paddingHorizontal: 8, alignItems: 'center' }}>
       <View style={{ minHeight: roleHeight, marginBottom: 4, width: '100%', justifyContent: 'flex-end' }}>
         {col.role.split(/\r?\n/).map((r, i) => (
-          <Text key={i} style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center' }}>
+          <Text key={i} style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center' }} hyphenationCallback={noHyphens}>
             {r}
           </Text>
         ))}
@@ -184,11 +191,13 @@ function SignatureColumnView({
       </View>
       <View style={{ borderTopWidth: 0.75, borderTopColor: theme.text, width: '100%', marginBottom: 3 }} />
       {col.name ? (
-        <Text style={{ fontSize: theme.bodySize - 0.5, fontWeight: 700, textAlign: 'center' }}>{col.name}</Text>
+        <Text style={{ fontSize: theme.bodySize - 0.5, fontWeight: 700, textAlign: 'center' }} hyphenationCallback={noHyphens}>
+          {col.name}
+        </Text>
       ) : null}
       {col.detail
         ? col.detail.split(/\r?\n/).map((d, i) => (
-            <Text key={i} style={{ fontSize: theme.bodySize - 1.5, color: theme.muted, textAlign: 'center' }}>
+            <Text key={i} style={{ fontSize: theme.bodySize - 1.5, color: theme.muted, textAlign: 'center' }} hyphenationCallback={noHyphens}>
               {d}
             </Text>
           ))
@@ -339,9 +348,15 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
                 </View>
               );
             const last = i === block.items.length - 1;
+            // The last clause goes to the next page with the closing and signatures
+            // when they would not fit after it: a page never holds signatures alone.
+            const tail = last ? ((block as ClausesWithTail).tail ?? 0) : 0;
+            const lastAhead = tail
+              ? Math.min(textLines(theme, item.text, 1) * theme.bodySize * theme.lineHeight + tail, (theme.page.height - theme.margin.top - theme.margin.bottom) * 0.55)
+              : ahead;
             return (
               <Fragment key={item.id}>
-                <View wrap={false} minPresenceAhead={ahead}>
+                <View wrap={false} minPresenceAhead={lastAhead}>
                   {heading}
                 </View>
                 {item.text ? <RichText text={item.text} style={para(env)} /> : null}
@@ -419,6 +434,8 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
             <View
               key={ri}
               wrap={!canKeep(theme, Math.max(...r.map((c, ci) => textLines(theme, c, widths[ci] / total, theme.bodySize - 1))) * (theme.bodySize - 1) * 1.4 + 8)}
+              // The last row goes with the totals: a totals row never starts a page alone.
+              minPresenceAhead={ri === block.rows.length - 1 && block.totals?.length ? block.totals.length * (theme.bodySize + 9) : undefined}
               style={{ flexDirection: 'row', borderBottomWidth: 0.4, borderBottomColor: '#d6dad7', backgroundColor: ri % 2 === 1 ? theme.wash : undefined }}
             >
               {r.map((c, i) => cell(c, i))}
@@ -531,9 +548,17 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
 
     case 'signatures': {
       const n = block.columns.length;
-      const width = n === 1 ? '50%' : n === 2 ? '50%' : '33.33%';
+      const aside = (block as SignaturesWithAside).aside;
+      // One signature: wider, so long positions fit on fewer lines. On designed pages
+      // each line is at most about 75 mm and the columns are centred.
+      const frac = n === 1 ? (aside ? 0.47 : 0.6) : n === 2 ? 0.47 : 0.31;
+      const width: string | number = env.centred
+        ? Math.min(theme.contentWidth * (n === 1 ? 0.5 : frac + 0.03), 75 * 2.835 + 16)
+        : n === 1 ? (aside ? '50%' : '62%') : n === 2 ? '50%' : '33.33%';
       const area = Math.max(...block.columns.map((c) => signatureArea(c, env)));
-      const frac = n === 3 ? 0.31 : 0.47;
+      const justify = env.centred
+        ? 'space-around'
+        : n === 1 ? (theme.family === 'oficio' || (env.publicBody && !aside) ? 'center' : 'flex-start') : 'space-between';
       const roleHeight =
         Math.max(...block.columns.map((c) => textLines(theme, c.role, frac, theme.bodySize - 0.5))) * (theme.bodySize - 0.5) * 1.3;
       return (
@@ -541,10 +566,12 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           {block.placeDate ? (
             <Text style={{ fontSize: theme.bodySize, marginBottom: 14 }}>{block.placeDate}</Text>
           ) : null}
-          <View style={{ flexDirection: 'row', justifyContent: n === 1 ? (theme.family === 'oficio' ? 'center' : 'flex-start') : 'space-between' }}>
+          <View style={{ flexDirection: 'row', justifyContent: justify }}>
             {block.columns.map((c, i) => (
               <SignatureColumnView key={i} col={c} env={env} width={width} area={area} roleHeight={roleHeight} />
             ))}
+            {/* A receipt box beside a single signature uses the empty right half (see renderBlocks). */}
+            {aside ? <View style={{ width: '46%', marginLeft: '4%', justifyContent: 'flex-end' }}>{renderBlock({ ...aside, after: 0 } as Block, `${key}-aside`, env)}</View> : null}
           </View>
         </View>
       );
@@ -565,10 +592,14 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           }}
         >
           <Text style={{ fontSize: theme.smallSize, color: theme.muted, marginBottom: 3, letterSpacing: 0.3 }}>RECEPÇÃO</Text>
-          <Text style={{ fontSize: theme.bodySize - 1 }}>{block.text ?? 'Recebi o original em ___/___/______'}</Text>
-          <Text style={{ fontSize: theme.bodySize - 1, marginTop: 14 }}>
-            {`${block.signer ?? 'O Trabalhador'}: ________________________________________`}
+          <Text style={{ fontSize: theme.bodySize - 1 }} hyphenationCallback={noHyphens}>
+            {block.text ?? 'Recebi o original em ___/___/______'}
           </Text>
+          {/* A drawn line (underscores wrap and hyphenate in a narrow box). */}
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginTop: 14 }}>
+            <Text style={{ fontSize: theme.bodySize - 1 }}>{`${block.signer ?? 'O Trabalhador'}:`}</Text>
+            <View style={{ flex: 1, marginLeft: 4, marginBottom: 2, borderBottomWidth: 0.6, borderColor: theme.text }} />
+          </View>
         </View>
       );
 
@@ -579,7 +610,8 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           <Text style={{ fontSize: theme.bodySize - 1, fontWeight: 700, marginBottom: 2 }}>{block.title ?? 'Anexos:'}</Text>
           {block.items.map((it, i) => (
             <Text key={i} style={{ fontSize: theme.bodySize - 1, lineHeight: 1.35 }}>
-              {`${i + 1}. ${oneLine(it)}`}
+              {/* Items that already name themselves ("Anexo I — …", "Documento n.º 1 — …") are not numbered again. */}
+              {/^(anexo|documento|doc\.)\s/i.test(it) ? oneLine(it) : `${i + 1}. ${oneLine(it)}`}
             </Text>
           ))}
         </View>
@@ -708,7 +740,8 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
               fontStyle: block.italic ? 'italic' : 'normal',
             } as const;
             // Uppercased before layout (react-pdf measures before textTransform).
-            const txt = block.uppercase ? ln.toLocaleUpperCase('pt') : ln;
+            // Times keep a lower-case "h" ("11h00", not "11H00").
+            const txt = block.uppercase ? ln.toLocaleUpperCase('pt').replace(/\b(\d{1,2})H(\d{2})?\b/g, (_, h, m = '') => `${h}h${m}`) : ln;
             // "• " or "- " lines: a bullet with a hanging indent.
             const bullet = /^\s*[•-]\s+/.exec(txt);
             if (bullet) {
@@ -774,7 +807,8 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
     }
 
     case 'logo': {
-      if (!env.logo) return null;
+      // Black-and-grey documents (funeral notices) carry no colour logo.
+      if (!env.logo || theme.mono) return null;
       const h = (block.size === 'lg' ? 22 : block.size === 'sm' ? 9 : 14) * 2.8346 * theme.scale;
       const ratio = env.logo.width / Math.max(1, env.logo.height);
       const w = Math.min(h * ratio, theme.contentWidth * 0.7);
@@ -929,7 +963,7 @@ export function estimateHeight(b: Block, theme: Theme): number {
     case 'signatures':
       // Worst case: images present at the chosen sizes, plus extra lines in names and details.
       return (
-        Math.max(130, 84 + Math.max(46, 40 * theme.signatureScale + 6, 58 * theme.stampScale * 0.75)) +
+        (b.columns.some((c) => c.image) ? Math.max(130, 84 + Math.max(46, 40 * theme.signatureScale + 6, 58 * theme.stampScale * 0.75)) : 120) +
         Math.max(0, ...b.columns.map((c) => (c.detail ?? '').split('\n').length - 1 + (c.role ?? '').split('\n').length - 1)) * 11
       );
     case 'acknowledgement':
@@ -957,6 +991,45 @@ export function estimateHeight(b: Block, theme: Theme): number {
   }
 }
 
+type ClausesWithTail = Extract<Block, { type: 'numberedClauses' }> & { tail?: number };
+
+/** Marks clauses followed by a closing that ends in signatures with that closing's height. */
+function withClosingTails(blocks: Block[], theme: Theme): Block[] {
+  return blocks.map((b, i) => {
+    if (b.type !== 'numberedClauses') return b;
+    let h = 0;
+    for (let j = i + 1; j < blocks.length; j++) {
+      const n = blocks[j];
+      h += estimateHeight(n, theme);
+      // Generous: an overestimate is harmless (react-pdf only moves the clause
+      // when the closing really does not fit after it).
+      if (n.type === 'signatures') return { ...b, tail: Math.min(h + 40, 260) } as ClausesWithTail;
+      if (!n.keepWithNext) break;
+    }
+    return b;
+  });
+}
+
+type SignaturesWithAside = Extract<Block, { type: 'signatures' }> & { aside?: Extract<Block, { type: 'acknowledgement' }> };
+
+/**
+ * A receipt ("RECEPÇÃO") box that follows a single signature is drawn in the
+ * empty right half beside it rather than below, which keeps short letters
+ * (warnings, notices) on one page.
+ */
+function withAsideReceipts(blocks: Block[], theme: Theme): Block[] {
+  const out: Block[] = [];
+  for (let i = 0; i < blocks.length; i++) {
+    const b = blocks[i];
+    const next = blocks[i + 1];
+    if (b.type === 'signatures' && b.columns.length === 1 && next?.type === 'acknowledgement' && theme.family !== 'oficio' && !theme.compact) {
+      out.push({ ...b, keepWithNext: next.keepWithNext, aside: next } as SignaturesWithAside);
+      i++;
+    } else out.push(b);
+  }
+  return out;
+}
+
 const FLOWING = new Set<Block['type']>(['numberedClauses', 'articulado', 'paragraph', 'list', 'table', 'checklist']);
 
 const isHalfBox = (b: Block | undefined): b is Extract<Block, { type: 'box' }> => b?.type === 'box' && b.width === 'half' && !b.keepWithNext;
@@ -967,7 +1040,8 @@ const isHalfBox = (b: Block | undefined): b is Extract<Block, { type: 'box' }> =
  * A group is only made unbreakable when it comfortably fits on a page:
  * react-pdf overlaps lines when an unbreakable unit is taller than the page.
  */
-export function renderBlocks(blocks: Block[], env: BlockEnv): ReactNode[] {
+export function renderBlocks(input: Block[], env: BlockEnv): ReactNode[] {
+  const blocks = withClosingTails(withAsideReceipts(input, env.theme), env.theme);
   const out: ReactNode[] = [];
   let loneHalfBox = -1; // index in `out` of a half-width box waiting for a partner
   let group: Block[] = [];
