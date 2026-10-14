@@ -53,8 +53,7 @@ export default defineTemplate({
         { name: 'responsavel', type: 'text', label: l('Responsável', 'Who') },
       ],
       default: [
-        { quando: '1.º dia', actividade: 'Acolhimento, assinatura do contrato e entrega do cartão de identificação', responsavel: 'Recursos Humanos' },
-        { quando: '1.º dia', actividade: 'Apresentação à equipa e visita às instalações', responsavel: 'Chefia directa' },
+        { quando: '1.º dia', actividade: 'Acolhimento, assinatura do contrato, apresentação à equipa e visita às instalações', responsavel: 'Recursos Humanos e chefia' },
         { quando: '1.ª semana', actividade: 'Leitura do regulamento interno, do código de conduta e das regras de segurança', responsavel: 'Recursos Humanos' },
         { quando: '1.ª semana', actividade: 'Formação sobre os riscos do posto e entrega dos equipamentos de protecção', responsavel: 'Higiene e Segurança' },
         { quando: '1.º mês', actividade: 'Acompanhamento das tarefas e reunião de balanço', responsavel: 'Chefia directa' },

@@ -118,7 +118,7 @@ export default defineTemplate({
         {
           type: 'paragraph',
           id: 'remuneracao',
-          text: `Durante a suspensão, V. Ex.ª tem direito ao pagamento de ${linha(s.mes1)} no primeiro mês, ${linha(s.mes2)} no segundo mês e ${linha(s.mes3)} no terceiro mês, nunca inferior ${pme ? `a ${s.pmeMinimoPercent} por cento do salário mínimo do sector` : 'ao salário mínimo do sector'}${wage != null ? ` (${formatMoney(wage)})` : ''}. Se o impedimento se mantiver para além de ${s.meses} meses, o pagamento suspende-se, podendo as partes acordar a modificação ou a cessação do contrato, com a indemnização devida.`,
+          text: `Durante a suspensão, V. Ex.ª tem direito ao pagamento de ${linha(s.mes1)} no primeiro mês, ${linha(s.mes2)} no segundo mês e ${linha(s.mes3)} no terceiro mês, nunca inferior ${pme ? `a ${s.pmeMinimoPercent} por cento do salário mínimo do sector` : 'ao salário mínimo do sector'}${wage != null ? ` (salário mínimo do sector: ${formatMoney(wage)})` : ''}. Se o impedimento se mantiver para além de ${s.meses} meses, o pagamento suspende-se, podendo as partes acordar a modificação ou a cessação do contrato, com a indemnização devida.`,
           en: `During the suspension you receive ${s.mes1}%, ${s.mes2}% and ${s.mes3}% of pay in months 1–3, never below the legal minimum; after ${s.meses} months pay stops and the parties may agree changes or termination.`,
         },
       );
