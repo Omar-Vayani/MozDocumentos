@@ -111,7 +111,7 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'intro',
-        text: `Comunica-se o resultado do exame médico de ${tipo} realizado ao trabalhador abaixo identificado, nos termos do ${cite('examesMedicosTrabalho')}. Em cumprimento do sigilo médico, esta ficha indica apenas a aptidão para o trabalho.`,
+        text: `Comunica-se o resultado do exame médico de ${tipo} realizado ${g(v.trabalhadorGenero, 'ao trabalhador abaixo identificado', 'à trabalhadora abaixo identificada')}, nos termos do ${cite('examesMedicosTrabalho')}. Em cumprimento do sigilo médico, esta ficha indica apenas a aptidão para o trabalho.`,
         en: 'This form gives the result of the medical examination of the worker named below. Under medical confidentiality it states only fitness for work.',
       },
       { type: 'keyValue', items, columns: 1 },

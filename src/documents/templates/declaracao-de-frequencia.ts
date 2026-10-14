@@ -129,9 +129,8 @@ export default defineTemplate({
       corpo = `Para os devidos efeitos, declara-se que ${alunoIdent(v, { filiacao: Boolean(v.incluirFiliacao) })} ${verbo}, ${i.nesta}, ${ano}, ${frequenciaTexto(v)}${numero}.`;
     }
     const blocks: Block[] = [];
-    if (str(v.numero)) blocks.push({ type: 'reference', ref: `Declaração n.º ${str(v.numero)}` });
     blocks.push(
-      { type: 'title', text: tipo === 'matricula' ? 'Declaração de Matrícula' : tipo === 'frequentou' ? 'Declaração' : 'Declaração de Matrícula e Frequência' },
+      { type: 'title', text: tipo === 'matricula' ? 'Declaração de Matrícula' : tipo === 'frequentou' ? 'Declaração' : 'Declaração de Matrícula e Frequência', subtitle: str(v.numero) ? `N.º ${str(v.numero)}` : undefined },
       { type: 'paragraph', id: 'corpo', text: corpo, en: `This is to certify that ${str(v.alunoNome) || 'the student'} ${tipo === 'frequentou' ? 'attended' : tipo === 'matricula' ? 'is enrolled at' : 'is enrolled at and attends'} this institution in ${str(v.anoLectivo) || 'the current year'}${str(v.classe) ? `, ${str(v.classe)}` : ''}${str(v.curso) ? `, course: ${str(v.curso)}` : ''}.` },
     );
     if (str(v.horario))

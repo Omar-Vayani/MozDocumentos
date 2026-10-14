@@ -155,3 +155,57 @@ SAMPLES.push({
     pedirConfirmacao: true,
   },
 });
+
+SAMPLES.push({
+  id: 'condicoes-gerais-venda',
+  who: shop,
+  values: {
+    ambito: 'ambos',
+    clientes: 'consumidores',
+    versaoData: '2026-10-01',
+    validadeOrcamentoDias: 15,
+    precosIva: 'incluido',
+    pagamentoModo: 'entrega',
+    reservaPropriedade: true,
+    entregaRisco: 'entrega',
+    garantiaMeses: 12,
+    vendaDistancia: true,
+    aceitacaoDias: 5,
+    contactoReclamacoes: 'apoio@electrosol.co.mz ou +258 84 499 1200',
+    linhaAceitacao: true,
+  },
+});
+
+SAMPLES.push({
+  id: 'politica-trocas-devolucoes',
+  who: shop,
+  values: {
+    lojaNome: 'Electro Sol',
+    garantiaMeses: 12,
+    vendaDistancia: true,
+    trocasSemDefeito: true,
+    prazoTrocaDias: 7,
+    formaTroca: 'produtoVale',
+    excluir_software: true,
+    excluir_recargas: true,
+    contacto: '+258 84 499 1200 · apoio@electrosol.co.mz',
+  },
+});
+
+SAMPLES.push({
+  id: 'certificado-de-garantia',
+  who: shop,
+  values: {
+    ref: 'GA-2026/0153',
+    estadoProduto: 'novo',
+    produto: 'Frigorífico combinado No Frost 320 L',
+    marcaModelo: 'Hisense RB424N4',
+    numeroSerie: 'HS424N4-2609-118734',
+    dataCompra: '2026-10-12',
+    facturaNumero: 'FT 2026/1802',
+    clienteNome: 'Graça Mabunda Chissano',
+    clienteContacto: '+258 82 456 7788',
+    garantiaMeses: 24,
+    localAssistencia: 'Avenida 24 de Julho, n.º 845, Maputo · +258 84 499 1200',
+  },
+});

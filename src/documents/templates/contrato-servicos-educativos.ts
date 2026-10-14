@@ -312,7 +312,7 @@ export default defineTemplate({
       id: 'encargos',
       heading: 'Outros encargos',
       text: encargos.length
-        ? `${oE.replace(/^./, (c) => c.toUpperCase())} aceita os seguintes encargos, além das propinas: ${juntar(encargos.map((r) => `${semPonto(r.descricao)}${money(r.valor) != null ? `, ${formatMoney(money(r.valor))}` : ''}${str(r.periodicidade) ? ` (${semPonto(r.periodicidade)})` : ''}`))}. Os encargos não previstos neste contrato só são devidos se aceites por escrito ${pelo(fE, E)}.`
+        ? `${oE.replace(/^./, (c) => c.toUpperCase())} aceita os seguintes encargos, além das propinas: ${juntar(encargos.map((r) => `${minus(semPonto(r.descricao))}${money(r.valor) != null ? `, ${formatMoney(money(r.valor))}` : ''}${str(r.periodicidade) ? ` (${semPonto(r.periodicidade)})` : ''}`))}. Os encargos não previstos neste contrato só são devidos se aceites por escrito ${pelo(fE, E)}.`
         : `Além da matrícula e das propinas, os encargos não previstos neste contrato (uniforme, material, actividades, visitas de estudo) só são devidos se aceites por escrito ${pelo(fE, E)}.`,
       en: 'Other charges are owed only if listed here or accepted in writing.',
     });
@@ -421,4 +421,9 @@ export default defineTemplate({
 
 function pelo(f: boolean, e: string): string {
   return `${f ? 'pela' : 'pelo'} ${e}`;
+}
+
+/** Lower-cases the first letter of an ordinary word ("Uniforme" → "uniforme"), not of acronyms. */
+function minus(t: string): string {
+  return /^[A-ZÀ-Ý][a-zà-ÿ]/.test(t) ? t.charAt(0).toLowerCase() + t.slice(1) : t;
 }

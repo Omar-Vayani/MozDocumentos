@@ -7,7 +7,7 @@ import { inteiroPorExtenso } from '@/lib/format';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { blank, dateField, l, localField, placeDate } from './_shared';
 import {
-  academicFields, alunoFields, alunoIdent, designacaoField, eSuperior, estudante, FINALIDADE_FIELD, finalidadeBlock, fechoDeclaracao,
+  academicFields, alunoFields, cap, alunoIdent, designacaoField, eSuperior, estudante, FINALIDADE_FIELD, finalidadeBlock, fechoDeclaracao,
   frequenciaTexto, inst, licenceNote, licenceWarning, num, rows, schoolSignatures, signatoryFields, str,
 } from './_educacao';
 
@@ -176,27 +176,58 @@ export default defineTemplate({
     const periodo = PERIODO[str(v.periodo)] ?? '';
     const ano = eSuperior(v) ? `${periodo ? `${periodo} ` : ''}do ano académico de ${blank(v.anoLectivo)}` : `${periodo ? `${periodo} ` : ''}do ano lectivo de ${blank(v.anoLectivo)}`;
     const linhas = rows(v.disciplinas).filter((r) => str(r.disciplina) || str(r.nota));
-    const tableRows = (linhas.length ? linhas : [{}, {}, {}]).map((r) => {
+    const unidade = v.escala === '100' ? 'pontos' : 'valores';
+    const palavras = (n: number | null) => (n != null && Number.isInteger(n) && n >= 0 ? `${inteiroPorExtenso(n)} ${n === 1 ? unidade.replace(/es$|s$/, '') : unidade}` : '');
+    const notaDe = (r: Record<string, any>) => {
       const n = num(r.nota);
-      const nota = str(r.nota) ? (n != null ? fmtNota(n) : str(r.nota)) : '';
-      const cells = [str(r.disciplina), nota];
-      if (extenso) cells.push(n != null && Number.isInteger(n) && n >= 0 ? `${inteiroPorExtenso(n)} ${n === 1 ? 'valor' : 'valores'}`.replace('valores', v.escala === '100' ? 'pontos' : 'valores').replace(/^um valor$/, 'um valor') : '');
-      cells.push(str(r.observacao));
-      return cells;
-    });
-    const columns = [
-      { label: eSuperior(v) ? 'Disciplina / cadeira' : 'Disciplina', width: extenso ? 38 : 50 },
-      { label: qual ? 'Menção' : v.escala === '100' ? 'Classificação (0–100)' : 'Classificação (0–20)', width: 18, align: 'center' as const },
-      ...(extenso ? [{ label: 'Por extenso', width: 24 }] : []),
-      { label: 'Observação', width: extenso ? 20 : 32 },
-    ];
+      return { n, txt: str(r.nota) ? (n != null ? fmtNota(n) : str(r.nota)) : '' };
+    };
+    const lista = linhas.length ? linhas : [{}, {}, {}];
     const media = ctx.computed.media as number | null;
-    const totals = !qual && v.mostrarMedia !== false && media != null ? [['Média', fmtNota(media), ...(extenso ? [''] : []), '']] : undefined;
+    const comMedia = !qual && v.mostrarMedia !== false && media != null;
+    const notaLabel = qual ? 'Menção' : v.escala === '100' ? 'Classificação (0–100)' : 'Classificação (0–20)';
+    const discLabel = eSuperior(v) ? 'Disciplina / cadeira' : 'Disciplina';
+    // Many subjects: two subjects per row so the declaration fits one page.
+    const duplo = lista.length > 8;
+    let columns: { label: string; width?: number; align?: 'left' | 'right' | 'center' }[];
+    let tableRows: string[][];
+    let totals: string[][] | undefined;
+    if (duplo) {
+      const cell = (r: Record<string, any>) => {
+        const { n, txt } = notaDe(r);
+        const ext = extenso && palavras(n) ? ` (${palavras(n)})` : '';
+        return `${txt}${ext}${str(r.observacao) ? ` — ${str(r.observacao)}` : ''}`;
+      };
+      const half = Math.ceil(lista.length / 2);
+      columns = [
+        { label: discLabel, width: 24 },
+        { label: notaLabel, width: 26 },
+        { label: discLabel, width: 24 },
+        { label: notaLabel, width: 26 },
+      ];
+      tableRows = Array.from({ length: half }, (_, k) => {
+        const r1 = lista[k];
+        const r2 = lista[k + half];
+        return [str(r1.disciplina), cell(r1), r2 ? str(r2.disciplina) : '', r2 ? cell(r2) : ''];
+      });
+      totals = comMedia ? [['Média', `${fmtNota(media!)} ${unidade}`, '', '']] : undefined;
+    } else {
+      tableRows = lista.map((r) => {
+        const { n, txt } = notaDe(r);
+        return [str(r.disciplina), txt, ...(extenso ? [palavras(n)] : []), str(r.observacao)];
+      });
+      columns = [
+        { label: discLabel, width: extenso ? 38 : 50 },
+        { label: notaLabel, width: 18, align: 'center' },
+        ...(extenso ? [{ label: 'Por extenso', width: 24 }] : []),
+        { label: 'Observação', width: extenso ? 20 : 32 },
+      ];
+      totals = comMedia ? [['Média', fmtNota(media!), ...(extenso ? [''] : []), '']] : undefined;
+    }
 
     const blocks: Block[] = [];
-    if (str(v.numero)) blocks.push({ type: 'reference', ref: `Declaração n.º ${str(v.numero)}` });
     blocks.push(
-      { type: 'title', text: 'Declaração de Aproveitamento' },
+      { type: 'title', text: 'Declaração de Aproveitamento', subtitle: str(v.numero) ? `N.º ${str(v.numero)}` : undefined },
       {
         type: 'paragraph',
         id: 'corpo',
@@ -224,14 +255,16 @@ export default defineTemplate({
         text: 'A progressão verificou-se sem realização de exames, nos termos das orientações do Ministério que superintende a área da Educação.',
         en: 'Progression took place without exams, under the Ministry of Education guidelines.',
       });
-    if (v.notaProvisoria !== false)
+    const fin = finalidadeBlock(v)[0];
+    if (v.notaProvisoria !== false) {
+      const finTxt = fin && fin.type === 'paragraph' ? ` ${cap(fin.text.replace(/^A presente declaração /, ''))}` : '';
       blocks.push({
         type: 'paragraph',
         id: 'provisoria',
-        text: 'A presente declaração não substitui o certificado de habilitações, que é emitido nos termos regulamentares.',
+        text: `A presente declaração não substitui o certificado de habilitações, que é emitido nos termos regulamentares.${finTxt}`,
         en: 'This declaration does not replace the certificate of qualifications, issued under the regulations.',
       });
-    blocks.push(...finalidadeBlock(v));
+    } else if (fin) blocks.push(fin);
     blocks.push(fechoDeclaracao(v, ctx), { type: 'signatures', placeDate: placeDate(ctx, v.data), columns: schoolSignatures(v) }, ...licenceNote(ctx));
     return blocks;
   },

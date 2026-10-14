@@ -205,7 +205,7 @@ export default defineTemplate({
     const org = profileDisplayName(ctx.profile);
     const horas = num(v.cargaHoraria);
     const lugar = str(v.local);
-    const titulo = `**${str(v.tituloCurso) || '____________________'}**`;
+    const titulo = `«${str(v.tituloCurso) || '____________________'}»`;
     const accao = `${art} ${a.n} ${titulo}`;
     const regime = v.regime === 'online' ? 'na modalidade à distância' : v.regime === 'semi-presencial' ? 'em regime semi-presencial' : lugar ? `em ${lugar}` : '';
     const detalhes = [`${realizado} ${[regime, periodo(v.dataInicio, v.dataFim)].filter(Boolean).join(', ')}`, horas ? `com a carga horária de ${horas} horas` : ''].filter(Boolean).join(', ');
