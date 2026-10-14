@@ -329,6 +329,15 @@ export default defineTemplate({
         ),
       });
     }
+    if (t === 'associacao') {
+      w.push({
+        level: 'info',
+        message: l(
+          `A convocatória de uma associação é enviada a cada associado por aviso postal (ou pelo meio previsto nos estatutos) (${cite('convocatoriaAssociacao')}). Guarde o comprovativo de envio.`,
+          'An association sends the notice to each member by post (or as the statutes provide). Keep proof of sending.',
+        ),
+      });
+    }
     if (t === 'anonima') {
       w.push({
         level: 'info',

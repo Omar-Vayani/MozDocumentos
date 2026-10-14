@@ -139,6 +139,8 @@ export type Block =
       type: 'table';
       columns: { label: string; width?: number; align?: 'left' | 'right' | 'center' }[];
       rows: string[][];
+      /** Vertical rules between columns (registers filled in by hand). */
+      grid?: boolean;
       /** Rows rendered in bold with a top rule (totals). */
       totals?: string[][];
       caption?: string;

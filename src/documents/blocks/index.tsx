@@ -397,6 +397,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
             fontWeight: bold || header ? 700 : 400,
             textAlign: block.columns[i]?.align ?? 'left',
             color: header ? theme.heading : theme.text,
+            ...(block.grid && i < block.columns.length - 1 ? { borderRightWidth: 0.4, borderRightColor: '#b9bfbb' } : {}),
           }}
         >
           {oneLine(txt)}

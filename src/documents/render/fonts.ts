@@ -16,7 +16,13 @@ const MAX_UNBROKEN = 22;
 
 function splitLong(word: string): string[] {
   // Long tokens with no hyphenation points (NIB, emails, URLs) are split into
-  // chunks so they can never overflow a cell or the page margin.
+  // chunks so they can never overflow a cell or the page margin. Email
+  // addresses and web addresses of ordinary length stay whole (a hyphen inside
+  // one would change it); longer ones break only after "@" or ".".
+  if (/@|www\.|:\/\//i.test(word)) {
+    if (word.length <= 36) return [word];
+    return word.split(/(?<=[@.])/);
+  }
   if (word.length <= MAX_UNBROKEN) return [word];
   const parts: string[] = [];
   for (let i = 0; i < word.length; i += 12) parts.push(word.slice(i, i + 12));

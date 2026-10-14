@@ -292,7 +292,7 @@ export function fraccoesFields(section: string, name = 'fraccoes'): FieldDef {
 }
 
 /** Per-mille share as printed: "125‰". */
-export const permil = (n: number | null) => (n == null ? '' : `${String(r2(n)).replace('.', ',')}‰`);
+export const permil = (n: number | null) => (n == null ? '' : `${String(r2(n)).replace('.', ',')}\u00A0‰`);
 /** Per-mille share in a table column headed "Permilagem": "125". */
 export const permilNum = (n: number | null) => (n == null ? '' : String(r2(n)).replace('.', ','));
 

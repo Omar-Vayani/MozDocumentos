@@ -80,6 +80,9 @@ page** on small formats: anything longer is cut. `page` may be a function of
 the values, e.g. `page: (v) => (v.tipo === 'interpelacao' ? 'A4' : 'A5')`; code
 that needs the format calls `pageOf(template, values)`.
 
+**Half-width boxes** (`box` with `width: 'half'`) sit side by side when two
+follow each other, but only when the block before them has no `keepWithNext`.
+
 **Symbols.** The document fonts cover Latin text only. A small symbols font
 (DejaVu Sans subset) is embedded as a fallback, so ☐ ☑ ✓ ‰ → ≥ ≤ № ± × print
 correctly. Any other symbol falls back to an unembedded font and fails the
@@ -241,7 +244,7 @@ breaks a legal limit. `personName(v)` and `documentDate(v)` name the PDF file.
 | `paragraph` | `{ id, text, en?, align?, size?: 'small', keepWithNext? }` — supports `**bold**` |
 | `heading` | Bold section heading inside a document; `align: 'center'` for chapter titles ("CAPÍTULO I — …") |
 | `numberedClauses` | Contract clauses. `style: 'clausula'` → "Cláusula Primeira (Objecto)"; `'numeric'` → "1. Objecto". Items `{ id, heading?, text, en?, items?: string[] }` (sub-items print as a), b)…); `start` continues numbering after a chapter `heading` |
-| `table` | `{ columns: [{label, width?, align?}], rows: string[][], totals?, caption?, note? }` — header row repeats on page breaks |
+| `table` | `{ columns: [{label, width?, align?}], rows: string[][], totals?, caption?, note?, grid? }` — header row repeats on page breaks; the last row stays with the totals; `grid: true` draws column rules (registers filled in by hand) |
 | `keyValue` | Label/value list, `columns: 1 | 2`, optional `title` |
 | `amount` | Money figure in a box + extenso `(quinze mil meticais)`; `value: null` prints a blank to fill in |
 | `signatures` | 1–3 columns `{ role, name?, detail?, image?: 'signature'|'stamp'|'both' }`, optional `placeDate`. Use `image: 'both'` for the issuing company's signatory |

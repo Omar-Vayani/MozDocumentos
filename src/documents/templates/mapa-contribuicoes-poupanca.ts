@@ -94,6 +94,7 @@ export default defineTemplate({
       const extra = rot && last ? [{ label: 'Recebe em', width: 1.3 }, { label: 'Assinatura', width: 2.2 }] : [];
       blocks.push({
         type: 'table',
+        grid: true,
         caption: nPer > MAX_COLS ? `Períodos ${start + 1} a ${Math.min(nPer, start + MAX_COLS)}` : undefined,
         columns: [
           { label: 'N.º', width: 0.5, align: 'center' },
