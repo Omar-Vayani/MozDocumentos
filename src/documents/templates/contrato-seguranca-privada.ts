@@ -12,7 +12,7 @@ import {
   arbitragemField, assinatura, documentoFields, foroField, lines, numerar, papel, partyFields, partyName, partyWarnings, semPonto, str,
   testemunhasField, valorTexto,
 } from './_contratos';
-import { clCessacao, clConfidencialidade, clForcaMaior, contratoBlocks, formaPagamentoFields, ivaField, ivaTexto, modoPagamento, prazo } from './_digital';
+import { clCessacao, clConfidencialidade, clForcaMaior, contratoBlocks, formaPagamentoFields, ivaField, ivaTexto, modoPagamento, prazo, titularDe } from './_digital';
 
 type Posto = { local: string; horario: string; vigilantes: number | null; armado: string; preco: number | null };
 const postos = (v: Values): Posto[] =>
@@ -113,7 +113,7 @@ export default defineTemplate({
       id: 'objecto',
       heading: 'Objecto',
       text: numerar([
-        `Pelo presente contrato, ${P.o}, empresa de segurança privada titular do ${semPonto(v.alvara) || `alvará n.º ${BLANK}`}, presta ${C.ao} serviços de vigilância e protecção das instalações situadas em ${semPonto(v.instalacoes) || BLANK}, nos postos e horários indicados no quadro do Anexo.`,
+        `Pelo presente contrato, ${P.o}, empresa de segurança privada ${str(v.alvara) ? titularDe(v.alvara) : `titular do alvará n.º ${BLANK}`}, presta ${C.ao} serviços de vigilância e protecção das instalações situadas em ${semPonto(v.instalacoes) || BLANK}, nos postos e horários indicados no quadro do Anexo.`,
         extras.length ? `O serviço inclui ainda: ${extras.join('; ')}.` : '',
       ]),
       en: 'The licensed security company guards the premises at the posts and hours in the Annex, with patrols, response team and monitoring as stated.',

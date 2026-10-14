@@ -9,7 +9,7 @@ import {
   arbitragemField, assinatura, documentoFields, foroField, numerar, papel, partyFields, partyName, partyWarnings, semPonto, str,
   testemunhasField, valorTexto,
 } from './_contratos';
-import { clAutonomia, clCessacao, clForcaMaior, contratoBlocks, formaPagamentoFields, modoPagamento, prazo } from './_digital';
+import { clAutonomia, clCessacao, clForcaMaior, contratoBlocks, formaPagamentoFields, modoPagamento, prazo, titularDe } from './_digital';
 
 export default defineTemplate({
   id: 'contrato-guia-turistico',
@@ -71,7 +71,7 @@ export default defineTemplate({
       id: 'objecto',
       heading: 'Objecto',
       text: numerar([
-        `Pelo presente contrato, ${G.o}${str(v.credencial) ? `, titular da ${semPonto(v.credencial).charAt(0).toLowerCase() + semPonto(v.credencial).slice(1)},` : ''} presta ${C.ao} serviços de guia turístico, em ${semPonto(v.linguas) || BLANK}, nos seguintes passeios ou circuitos: ${semPonto(v.descricao) || BLANK}.`,
+        `Pelo presente contrato, ${G.o}${str(v.credencial) ? `, ${titularDe(v.credencial)},` : ''} presta ${C.ao} serviços de guia turístico, em ${semPonto(v.linguas) || BLANK}, nos seguintes passeios ou circuitos: ${semPonto(v.descricao) || BLANK}.`,
         `O serviço é prestado de ${dateLong(v.dataInicio)} a ${dateLong(v.dataFim)}, ${semPonto(v.horario) || BLANK}, em datas e grupos indicados ${C.pelo} com, pelo menos, um dia de antecedência, não podendo cada grupo exceder ${Number(v.grupoMax) > 0 ? Number(v.grupoMax) : BLANK} pessoas.`,
       ]),
       en: 'The guide provides guiding services in the stated languages, on the tours, dates and hours stated, with a maximum group size.',

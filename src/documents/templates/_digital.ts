@@ -248,3 +248,12 @@ export function politicaHeader(ctx: TemplateContext, title: string, iso: unknown
 }
 
 export { cite };
+
+/** "titular do alvará n.º …" / "titular da licença n.º …" / "titular das licenças …" from a licence description. */
+export function titularDe(licenca: unknown): string {
+  const t = semPonto(licenca);
+  if (!t) return '';
+  const low = t.charAt(0).toLowerCase() + t.slice(1);
+  const art = /^(alvarás|títulos|certificados)\b/i.test(t) ? 'dos' : /^(licenças|credenciais|autorizações)\b/i.test(t) ? 'das' : /^(alvará|título|certificado|registo|despacho)\b/i.test(t) ? 'do' : 'da';
+  return `titular ${art} ${low}`;
+}

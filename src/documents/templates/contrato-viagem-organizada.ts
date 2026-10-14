@@ -9,7 +9,7 @@ import {
   arbitragemField, assinatura, documentoFields, foroField, lines, numerar, papel, partyFields, partyName, partyWarnings, semPonto, str,
   testemunhasField, valorTexto,
 } from './_contratos';
-import { contratoBlocks, formaPagamentoFields, linhas, modoPagamento } from './_digital';
+import { contratoBlocks, formaPagamentoFields, linhas, modoPagamento, titularDe } from './_digital';
 
 type Dia = { dia: string; programa: string };
 const programa = (v: Values): Dia[] =>
@@ -123,7 +123,7 @@ export default defineTemplate({
       id: 'objecto',
       heading: 'Objecto',
       text: numerar([
-        `Pelo presente contrato, ${A.o}${str(v.alvara) ? `, titular da ${semPonto(v.alvara).charAt(0).toLowerCase() + semPonto(v.alvara).slice(1)},` : ''} vende ${V.ao} a viagem organizada **"${semPonto(v.designacao) || BLANK}"**, com partida em ${dateLong(v.dataPartida)} e regresso em ${dateLong(v.dataRegresso)}, segundo o programa do Anexo, para ${Number(v.pessoas) > 0 ? Number(v.pessoas) : BLANK} ${Number(v.pessoas) === 1 ? 'pessoa' : 'pessoas'}.`,
+        `Pelo presente contrato, ${A.o}${str(v.alvara) ? `, ${titularDe(v.alvara)},` : ''} vende ${V.ao} a viagem organizada **"${semPonto(v.designacao) || BLANK}"**, com partida em ${dateLong(v.dataPartida)} e regresso em ${dateLong(v.dataRegresso)}, segundo o programa do Anexo, para ${Number(v.pessoas) > 0 ? Number(v.pessoas) : BLANK} ${Number(v.pessoas) === 1 ? 'pessoa' : 'pessoas'}.`,
         part.length ? `Para além ${V.de}, participam na viagem: ${part.join('; ')}.` : '',
       ]),
       en: `Sale of the package "${v.designacao || '—'}", departing and returning on the stated dates, per the programme in the Annex.`,

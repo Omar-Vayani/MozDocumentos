@@ -10,7 +10,7 @@ import {
   arbitragemField, assinatura, documentoFields, foroField, lines, numerar, papel, partyFields, partyName, partyWarnings, semPonto, str,
   testemunhasField, valorTexto,
 } from './_contratos';
-import { clForcaMaior, contratoBlocks, formaPagamentoFields, ivaField, ivaTexto, modoPagamento, prazo } from './_digital';
+import { clForcaMaior, contratoBlocks, formaPagamentoFields, ivaField, ivaTexto, modoPagamento, prazo, titularDe } from './_digital';
 
 type Viagem = { data: string; hora: string; origem: string; destino: string };
 const viagens = (v: Values): Viagem[] =>
@@ -102,7 +102,7 @@ export default defineTemplate({
       id: 'objecto',
       heading: 'Objecto',
       text: numerar([
-        `Pelo presente contrato, ${T.o}${str(v.licenca) ? `, titular da ${semPonto(v.licenca).charAt(0).toLowerCase() + semPonto(v.licenca).slice(1)},` : ''} obriga-se a realizar, com viatura e motorista próprios, ${TIPOS[str(v.tipo)] ?? TIPOS.outro}, para ${Number.isFinite(n) && n > 0 ? n : BLANK} passageiros indicados ${C.pelo}, segundo o itinerário do Anexo.`,
+        `Pelo presente contrato, ${T.o}${str(v.licenca) ? `, ${titularDe(v.licenca)},` : ''} obriga-se a realizar, com viatura e motorista próprios, ${TIPOS[str(v.tipo)] ?? TIPOS.outro}, para ${Number.isFinite(n) && n > 0 ? n : BLANK} passageiros indicados ${C.pelo}, segundo o itinerário do Anexo.`,
         `O serviço é feito com: ${semPonto(v.viaturas) || BLANK}.${str(v.paragens) ? ` Paragens intermédias: ${semPonto(v.paragens)}.` : ''}`,
       ]),
       en: 'The carrier provides the transport described, with its own vehicle and driver, for the stated number of passengers, per the itinerary in the Annex.',

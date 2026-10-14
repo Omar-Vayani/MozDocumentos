@@ -10,7 +10,7 @@ import {
   arbitragemField, assinatura, documentoFields, foroField, lines, numerar, papel, partyFields, partyName, partyWarnings, semPonto, str,
   testemunhasField, valorTexto,
 } from './_contratos';
-import { clForcaMaior, contratoBlocks, formaPagamentoFields, modoPagamento, prazo } from './_digital';
+import { clForcaMaior, contratoBlocks, formaPagamentoFields, modoPagamento, prazo, titularDe } from './_digital';
 
 type Esp = { especie: string; apresentacao: string; calibre: string; preco: number | null; quantidade: string };
 const especies = (v: Values): Esp[] =>
@@ -92,7 +92,7 @@ export default defineTemplate({
       id: 'objecto',
       heading: 'Objecto',
       text: numerar([
-        `Pelo presente contrato, ${V.o}${str(v.licencaPesca) ? `, titular da ${semPonto(v.licencaPesca).charAt(0).toLowerCase() + semPonto(v.licencaPesca).slice(1)},` : ''} obriga-se a vender ${C.ao} o pescado indicado no quadro seguinte, de ${dateLong(v.dataInicio)} a ${dateLong(v.dataFim)}, e ${C.o} obriga-se a comprá-lo aos preços acordados, desde que cumpra as condições de qualidade deste contrato.`,
+        `Pelo presente contrato, ${V.o}${str(v.licencaPesca) ? `, ${titularDe(v.licencaPesca)},` : ''} obriga-se a vender ${C.ao} o pescado indicado no quadro seguinte, de ${dateLong(v.dataInicio)} a ${dateLong(v.dataFim)}, e ${C.o} obriga-se a comprá-lo aos preços acordados, desde que cumpra as condições de qualidade deste contrato.`,
         v.exclusividade === 'exclusivo'
           ? `${V.O} vende ${C.ao} toda a sua captura das espécies indicadas, em exclusivo.`
           : v.exclusividade === 'preferencia'
