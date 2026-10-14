@@ -81,7 +81,7 @@ export const CATALOG_ADVOCACIA: TemplateMeta[] = [
       pt: 'Para pedir ao juiz num processo pendente: juntar documentos, prorrogar um prazo, consultar o processo, obter certidão ou homologar um acordo.',
       en: 'To ask the judge in a pending case: file documents, extend a deadline, inspect the file, get a certificate or approve a settlement.',
     },
-    tags: ['requerimento', 'requerimento avulso', 'juntada de documentos', 'prorrogação de prazo', 'certidão', 'consulta do processo', 'homologação', 'application', 'motion'],
+    tags: ['requerimento', 'requerimento avulso', 'juntada de documentos', 'prorrogação de prazo', 'certidão', 'consulta do processo', 'homologação', 'application', 'motion', 'junção de procuração', 'juncao de procuracao', 'constituição de mandatário', 'constituicao de mandatario', 'pedido de certidão', 'pedido de certidao', 'junção de documentos', 'juncao de documentos', 'homologação de transacção', 'homologacao de transaccao'],
     legalRefs: ['advHomologacaoTransaccao', 'advCustasJudiciais'],
     related: ['substabelecimento', 'acordo-de-transaccao'],
     lastReviewed: REVIEWED,
