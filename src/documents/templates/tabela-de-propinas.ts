@@ -6,7 +6,7 @@
 import { formatMoney } from '@/lib/format';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, dateField, dateLong, l, localField, money, splitLines } from './_shared';
-import { licenca, licenceWarning, num, rows, semPonto, str } from './_educacao';
+import { licenceWarning, num, rows, semPonto, str } from './_educacao';
 
 export default defineTemplate({
   id: 'tabela-de-propinas',
@@ -153,7 +153,6 @@ export default defineTemplate({
       });
     if (v.vigorDesde) blocks.push({ type: 'paragraph', id: 'vigor', text: `Em vigor a partir de ${dateLong(v.vigorDesde)}.`, en: 'In force from the stated date.' });
     blocks.push({ type: 'signatures', placeDate: `${ctx.place}, ${dateLong(v.data)}`, columns: [{ role: str(v.assinante) || 'A Direcção', name: ctx.profile?.representanteNome || undefined, image: 'both' }] });
-    if (licenca(ctx)) blocks.push({ type: 'note', text: licenca(ctx) });
     return blocks;
   },
 });

@@ -3,7 +3,7 @@
 // exchange or first job. Bilingual reading aid (often sent abroad).
 
 import { defineTemplate, type Block, type Warning } from '../model';
-import { BLANK, dateField, GENERO_OPTIONS, isF, l, localField, splitLines } from './_shared';
+import { BLANK, dateField, dateLong, GENERO_OPTIONS, isF, l, localField, splitLines } from './_shared';
 import { semPonto, str } from './_educacao';
 
 export default defineTemplate({
@@ -59,7 +59,7 @@ export default defineTemplate({
     const O = f ? 'A candidata' : 'O candidato';
     const nome = str(v.candidatoNome) || BLANK;
     const inst = semPonto(v.autorInstituicao);
-    const blocks: Block[] = [{ type: 'reference', place: ctx.place, date: v.data }];
+    const blocks: Block[] = [{ type: 'reference', place: ctx.place, date: dateLong(v.data) }];
     if (str(v.destinatario)) blocks.push({ type: 'recipient', lines: [semPonto(v.destinatario), str(v.destinatarioInstituicao)].filter(Boolean) });
     blocks.push(
       { type: 'subject', text: `Recomendação de ${nome}` },

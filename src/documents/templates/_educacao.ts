@@ -143,13 +143,6 @@ export const schoolName = (ctx: TemplateContext) => profileDisplayName(ctx.profi
 export const licenca = (ctx: TemplateContext) => str(ctx.profile?.licenca);
 export const isPrivateSchool = (ctx: TemplateContext) => ctx.profile?.kind === 'empresa' && !isPublicBody(ctx.profile);
 
-/** Small note under the signature with the institution's licence (private schools). */
-export function licenceNote(ctx: TemplateContext): Block[] {
-  const lic = licenca(ctx);
-  if (!lic || !isPrivateSchool(ctx)) return [];
-  return [{ type: 'note', text: `${schoolName(ctx)} — ${lic}.`, en: `Licence: ${lic}.` }];
-}
-
 /** Warning when a private school profile has no licence. */
 export function licenceWarning(ctx: TemplateContext): Warning[] {
   if (!isPrivateSchool(ctx) || licenca(ctx)) return [];

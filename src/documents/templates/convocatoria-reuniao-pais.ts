@@ -88,7 +88,7 @@ export default defineTemplate({
     const v = ctx.values;
     const ind = v.tipo === 'individual';
     const quando = `no dia **${diaSemana(v.dataReuniao) ? `${diaSemana(v.dataReuniao)}, ` : ''}${dateLong(v.dataReuniao)}**, pelas **${str(v.hora) || BLANK}**, no ${semPonto(v.localReuniao).replace(/^(no|na|em) /i, '') || BLANK}`;
-    const blocks: Block[] = [{ type: 'reference', ref: `Convocatória n.º ${str(v.numero) || '____'}`, place: ctx.place, date: v.data }];
+    const blocks: Block[] = [{ type: 'reference', ref: `Convocatória n.º ${str(v.numero) || '____'}`, place: ctx.place, date: dateLong(v.data) }];
     if (ind) {
       const fa = isF(v.alunoGenero);
       blocks.push(

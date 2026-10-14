@@ -3,7 +3,7 @@
 // debtor in default (Código Civil). The notice must not threaten the child's
 // schooling: no barring from tests or exams, no withholding of documents.
 
-import { diffDays } from '@/lib/format';
+import { diffDays, formatDateShort } from '@/lib/format';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, cite, dateLong, exmo, formatMoney, FORMA_PAGAMENTO_OPTIONS, g, GENERO_OPTIONS, isF, l, localField, money, dateField, refField } from './_shared';
 import { rows, semPonto, str } from './_educacao';
@@ -76,6 +76,7 @@ export default defineTemplate({
       ],
       default: 'mao',
     },
+    { name: 'recibo', type: 'toggle', section: 'assinatura', label: l('Incluir recibo de entrega (o encarregado assina)', 'Add a receipt line for the parent to sign'), help: l('Útil quando o aviso é entregue em mão.', 'Useful when delivered by hand.') },
     { name: 'assinante', type: 'text', section: 'assinatura', width: 'half', label: l('Assina', 'Signed by'), default: 'O Departamento Financeiro' },
     { name: 'assinanteNome', type: 'text', section: 'assinatura', width: 'half', label: l('Nome (opcional)', 'Name (optional)') },
   ],
@@ -122,7 +123,7 @@ export default defineTemplate({
             ? semPonto(v.consequenciaTexto)
             : '';
     const blocks: Block[] = [
-      { type: 'reference', ref: str(v.ref) || undefined, place: ctx.place, date: v.data },
+      { type: 'reference', ref: str(v.ref) || undefined, place: ctx.place, date: dateLong(v.data) },
       { type: 'recipient', salutation: exmo(v.encarregadoGenero), lines: [str(v.encarregadoNome) || BLANK, `Encarregad${isF(v.encarregadoGenero) ? 'a' : 'o'} de Educação ${fa ? 'da aluna' : 'do aluno'} ${str(v.alunoNome) || BLANK}${str(v.alunoClasse) ? ` (${semPonto(v.alunoClasse)})` : ''}`] },
       { type: 'subject', text: `Propinas em atraso — ${str(v.alunoNome) || BLANK}` },
       { type: 'salutation', text: `${exmo(v.encarregadoGenero)},` },
@@ -141,18 +142,16 @@ export default defineTemplate({
           { label: 'Valor (MT)', width: comPen ? 22 : 28, align: 'right' },
           ...(comPen ? [{ label: 'Penalização (MT)', width: 22, align: 'right' as const }] : []),
         ],
-        rows: (linhas.length ? linhas : [{}]).map((r) => [str(r.mes), r.vencimento ? dateLong(r.vencimento) : '', fmt(r.valor), ...(comPen ? [fmt(r.penalizacao)] : [])]),
+        rows: (linhas.length ? linhas : [{}]).map((r) => [str(r.mes), r.vencimento ? formatDateShort(r.vencimento) : '', fmt(r.valor), ...(comPen ? [fmt(r.penalizacao)] : [])]),
         totals: total != null ? [['Total em dívida', '', formatMoney(total, false), ...(comPen ? [''] : [])]] : undefined,
       },
       {
         type: 'paragraph',
         id: 'prazo',
-        text: `Solicitamos a regularização do valor de **${total != null ? formatMoney(total) : `${BLANK} MT`}** até ao dia **${dateLong(v.prazoPagamento)}**, por ${str(v.formaPagamento) || BLANK}${str(v.contaPagamento) ? ` (${semPonto(v.contaPagamento)})` : ''}, devendo o comprovativo ser entregue na Secretaria.`,
+        text: `Solicitamos a regularização do valor de **${total != null ? formatMoney(total) : `${BLANK} MT`}** até ao dia **${dateLong(v.prazoPagamento)}**, por ${str(v.formaPagamento) || BLANK}${str(v.contaPagamento) ? ` (${semPonto(v.contaPagamento)})` : ''}, devendo o comprovativo ser entregue na Secretaria.${v.planoPagamento !== false ? ' Caso tenha dificuldades em pagar de uma só vez, pode contactar a Direcção Administrativa para acordar um plano de pagamento.' : ''} Se já efectuou o pagamento, queira desconsiderar este aviso.`,
         en: 'Please pay the total by the stated date and hand the proof of payment to the office.',
       },
     ];
-    if (v.planoPagamento !== false)
-      blocks.push({ type: 'paragraph', id: 'plano', text: 'Caso tenha dificuldades em efectuar o pagamento de uma só vez, pode contactar a Direcção Administrativa para acordar um plano de pagamento.', en: 'If you cannot pay at once, contact the office to agree a payment plan.' });
     if (consequencia)
       blocks.push({
         type: 'paragraph',
@@ -161,11 +160,10 @@ export default defineTemplate({
         en: 'Under the contract, non-payment may have the stated consequence.',
       });
     blocks.push(
-      { type: 'paragraph', id: 'jaPago', text: 'Se já efectuou o pagamento, queira desconsiderar este aviso e apresentar o comprovativo na Secretaria.', en: 'If you have already paid, please disregard this notice and show the receipt.', size: 'small' },
       { type: 'paragraph', id: 'fecho', text: 'Com os melhores cumprimentos,', en: 'Kind regards,', keepWithNext: true },
       { type: 'signatures', columns: [{ role: str(v.assinante) || 'O Departamento Financeiro', name: str(v.assinanteNome) || undefined, image: 'both' }] },
     );
-    if (v.entrega === 'mao') blocks.push({ type: 'acknowledgement', text: 'Recebi o original em ___/___/______', signer: g(v.encarregadoGenero, 'O Encarregado de Educação', 'A Encarregada de Educação') });
+    if (v.recibo) blocks.push({ type: 'acknowledgement', text: 'Recebi o original em ___/___/______', signer: g(v.encarregadoGenero, 'O Encarregado de Educação', 'A Encarregada de Educação') });
     return blocks;
   },
 });

@@ -5,7 +5,7 @@
 import { defineTemplate, type Block, type ClauseItem, type Warning } from '../model';
 import { BLANK, cite, dateLong, l, lineItems, splitLines } from './_shared';
 import { int, num, semPonto, str } from './_contratos';
-import { administradorColumn, condominioFields, edificio, fraccoesFields, permil } from './_construcao';
+import { administradorColumn, condominioFields, edificio, fraccoesFields, permilNum } from './_construcao';
 
 const PARTES_COMUNS = [
   'o solo, os alicerces, as colunas, os pilares, as paredes mestras e todas as partes da estrutura',
@@ -121,7 +121,7 @@ export default defineTemplate({
       { id: 'lixo', heading: 'Lixo', text: `O lixo é depositado ${semPonto(v.lixo) || BLANK}.`, en: 'Rubbish.' },
       { id: 'estacionamento', heading: 'Estacionamento', text: `${semPonto(v.estacionamento).replace(/^./, (s) => s.toUpperCase()) || BLANK}.`, en: 'Parking.' },
     );
-    if (str(v.seguranca)) cap2.push({ id: 'seguranca', heading: 'Segurança', text: semPonto(v.seguranca) + '.', en: 'Security.' });
+    if (str(v.seguranca)) cap2.push({ id: 'seguranca', heading: 'Segurança', text: `${splitLines(v.seguranca).map(semPonto).join('. ')}.`, en: 'Security.' });
     cap2.push({ id: 'arrendamento', heading: 'Arrendamento das fracções', text: 'O condómino que arrende a sua fracção comunica ao administrador a identificação do arrendatário e entrega-lhe cópia do presente Regulamento. O contrato de arrendamento indica quem é responsável pelo pagamento das quotas.', en: 'Letting of units; the lease states who pays the fees.' });
 
     const cap3: ClauseItem[] = [
@@ -169,8 +169,8 @@ export default defineTemplate({
           { label: 'Condómino', width: 4 },
           { label: 'Permilagem', width: 1.3, align: 'right' },
         ],
-        rows: c.fr.map((f: Record<string, unknown>) => [str(f.fraccao), str(f.condomino), permil(num(f.permilagem))]),
-        totals: [['Total', '', permil(c.soma)]],
+        rows: c.fr.map((f: Record<string, unknown>) => [str(f.fraccao), str(f.condomino), permilNum(num(f.permilagem))]),
+        totals: [['Total', '', permilNum(c.soma)]],
       });
     }
     return blocks;

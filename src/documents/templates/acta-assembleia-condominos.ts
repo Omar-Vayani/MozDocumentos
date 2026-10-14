@@ -5,7 +5,7 @@
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, cite, dateLong, l, lineItems, money, splitLines } from './_shared';
 import { num, semPonto, str } from './_contratos';
-import { condominioFields, dataPorExtenso, edificio, hora, mt, permil, r2 } from './_construcao';
+import { condominioFields, dataPorExtenso, edificio, hora, mt, permil, permilNum, r2 } from './_construcao';
 
 const SITUACAO = [
   { value: 'presente', label: l('Presente', 'Present') },
@@ -166,8 +166,8 @@ export default defineTemplate({
           { label: 'Permilagem', width: 1.1, align: 'right' },
           { label: 'Situação', width: 2.6 },
         ],
-        rows: (c.fr as Fr[]).map((f) => [f.fraccao, f.condomino, permil(f.permilagem), f.situacao === 'representado' ? `Representado${f.representante ? ` por ${f.representante}` : ''}` : f.situacao === 'ausente' ? 'Ausente' : 'Presente']),
-        totals: [['', 'Presentes e representados', permil(c.presente), `de ${permil(c.total)}`]],
+        rows: (c.fr as Fr[]).map((f) => [f.fraccao, f.condomino, permilNum(f.permilagem), f.situacao === 'representado' ? `Representado${f.representante ? ` por ${f.representante}` : ''}` : f.situacao === 'ausente' ? 'Ausente' : 'Presente']),
+        totals: [['', 'Presentes e representados', permilNum(c.presente), `de ${permilNum(c.total)}`]],
       });
       blocks.push({ type: 'paragraph', id: 'quorum', text: `Estavam presentes ou representados condóminos correspondentes a ${permil(c.presente)} do valor total do prédio, pelo que a assembleia ${v.convocatoria === 'segunda' ? 'reuniu em segunda convocatória, nos termos legais' : 'podia deliberar validamente'}.`, en: 'Quorum.' });
     }
@@ -194,13 +194,13 @@ export default defineTemplate({
           columns: [
             { label: 'Fracção', width: 0.9 },
             { label: 'Condómino', width: 3 },
-            { label: 'Permil.', width: 1, align: 'right' },
+            { label: 'Permilagem', width: 1.1, align: 'right' },
             { label: 'Quota (MT)', width: 1.2, align: 'right' },
             { label: 'Fundo reserva', width: 1.2, align: 'right' },
             { label: 'Total/mês (MT)', width: 1.3, align: 'right' },
           ],
-          rows: c.quotas.map((q: Fr & { mensal: number; fundo: number; totalMes: number }) => [q.fraccao, q.condomino, permil(q.permilagem), mt(q.mensal), mt(q.fundo), mt(q.totalMes)]),
-          totals: [['Total', '', permil(c.total), mt(tot('mensal')), mt(tot('fundo')), mt(tot('totalMes'))]],
+          rows: c.quotas.map((q: Fr & { mensal: number; fundo: number; totalMes: number }) => [q.fraccao, q.condomino, permilNum(q.permilagem), mt(q.mensal), mt(q.fundo), mt(q.totalMes)]),
+          totals: [['Total', '', permilNum(c.total), mt(tot('mensal')), mt(tot('fundo')), mt(tot('totalMes'))]],
         });
       }
     }

@@ -8,7 +8,7 @@ import { defineTemplate, type Block, type Warning } from '../model';
 import { blank, dateField, l, localField, placeDate } from './_shared';
 import {
   academicFields, alunoFields, cap, alunoIdent, designacaoField, eSuperior, estudante, FINALIDADE_FIELD, finalidadeBlock, fechoDeclaracao,
-  frequenciaTexto, inst, licenceNote, licenceWarning, num, rows, schoolSignatures, signatoryFields, str,
+  frequenciaTexto, inst, licenceWarning, num, rows, schoolSignatures, signatoryFields, str,
 } from './_educacao';
 
 const PERIODO: Record<string, string> = {
@@ -265,7 +265,7 @@ export default defineTemplate({
         en: 'This declaration does not replace the certificate of qualifications, issued under the regulations.',
       });
     } else if (fin) blocks.push(fin);
-    blocks.push(fechoDeclaracao(v, ctx), { type: 'signatures', placeDate: placeDate(ctx, v.data), columns: schoolSignatures(v) }, ...licenceNote(ctx));
+    blocks.push(fechoDeclaracao(v, ctx), { type: 'signatures', placeDate: placeDate(ctx, v.data), columns: schoolSignatures(v) });
     return blocks;
   },
 });

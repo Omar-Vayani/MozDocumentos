@@ -16,11 +16,11 @@ const SERVICOS = [
 ];
 
 const FASES_DEFAULT = [
-  { fase: 'Levantamento e programa preliminar', entregaveis: 'Programa aprovado pelo cliente', prazoDias: 7, valor: '' },
-  { fase: 'Estudo prévio', entregaveis: 'Plantas, cortes e alçados de princípio; estimativa de custo', prazoDias: 15, valor: '' },
-  { fase: 'Projecto para licenciamento', entregaveis: 'Peças desenhadas e escritas para o município', prazoDias: 20, valor: '' },
-  { fase: 'Projecto de execução', entregaveis: 'Pormenores, mapa de quantidades e caderno de encargos', prazoDias: 30, valor: '' },
-  { fase: 'Assistência técnica à obra', entregaveis: 'Visitas à obra e esclarecimentos', prazoDias: '', valor: '' },
+  { fase: 'Levantamento e programa preliminar', entregaveis: 'Programa aprovado pelo cliente', prazoDias: 7, valor: '', percentagem: 5 },
+  { fase: 'Estudo prévio', entregaveis: 'Plantas, cortes e alçados de princípio; estimativa de custo', prazoDias: 15, valor: '', percentagem: 20 },
+  { fase: 'Projecto para licenciamento', entregaveis: 'Peças desenhadas e escritas para o município', prazoDias: 20, valor: '', percentagem: 25 },
+  { fase: 'Projecto de execução', entregaveis: 'Pormenores, mapa de quantidades e caderno de encargos', prazoDias: 30, valor: '', percentagem: 35 },
+  { fase: 'Assistência técnica à obra', entregaveis: 'Visitas à obra e esclarecimentos', prazoDias: '', valor: '', percentagem: 15 },
 ];
 
 const EXCLUSOES = [
@@ -76,13 +76,14 @@ export default defineTemplate({
       type: 'lines',
       section: 'fases',
       label: l('Fases', 'Phases'),
-      help: l('Com a percentagem, o valor de cada fase é a sua parte (%) do total.', 'With the percentage basis, each phase’s value is its share (%) of the total.'),
+      help: l('Preencha o valor de cada fase, ou, na base percentual, a parte (%) do total que lhe cabe.', 'Enter each phase’s amount or, on the percentage basis, its share (%) of the total.'),
       addLabel: l('Adicionar fase', 'Add phase'),
       columns: [
         { name: 'fase', type: 'text', label: l('Fase', 'Phase') },
         { name: 'entregaveis', type: 'text', label: l('Entregáveis', 'Deliverables') },
         { name: 'prazoDias', type: 'number', label: l('Prazo (dias)', 'Time (days)') },
-        { name: 'valor', type: 'money', label: l('Valor (ou % do total)', 'Amount (or % of total)') },
+        { name: 'valor', type: 'money', label: l('Valor (valor por fase)', 'Amount (per-phase basis)') },
+        { name: 'percentagem', type: 'number', label: l('% do total (base percentual)', '% of total (percentage basis)') },
       ],
       default: FASES_DEFAULT,
     },
@@ -102,9 +103,8 @@ export default defineTemplate({
     const fases = lineItems(v.fases)
       .filter((f) => str(f.fase))
       .map((f) => {
-        const raw = money(f.valor);
-        const share = pctMode ? raw : null;
-        const valor = pctMode ? (totalPct != null && share != null ? r2((totalPct * share) / 100) : null) : raw;
+        const share = pctMode ? num(f.percentagem) : null;
+        const valor = pctMode ? (totalPct != null && share != null ? r2((totalPct * share) / 100) : null) : money(f.valor);
         return { fase: str(f.fase), entregaveis: str(f.entregaveis), prazo: int(f.prazoDias), share, valor };
       });
     const soma = r2(fases.reduce((s, f) => s + (f.valor ?? 0), 0));
@@ -190,10 +190,10 @@ export default defineTemplate({
         columns: [
           { label: 'N.º', width: 0.4, align: 'center' },
           { label: 'Fase', width: 2.2 },
-          { label: 'Entregáveis', width: 3.2 },
+          { label: 'Entregáveis', width: 2.9 },
           { label: 'Prazo (dias)', width: 0.9, align: 'center' },
           ...(pctMode ? [{ label: '%', width: 0.7, align: 'right' as const }] : []),
-          { label: 'Valor (MT)', width: 1.4, align: 'right' },
+          { label: 'Valor (MT)', width: 1.7, align: 'right' },
         ],
         rows: rows.length ? rows : [['1', BLANK, '', '', ...(pctMode ? [''] : []), '']],
         totals,

@@ -77,14 +77,14 @@ export default defineTemplate({
     const lista = cats.length ? cats : CATEGORIAS[n];
     const nasc = b ? LINE : str(v.candidatoNascimento) ? formatDateShort(v.candidatoNascimento) : LINE;
     const sexo = b ? '(   ) M      (   ) F' : v.candidatoGenero === 'F' ? 'Feminino' : 'Masculino';
-    const doc = b ? 'BI / DIRE / Pass. n.º ____________' : str(v.candidatoDocNumero) ? `${str(v.candidatoDocTipo) || 'BI'} n.º ${str(v.candidatoDocNumero)}` : LINE;
+    const doc = b ? 'BI/DIRE n.º ____________' : str(v.candidatoDocNumero) ? `${str(v.candidatoDocTipo) || 'BI'} n.º ${str(v.candidatoDocNumero)}` : LINE;
     const joia = money(v.joia);
     const quota = money(v.quota);
 
     const blocks: Block[] = [
       { type: 'title', text: 'Ficha de Inscrição de Membro' },
       { type: 'box', label: 'Reservado aos serviços', text: 'Membro n.º __________\nRecebida em ___/___/______', width: 'half' },
-      { type: 'box', label: 'Fotografia', lines: 3, width: 'half', align: 'right' },
+      { type: 'box', label: 'Fotografia', lines: 2, width: 'half', align: 'right' },
       {
         type: 'keyValue',
         title: 'Dados pessoais',
@@ -104,8 +104,13 @@ export default defineTemplate({
           { label: 'Email', value: val(v, 'candidatoEmail', b) },
         ],
       },
-      { type: 'heading', text: 'Categoria pretendida' },
-      { type: 'checklist', columns: 2, items: [...lista, 'Outra: ______________'].map((c) => ({ label: c, checked: !b && str(v.categoria).toLowerCase() === c.toLowerCase() })) },
+      {
+        type: 'paragraph',
+        id: 'categoria',
+        text: `**Categoria pretendida:**   ${lista.map((c) => `(${!b && str(v.categoria).toLowerCase() === c.toLowerCase() ? ' X ' : '   '}) ${c}`).join('     ')}`,
+        en: 'Membership category requested.',
+        align: 'left',
+      },
     ];
     if (v.proponentes) {
       blocks.push(
@@ -118,8 +123,8 @@ export default defineTemplate({
             { label: 'Assinatura', width: 3.4 },
           ],
           rows: [
-            ['1.\n ', '', ''],
-            ['2.\n ', '', ''],
+            ['1.', '', ''],
+            ['2.', '', ''],
           ],
         },
       );
@@ -132,13 +137,6 @@ export default defineTemplate({
         en: 'I apply for membership, accept the statutes and rules, undertake to pay the fees, confirm the information is true and consent to the use of my data for membership only.',
       },
     );
-    if (joia != null || quota != null) {
-      blocks.push({
-        type: 'note',
-        text: [joia != null ? `Jóia: ${formatMoney(joia)}` : '', quota != null ? `Quota mensal: ${formatMoney(quota)}` : ''].filter(Boolean).join('   ·   '),
-        en: 'Entry fee and monthly dues.',
-      });
-    }
     const last = blocks[blocks.length - 1];
     last.keepWithNext = true;
     blocks.push({
@@ -152,7 +150,7 @@ export default defineTemplate({
     blocks.push({
       type: 'box',
       label: 'Decisão da Direcção',
-      text: `Admitido(a) em ___/___/______    Acta n.º ______    Membro n.º ______\nJóia paga com o recibo n.º ______\n${igreja ? 'O Pastor' : 'O Presidente da Direcção'}: ______________________________`,
+      text: `Admitido(a) em ___/___/______    Acta n.º ______    Membro n.º ______    Recibo da jóia n.º ______${joia != null || quota != null ? `\n${[joia != null ? `Jóia: ${formatMoney(joia)}` : '', quota != null ? `Quota mensal: ${formatMoney(quota)}` : ''].filter(Boolean).join('  ·  ')}` : ''}    ${igreja ? 'O Pastor' : 'O Presidente'}: ____________________`,
     });
     return blocks;
   },

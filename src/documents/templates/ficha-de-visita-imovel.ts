@@ -102,7 +102,7 @@ export default defineTemplate({
         en: 'The visitor confirms the properties were shown by the agency on this date.',
       },
     ];
-    if (v.consentimentoContacto) blocks.push({ type: 'checklist', columns: 1, items: [{ label: `Autorizo ${firma} a contactar-me sobre estes e outros imóveis`, checked: false }, { label: 'Não autorizo contactos futuros', checked: false }] });
+    if (v.consentimentoContacto) blocks.push({ type: 'paragraph', id: 'contactos', text: `Autorizo ${firma} a contactar-me sobre estes e outros imóveis:    Sim ______    Não ______`, en: 'Consent to future contact: yes / no.', size: 'small' });
     if (str(v.observacoes)) blocks.push({ type: 'paragraph', id: 'observacoes', text: `Observações: ${semPonto(v.observacoes)}.`, en: 'Notes.', size: 'small' });
     blocks.push({ type: 'signatures', placeDate: `${ctx.place}, ${dateLong(v.data)}`, columns: [{ role: 'O(A) Visitante', name: str(v.visitanteNome) || undefined }, { role: 'O(A) Agente', name: str(v.agenteNome) || undefined, detail: firma, image: 'stamp' }] });
     return blocks;

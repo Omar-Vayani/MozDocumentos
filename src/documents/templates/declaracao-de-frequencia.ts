@@ -8,7 +8,7 @@ import { defineTemplate, type Block, type Warning } from '../model';
 import { blank, dateField, dateLong, l, localField, placeDate } from './_shared';
 import {
   academicFields, alunoFields, alunoIdent, designacaoField, eCurso, eSuperior, estudante, FINALIDADE_FIELD, finalidadeBlock,
-  fechoDeclaracao, frequenciaTexto, inst, licenceNote, licenceWarning, mesAno, num, schoolSignatures, signatoryFields, str,
+  fechoDeclaracao, frequenciaTexto, inst, licenceWarning, mesAno, num, schoolSignatures, signatoryFields, str,
 } from './_educacao';
 
 export default defineTemplate({
@@ -143,7 +143,6 @@ export default defineTemplate({
     blocks.push(fechoDeclaracao(v, ctx), { type: 'signatures', placeDate: placeDate(ctx, v.data), columns: schoolSignatures(v) });
     const validade = num(v.validadeDias);
     if (validade && validade > 0) blocks.push({ type: 'note', text: `Válida por ${validade} dias a contar da data de emissão.`, en: `Valid for ${validade} days from the date of issue.` });
-    blocks.push(...licenceNote(ctx));
     return blocks;
   },
 });

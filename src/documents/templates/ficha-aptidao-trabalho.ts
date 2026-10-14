@@ -121,12 +121,8 @@ export default defineTemplate({
         en: 'This form gives the result of the medical examination of the worker named below. Under medical confidentiality it states only fitness for work.',
       },
       { type: 'keyValue', items, columns: 1 },
-      {
-        type: 'paragraph',
-        id: 'resultado',
-        text: `**Resultado: ${(CONCLUSOES.find((c) => c.value === v.conclusao) ?? CONCLUSOES[0]).label.toUpperCase()}**`,
-        en: `Result: ${(CONCLUSOES.find((c) => c.value === v.conclusao) ?? CONCLUSOES[0]).en}`,
-      },
+      { type: 'heading', text: 'Resultado' },
+      { type: 'checklist', columns: 2, items: CONCLUSOES.map((c) => ({ label: c.label, checked: v.conclusao === c.value })) },
     ];
     const rest = String(v.restricoes ?? '').trim();
     if (v.conclusao !== 'apto' && rest) {

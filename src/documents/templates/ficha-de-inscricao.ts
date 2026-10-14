@@ -163,7 +163,7 @@ export default defineTemplate({
           { label: 'Alergias', value: val(v, 'alergias') },
           { label: 'Doenças', value: val(v, 'doencas') },
           { label: 'Medicação', value: val(v, 'medicacao') },
-          { label: 'Grupo sanguíneo', value: val(v, 'grupoSanguineo') },
+          ...(v.emBranco || str(v.grupoSanguineo) ? [{ label: 'Grupo sanguíneo', value: val(v, 'grupoSanguineo') }] : []),
           { label: 'Emergência 1', value: val(v, 'emergencia1') },
           { label: 'Emergência 2', value: val(v, 'emergencia2') },
           { label: 'Unidade sanitária', value: val(v, 'unidadeSanitaria') },
@@ -200,32 +200,21 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'imagem',
-        text: `Uso da imagem do aluno:   ${box(v.imagem === 'nao')} não autorizo   ${box(v.imagem === 'interno')} só para fins internos e pedagógicos   ${box(v.imagem === 'publico')} também nas publicações e redes sociais da escola`,
+        text: `Imagem do aluno:   ${box(v.imagem === 'nao')} não autorizo   ${box(v.imagem === 'interno')} só uso interno   ${box(v.imagem === 'publico')} também nas redes sociais da escola`,
         en: 'Use of the pupil’s image: not authorised / internal use only / also publications and social media.',
         editable: false,
       },
       {
-        type: 'checklist',
-        columns: 2,
-        items: [
-          { label: 'Saídas curtas acompanhadas por professores', checked: chk('saidas') },
-          { label: 'Primeiros socorros e ida a unidade sanitária em caso de urgência', checked: chk('socorros') },
-        ],
-      },
-      {
         type: 'paragraph',
-        id: 'declaracao',
-        text: 'Declaro que as informações prestadas são verdadeiras e que tomei conhecimento do Regulamento Interno e da tabela de propinas em vigor.',
-        en: 'I declare that the information is true and that I have read the internal rules and the fee schedule. I will report any change.',
-        keepWithNext: true,
+        id: 'autorizacoes',
+        text: `Saídas curtas acompanhadas por professores:   ${box(chk('saidas'))} sim   ${box(!v.emBranco && !v.saidas)} não\nPrimeiros socorros e ida a unidade sanitária em caso de urgência:   ${box(chk('socorros'))} sim   ${box(!v.emBranco && !v.socorros)} não`,
+        en: 'Supervised short outings: yes / no. First aid and taking the pupil to a health unit in an emergency: yes / no.',
+        editable: false,
       },
       {
-        type: 'signatures',
-        placeDate: v.emBranco ? `${ctx.place}, ___ de ______________ de ______` : `${ctx.place}, ${dateLong(v.inscricaoData)}`,
-        columns: [
-          { role: 'O(A) Encarregado(a) de Educação', name: v.emBranco ? undefined : str(v.encarregadoNome) || undefined },
-          { role: 'Pela Secretaria' },
-        ],
+        type: 'box',
+        label: 'Declaração e assinaturas',
+        text: `Declaro que as informações prestadas são verdadeiras e que tomei conhecimento do Regulamento Interno e da tabela de propinas em vigor.\n${ctx.place}, ${v.emBranco || !str(v.inscricaoData) ? '___ de ______________ de ______' : dateLong(v.inscricaoData)}\n\nO(A) Encarregado(a) de Educação${!v.emBranco && str(v.encarregadoNome) ? ` (${str(v.encarregadoNome)})` : ''}: ______________________________\n\nRecebido pela Secretaria: ______________________________`,
       },
     );
     return blocks;

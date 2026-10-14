@@ -110,7 +110,7 @@ export default defineTemplate({
     const extra = splitLines(v.texto).map((t, i) => ({ type: 'paragraph' as const, id: `texto${i + 1}`, text: t, en: 'Notice text.' }));
     const cal = rows(v.calendario).filter((r) => str(r.data) || str(r.actividade));
     const blocks: Block[] = [
-      { type: 'reference', ref: `Comunicado n.º ${str(v.numero) || '____'}`, place: ctx.place, date: v.data },
+      { type: 'reference', ref: `Comunicado n.º ${str(v.numero) || '____'}`, place: ctx.place, date: dateLong(v.data) },
       { type: 'title', text: 'Comunicado' },
     ];
     if (str(v.assunto)) blocks.push({ type: 'subject', text: semPonto(v.assunto) });

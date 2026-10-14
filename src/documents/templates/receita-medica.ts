@@ -161,18 +161,24 @@ export default defineTemplate({
   blocks: (ctx) => {
     const v = ctx.values;
     const age = patientAge(v);
-    const doente = [
-      { label: 'Doente', value: v.doenteNome || '______________' },
-      { label: 'Idade', value: age != null ? `${age} ${age === 1 ? 'ano' : 'anos'}` : '______' },
-      { label: 'Sexo', value: v.doenteGenero === 'F' ? 'Feminino' : 'Masculino' },
-    ];
-    if (v.doentePeso) doente.push({ label: 'Peso', value: `${v.doentePeso} kg` });
-    if (v.doenteProcesso) doente.push({ label: 'Processo n.º', value: String(v.doenteProcesso) });
-    if (v.alergias) doente.push({ label: 'Alergias', value: String(v.alergias) });
+    // One compact identification line: an A5 prescription has little room.
+    const linha = [
+      `**Doente:** ${v.doenteNome || '____________________'}`,
+      age != null ? `${age} ${age === 1 ? 'ano' : 'anos'}` : 'idade: ______',
+      v.doenteGenero === 'F' ? 'sexo feminino' : 'sexo masculino',
+      v.doentePeso ? `${v.doentePeso} kg` : '',
+      v.doenteProcesso ? `processo n.º ${v.doenteProcesso}` : '',
+    ].filter(Boolean).join(' · ');
 
     const blocks: Block[] = [
       { type: 'title', text: 'Receita Médica', subtitle: v.ref ? `N.º ${v.ref}` : undefined },
-      { type: 'keyValue', items: doente, columns: 2 },
+      {
+        type: 'paragraph',
+        id: 'doente',
+        align: 'left',
+        text: `${linha}${v.alergias ? `\n**Alergias:** ${v.alergias}` : ''}`,
+        en: `Patient: ${v.doenteNome || '___'}${v.alergias ? `; allergies: ${v.alergias}` : ''}`,
+      },
       { type: 'display', text: 'Rp/', size: 'md', align: 'left', weight: 'bold', tone: 'accent', italic: true, after: 2 },
     ];
     const list = meds(v);
@@ -188,7 +194,7 @@ export default defineTemplate({
         en: `${i + 1}. ${nome} — quantity ${m.quantidade ?? '___'}${uso ? `; ${uso}` : ''}.`,
       });
     });
-    blocks.push({ type: 'display', text: '— fim da prescrição —', size: 'xs', tone: 'muted', italic: true, after: 4 });
+    blocks.push({ type: 'display', text: '— fim da prescrição —', size: 'xs', tone: 'muted', italic: true, after: 2 });
     if (v.observacoes) {
       blocks.push({ type: 'paragraph', id: 'observacoes', size: 'small', align: 'left', text: `**Indicações:** ${v.observacoes}`, en: `Instructions: ${v.observacoes}` });
     }

@@ -291,5 +291,7 @@ export function fraccoesFields(section: string, name = 'fraccoes'): FieldDef {
   };
 }
 
-/** "1,5‰" */
-export const permil = (n: number | null) => (n == null ? '' : `${String(r2(n)).replace('.', ',')}‰`);
+/** Per-mille share as printed: "125/1000" (the ‰ sign is not in the document fonts). */
+export const permil = (n: number | null) => (n == null ? '' : `${String(r2(n)).replace('.', ',')}/1000`);
+/** Per-mille share in a table column headed "Permilagem": "125". */
+export const permilNum = (n: number | null) => (n == null ? '' : String(r2(n)).replace('.', ','));

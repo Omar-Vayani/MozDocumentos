@@ -682,7 +682,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       let size = Math.max(6.5, DISPLAY_PT[block.size ?? 'md'] * theme.scale);
       if (block.fit) {
         // Shrink so the longest line fits the width (average glyph ≈ 0.55 em; capitals wider).
-        const longest = Math.max(...block.text.split(/\r?\n/).map((x) => x.length), 1);
+        const longest = Math.max(...block.text.split(/\r?\n/).map((x) => x.replace(/\*\*/g, '').length), 1);
         const em = (block.uppercase ? 0.68 : 0.55) + (block.weight === 'bold' ? 0.05 : 0);
         size = Math.max(6.5, Math.min(size, theme.contentWidth / (longest * em)));
       }
@@ -695,22 +695,33 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           style={{ marginBottom: block.after ?? size * 0.45, ...(block.align !== 'left' && block.align !== 'right' && block.text.length > 90 ? { width: '86%', alignSelf: 'center' } : {}) }}
           wrap={false}
         >
-          {lines.map((ln, i) => (
-            <Text
-              key={i}
-              style={{
-                fontSize: size,
-                lineHeight: 1.22,
-                textAlign: block.align ?? 'center',
-                color,
-                fontWeight: block.weight === 'bold' ? 700 : 400,
-                fontStyle: block.italic ? 'italic' : 'normal',
-              }}
-            >
-              {/* Uppercased before layout (react-pdf measures before textTransform). */}
-              {block.uppercase ? ln.toLocaleUpperCase('pt') : ln || ' '}
-            </Text>
-          ))}
+          {lines.map((ln, i) => {
+            const style = {
+              fontSize: size,
+              lineHeight: 1.22,
+              textAlign: block.align ?? 'center',
+              color,
+              fontWeight: block.weight === 'bold' ? 700 : 400,
+              fontStyle: block.italic ? 'italic' : 'normal',
+            } as const;
+            // Uppercased before layout (react-pdf measures before textTransform).
+            const txt = block.uppercase ? ln.toLocaleUpperCase('pt') : ln;
+            // "• " or "- " lines: a bullet with a hanging indent.
+            const bullet = /^\s*[•-]\s+/.exec(txt);
+            if (bullet) {
+              return (
+                <View key={i} style={{ flexDirection: 'row' }}>
+                  <Text style={{ ...style, width: size * 1.1, textAlign: 'left' }}>•</Text>
+                  <Text style={{ ...style, flex: 1, textAlign: 'left' }}>{rich(txt.slice(bullet[0].length))}</Text>
+                </View>
+              );
+            }
+            return (
+              <Text key={i} style={style}>
+                {txt ? rich(txt) : ' '}
+              </Text>
+            );
+          })}
         </View>
       );
     }
