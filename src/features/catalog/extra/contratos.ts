@@ -195,7 +195,7 @@ export const CATALOG_CONTRATOS: TemplateMeta[] = [
       pt: 'Para duas ou três empresas concorrerem juntas a um concurso ou executarem um projecto, sem criar uma nova sociedade.',
       en: 'For two or three companies to bid jointly or carry out a project together without forming a new company.',
     },
-    tags: ['consorcio', 'joint venture', 'agrupamento', 'concurso publico', 'parceria', 'empresas', 'consortium', 'joint bid', 'tender'],
+    tags: ['consorcio', 'joint venture', 'agrupamento', 'concurso publico', 'parceria', 'empresas', 'consortium', 'joint bid', 'tender', 'consórcio para concurso', 'joint venture agreement'],
     legalRefs: ['consorcioForma', 'reconhecimentoNotarial'],
     related: ['memorando-de-entendimento', 'contrato-de-empreitada'],
     lastReviewed: REVIEWED,

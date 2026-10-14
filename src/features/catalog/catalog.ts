@@ -675,7 +675,7 @@ const CORE_CATALOG: TemplateMeta[] = [
       pt: 'Para credenciar um funcionário a tratar de um assunto da empresa junto de uma entidade.',
       en: 'To authorise an employee to handle a company matter with another body.',
     },
-    tags: ['credencial', 'autorizacao', 'representar', 'levantar', 'credentials', 'authorisation letter', 'credenciar', 'autorização para representar', 'carta de autorização', 'representante da empresa'],
+    tags: ['credencial', 'autorizacao', 'representar', 'levantar', 'credentials', 'authorisation letter', 'credenciar', 'autorização para representar', 'carta de autorização', 'representante da empresa', 'credencial para concurso', 'credencial para abertura de propostas'],
     legalRefs: [],
     bilingual: true,
     lastReviewed: REVIEWED,

@@ -193,6 +193,7 @@ function linhasMsg(x: unknown): string {
   return String(x ?? '')
     .split(/\n+/)
     .map((s) => s.replace(/^\s*(?:[-•*]|\d+[.)])\s*/, '').trim().replace(/[.;]+$/, ''))
+    .map((s) => s.charAt(0).toLowerCase() + s.slice(1))
     .filter(Boolean)
     .join('; ');
 }
