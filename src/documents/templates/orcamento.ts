@@ -4,6 +4,7 @@ import { profileDisplayName } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type SignatureColumn, type Warning } from '../model';
 import { BLANK, dateLong, employerRep, formatMoney, l, lineItems, localField, money, refField, splitLines, workerFields } from './_shared';
+import { moneyExt } from './_contrato-trabalho';
 
 // ---------------------------------------------------------------- local helpers
 
@@ -257,19 +258,16 @@ export default defineTemplate({
       });
     }
 
-    blocks.push({
-      type: 'keyValue',
-      title: 'Cliente',
-      columns: 2,
-      items: [
-        { label: 'Nome', value: v.clienteNome || BLANK },
-        { label: 'NUIT', value: v.clienteNuit || '' },
-        { label: 'Morada', value: v.clienteMorada || '' },
-        { label: 'Telefone', value: v.clienteTelefone || '' },
-        { label: 'Email', value: v.clienteEmail || '' },
-        { label: 'Ao cuidado de', value: v.clienteAtencao || '' },
-      ].filter((it) => it.value),
-    });
+    const cliente = [
+      { label: 'Nome', value: v.clienteNome || BLANK },
+      { label: 'NUIT', value: v.clienteNuit || '' },
+      { label: 'Morada', value: v.clienteMorada || '' },
+      { label: 'Telefone', value: v.clienteTelefone || '' },
+      { label: 'Email', value: v.clienteEmail || '' },
+      { label: 'Ao cuidado de', value: v.clienteAtencao || '' },
+    ].filter((it) => it.value);
+    // Two or three items read better on full-width rows (names and addresses do not wrap).
+    blocks.push({ type: 'keyValue', title: 'Cliente', columns: cliente.length > 3 ? 2 : 1, items: cliente });
 
     if (v.proposta) {
       const objecto = String(v.propostaObjecto || '').trim().replace(/[.;]+$/, '');
@@ -312,9 +310,9 @@ export default defineTemplate({
       totals,
       note: v.iva ? undefined : String(v.ivaNota || '').trim() || 'Os valores indicados não incluem IVA.',
     });
-    if (c.total > 0) blocks.push({ type: 'amount', label: `Total ${v.proposta ? 'da proposta' : 'do orçamento'}${v.iva ? ' (com IVA)' : ''}`, value: c.total });
-
+    // The total in words heads the conditions (the table already shows it in figures).
     const condicoes = [
+      ...(c.total > 0 ? [{ label: `Total ${v.proposta ? 'da proposta' : 'do orçamento'}${v.iva ? ' (com IVA)' : ''}`, value: moneyExt(c.total) }] : []),
       {
         label: 'Validade',
         value: c.validadeDias ? `${c.validadeDias} ${c.validadeDias === 1 ? 'dia' : 'dias'}${c.validadeData ? `, até ${dateLong(c.validadeData)}` : ''}` : BLANK,
@@ -322,8 +320,9 @@ export default defineTemplate({
       { label: 'Condições de pagamento', value: v.condicoesPagamento || '' },
       { label: 'Prazo de entrega', value: v.prazoEntrega || '' },
     ];
-    if (v.mostrarBanco && p?.banco) condicoes.push({ label: 'Banco', value: p.banco });
-    if (v.mostrarBanco && p?.nib) condicoes.push({ label: 'NIB', value: p.nib });
+    if (v.mostrarBanco && (p?.banco || p?.nib)) {
+      condicoes.push({ label: p?.banco && p?.nib ? 'Banco e NIB' : p?.nib ? 'NIB' : 'Banco', value: [p?.banco, p?.nib].filter(Boolean).join(' — NIB ') });
+    }
     blocks.push({ type: 'keyValue', title: 'Condições', columns: 1, items: condicoes.filter((it) => it.value) });
 
     const obs = splitLines(v.observacoes);

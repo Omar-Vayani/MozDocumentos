@@ -364,7 +364,7 @@ export default defineTemplate({
         poderes.push(
           `vender, a quem e pelo preço que tiver por conveniente, a viatura ${ident}, propriedade ${doOut}`,
           'assinar a declaração de venda e o requerimento de registo de propriedade a favor do comprador, receber o preço e dar quitação',
-          `entregar a viatura e os respectivos documentos e praticar todos os actos necessários junto da Conservatória do Registo Automóvel${entidade ? `, ${entidade}` : ''} e demais entidades competentes`,
+          `entregar a viatura e os respectivos documentos e praticar todos os actos necessários junto da ${entidade && /registo autom/i.test(entidade) ? entidade : `Conservatória do Registo Automóvel${entidade ? `, ${entidade}` : ''}`} e demais entidades competentes`,
         );
         break;
       }

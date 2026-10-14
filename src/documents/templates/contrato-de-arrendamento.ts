@@ -862,13 +862,13 @@ export default defineTemplate({
       {
         type: 'paragraph',
         id: 'parteSenhorio',
-        text: `Entre:\n${parte(v, 'senhorio', S)};`,
+        text: `**Entre:**\n${parte(v, 'senhorio', S)};`,
         en: 'Between the Landlord, identified above;',
       },
       {
         type: 'paragraph',
         id: 'parteInquilino',
-        text: `e\n${parte(v, 'inquilino', I)};`,
+        text: `**e**\n${parte(v, 'inquilino', I)};`,
         en: 'and the Tenant, identified above;',
       },
       {

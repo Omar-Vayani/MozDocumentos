@@ -48,6 +48,14 @@ const lowerFirst = (s: string) => {
 };
 const clean = (s: unknown) => String(s ?? '').trim().replace(/[.;,]$/, '');
 
+/** "no jornal Notícias", "na página da empresa", "no LinkedIn"; keeps "em"/"no"/"na" typed by the user. */
+function emFonte(f: string): string {
+  if (/^(em|no|na|nos|nas|pelo|pela|através)\b/i.test(f)) return f;
+  if (/^(jornal|site|s[íi]tio|portal|an[úu]ncio|LinkedIn|Facebook|Instagram|r[áa]dio|canal|quadro)\b/i.test(f)) return `no ${f}`;
+  if (/^(p[áa]gina|revista|rede|televis[ãa]o|plataforma|imprensa|edi[çc][ãa]o)\b/i.test(f)) return `na ${f}`;
+  return `em ${f}`;
+}
+
 export default defineTemplate({
   id: 'carta-de-candidatura',
   letterhead: false,
@@ -275,7 +283,7 @@ export default defineTemplate({
     } else {
       const fonte = clean(v.anuncioFonte);
       const anuncio = fonte || v.anuncioData
-        ? `, anunciada${fonte ? ` em ${fonte}` : ''}${v.anuncioData ? ` ${fonte ? 'a' : 'em'} ${dateLong(v.anuncioData)}` : ''}`
+        ? `, anunciada${fonte ? ` ${emFonte(fonte)}` : ''}${v.anuncioData ? ` ${fonte ? 'a' : 'em'} ${dateLong(v.anuncioData)}` : ''}`
         : '';
       abertura = `Apresento a V. Ex.ªs a minha candidatura à vaga de **${vaga || BLANK}**${ref ? `, com a referência ${ref}` : ''}${anuncio}.`;
       aberturaEn = `I am applying for the vacancy of ${vaga || '…'}${ref ? ` (ref. ${ref})` : ''}${fonte ? `, advertised in ${fonte}` : ''}.`;

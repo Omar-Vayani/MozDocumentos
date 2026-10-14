@@ -9,6 +9,7 @@ import { int, semPonto, str, valorTexto } from './_contratos';
 import { administradorColumn, condominioFields, edificio, mt, r2 } from './_construcao';
 
 const isInterp = (v: Record<string, unknown>) => v.tipo === 'interpelacao';
+const CURTO = '____________';
 
 export default defineTemplate({
   id: 'aviso-de-quotas-condominio',
@@ -123,15 +124,16 @@ export default defineTemplate({
         ['Valores em atraso', money(v.atrasos)],
       ].filter(([, n]) => n != null && (n as number) > 0) as [string, number][];
       const blocks: Block[] = [
-        { type: 'title', text: 'Aviso de Pagamento de Quotas', subtitle: `${ed} · ${formatMonthYear(v.periodo ? `${v.periodo}-01` : '')}` },
+        { type: 'title', text: 'Aviso de Pagamento de Quotas', subtitle: v.periodo ? `${ed} · ${formatMonthYear(`${v.periodo}-01`)}` : ed },
         {
           type: 'keyValue',
           columns: 2,
           items: [
-            { label: 'Fracção', value: str(v.fraccao) || BLANK },
-            { label: 'Condómino', value: str(v.condominoNome) || BLANK },
-            { label: 'Pagar até', value: dateLong(v.dataLimite) },
-            { label: 'Referência', value: str(v.referencia) || `Fracção ${str(v.fraccao) || BLANK}` },
+            // Short blanks: the A5 notice has narrow value columns.
+            { label: 'Fracção', value: str(v.fraccao) || CURTO },
+            { label: 'Condómino', value: str(v.condominoNome) || CURTO },
+            { label: 'Pagar até', value: v.dataLimite ? dateLong(v.dataLimite) : '___/___/______' },
+            { label: 'Referência', value: str(v.referencia) || `Fracção ${str(v.fraccao) || '____'}` },
           ],
         },
         {

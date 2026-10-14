@@ -19,6 +19,13 @@ function juntoDe(entidade: string): string {
     const art = m[1].toLowerCase();
     return `junto ${({ a: 'da', o: 'do', as: 'das', os: 'dos' } as Record<string, string>)[art]} **${m[2]}**`;
   }
+  // "Conselho Municipal…" → "junto do Conselho…"; "Direcção…" → "junto da Direcção…".
+  if (/^(autoridade|direc[çc][ãa]o|conservat[óo]ria|c[âa]mara|embaixada|reparti[çc][ãa]o|administra[çc][ãa]o|secretaria|pol[íi]cia|universidade|escola|associa[çc][ãa]o|inspec[çc][ãa]o|delega[çc][ãa]o|procuradoria|empresa|sociedade|ag[êe]ncia|esquadra|alf[âa]ndega)\b/i.test(e)) {
+    return `junto da **${e}**`;
+  }
+  if (/^(conselho|minist[ée]rio|instituto|banco|tribunal|munic[íi]pio|servi[çc]o|gabinete|governo|comando|departamento|centro|hospital|consulado|cart[óo]rio|registo|fundo|notariado)\b/i.test(e)) {
+    return `junto do **${e}**`;
+  }
   return `junto da entidade **${e || BLANK}**`;
 }
 

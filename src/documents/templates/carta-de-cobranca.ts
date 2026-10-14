@@ -3,6 +3,7 @@ import { profileDisplayName } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type SignatureColumn, type Values, type Warning } from '../model';
 import { BLANK, cite, dateField, dateLong, employerRep, exmo, formatMoney, g, l, lineItems, localField, money, refField, workerFields } from './_shared';
+import { moneyExt } from './_contrato-trabalho';
 
 // ---------------------------------------------------------------- local helpers
 
@@ -188,7 +189,7 @@ export default defineTemplate({
       section: 'prazo',
       default: true,
       label: l('Mencionar juros de mora', 'Mention late-payment interest'),
-      help: l('Depois do prazo, o devedor passa a dever também juros de mora à taxa legal.', 'After the deadline the debtor also owes default interest at the legal rate.'),
+      help: l('Com data de vencimento, os juros de mora à taxa legal contam desde o vencimento; sem ela, desde o fim do prazo desta carta.', 'With a due date, default interest at the legal rate runs from that date; without one, from the end of the deadline in this letter.'),
     },
     {
       name: 'acordo',
@@ -357,7 +358,9 @@ export default defineTemplate({
       en: `Under the ${v.origemTipo === 'contrato' ? 'contract' : v.origemTipo === 'factura' ? 'invoice' : 'transaction'} stated, the amount below is owed to ${credor} and is overdue.`,
       keepWithNext: true,
     });
-    blocks.push({ type: 'amount', label: 'Valor em dívida', value: c.valor ?? null });
+    // With two or more invoices the table carries the total and the demand gives it in words.
+    const comTabela = fs.length > 1;
+    if (!comTabela) blocks.push({ type: 'amount', label: 'Valor em dívida', value: c.valor ?? null });
 
     if (fs.length) {
       blocks.push({
@@ -387,13 +390,14 @@ export default defineTemplate({
 
     // The demand
     const prazoTxt = `**${dateLong(c.prazo)}**`;
+    const valorExt = comTabela && c.valor != null ? `, de **${moneyExt(c.valor)}**` : '';
     const prazoDias = v.prazoModo === 'data' ? '' : ` (${c.dias} ${c.dias === 1 ? 'dia' : 'dias'} a contar da data desta carta)`;
     blocks.push({
       type: 'paragraph',
       id: 'interpelacao',
       text: segunda(v)
-        ? `Assim, ${nos('interpelamos', 'interpelo')} ${vEx}, pela segunda vez, para pagar a totalidade do valor em dívida até ${prazoTxt}${prazoDias}.`
-        : `Assim, ${nos('solicitamos', 'solicito')} a ${vEx} que proceda ao pagamento da totalidade do valor em dívida até ${prazoTxt}${prazoDias}.`,
+        ? `Assim, ${nos('interpelamos', 'interpelo')} ${vEx}, pela segunda vez, para pagar a totalidade do valor em dívida${valorExt} até ${prazoTxt}${prazoDias}.`
+        : `Assim, ${nos('solicitamos', 'solicito')} a ${vEx} que proceda ao pagamento da totalidade do valor em dívida${valorExt} até ${prazoTxt}${prazoDias}.`,
       en: `${segunda(v) ? 'For the second time, you are formally required' : 'You are asked'} to pay the full amount by ${c.prazo ?? 'the date stated'}.`,
     });
 
@@ -409,12 +413,20 @@ export default defineTemplate({
 
     // Default and legal action
     const constituido = empresa ? 'ficam constituídos' : g(ge, 'fica constituído', 'fica constituída');
-    const mora = `Findo este prazo sem que o pagamento se mostre efectuado, ${vEx} ${constituido} em mora, nos termos dos ${cite('codigoCivilMora')}${v.juros ? ', respondendo pelos juros de mora à taxa legal até integral pagamento e pelos demais prejuízos causados' : ''}.`;
+    // A debt with a due date is in default from that date, without any demand: interest runs from then.
+    const vencida = v.origemTipo === 'factura' ? fs.some((f) => f.vencimento) || Boolean(v.origemVencimento) : Boolean(v.origemVencimento);
+    const encontra = empresa ? 'encontram-se' : 'encontra-se';
+    const desde = fs.filter((f) => f.vencimento).length > 1 ? 'desde as respectivas datas de vencimento' : 'desde a data de vencimento';
+    const mora = vencida
+      ? `Recorda-se que, tratando-se de obrigação com prazo certo, ${vEx} ${encontra} em mora ${desde}, nos termos dos ${cite('codigoCivilMora')}${v.juros ? ', sendo devidos juros de mora à taxa legal desde essa data até integral pagamento, bem como a indemnização dos demais prejuízos causados' : ''}.`
+      : `Findo este prazo sem que o pagamento se mostre efectuado, ${vEx} ${constituido} em mora, nos termos dos ${cite('codigoCivilMora')}${v.juros ? ', respondendo pelos juros de mora à taxa legal até integral pagamento e pelos demais prejuízos causados' : ''}.`;
     blocks.push({
       type: 'paragraph',
       id: 'mora',
       text: mora,
-      en: `After the deadline you will be in default under the Civil Code${v.juros ? ', owing default interest at the legal rate until full payment and any other damage caused' : ''}.`,
+      en: vencida
+        ? `As the debt had a due date, you have been in default since that date under the Civil Code${v.juros ? ', and default interest at the legal rate runs from then until full payment' : ''}.`
+        : `After the deadline you will be in default under the Civil Code${v.juros ? ', owing default interest at the legal rate until full payment and any other damage caused' : ''}.`,
     });
     blocks.push({
       type: 'paragraph',
@@ -428,8 +440,8 @@ export default defineTemplate({
     const contacto = clean(v.contacto);
     const vb = (sg: string, pl: string) => (empresa ? pl : sg);
     const acordo = v.acordo
-      ? `Caso ${vb('pretenda', 'pretendam')} propor um plano de pagamento, ou se o pagamento já tiver sido efectuado, ${nos('solicitamos', 'solicito')} que ${nos('nos', 'me')} ${vb('contacte', 'contactem')} antes do termo do prazo${contacto ? `, através de ${contacto}` : ''}, enviando o respectivo comprovativo quando for o caso.`
-      : `Se o pagamento já tiver sido efectuado, ${nos('solicitamos', 'solicito')} que ${nos('nos', 'me')} ${vb('envie', 'enviem')} o respectivo comprovativo${contacto ? ` através de ${contacto}` : ''} e ${vb('considere', 'considerem')} sem efeito a presente carta.`;
+      ? `Caso ${vb('pretenda', 'pretendam')} propor um plano de pagamento, ou se o pagamento já tiver sido efectuado, ${nos('solicitamos', 'solicito')} que ${nos('nos', 'me')} ${vb('contacte', 'contactem')} antes do termo do prazo${contacto ? ` (contacto: ${contacto})` : ''}, enviando o respectivo comprovativo quando for o caso.`
+      : `Se o pagamento já tiver sido efectuado, ${nos('solicitamos', 'solicito')} que ${nos('nos', 'me')} ${vb('envie', 'enviem')} o respectivo comprovativo${contacto ? ` (contacto: ${contacto})` : ''} e ${vb('considere', 'considerem')} sem efeito a presente carta.`;
     blocks.push({
       type: 'paragraph',
       id: 'contacto',

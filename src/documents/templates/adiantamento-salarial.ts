@@ -279,7 +279,7 @@ export default defineTemplate({
       blocks.push({
         type: 'paragraph',
         id: 'recepcao',
-        text: `**Recepção:** recebi a quantia de ${formatMoney(c.valorAut)} em ___/___/______. Assinatura: ________________________`,
+        text: `**Recepção:** recebi a quantia de ${formatMoney(c.valorAut)} em ___/___/______. Assinatura: ________________`,
         en: `Receipt: I received ${formatMoney(c.valorAut)} on ___/___/______. Employee: __________`,
         align: 'left',
       });

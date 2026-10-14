@@ -36,6 +36,7 @@ const clean = (s: unknown) => String(s ?? '').trim().replace(/[.;]+$/, '');
 export default defineTemplate({
   id: 'recibo-de-pagamento',
   family: 'recibo',
+  page: (v) => (v.formato === 'A5' ? 'A5' : 'A4'),
   sections: [
     { id: 'documento', title: l('Recibo', 'Receipt') },
     { id: 'recebedor', title: l('Quem recebe', 'Received by') },
@@ -46,6 +47,19 @@ export default defineTemplate({
     { ...refField(), label: l('Número do recibo', 'Receipt number') },
     localField(),
     dateField('data', 'documento', l('Data do recibo', 'Receipt date')),
+    {
+      name: 'formato',
+      type: 'select',
+      section: 'documento',
+      width: 'half',
+      default: 'A4',
+      label: l('Formato do papel', 'Paper size'),
+      help: l('A5 é meia folha A4: imprime dois recibos por folha (original e duplicado).', 'A5 is half an A4 sheet: two receipts per sheet (original and copy).'),
+      options: [
+        { value: 'A4', label: l('A4', 'A4') },
+        { value: 'A5', label: l('A5 (meia folha)', 'A5 (half sheet)') },
+      ],
+    },
     {
       name: 'recebedorTipo',
       type: 'radio',

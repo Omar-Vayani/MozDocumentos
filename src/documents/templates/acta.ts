@@ -2,7 +2,7 @@ import { inteiroPorExtenso, MESES, parseISODate } from '@/lib/format';
 import { profileDisplayName } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type ClauseItem, type SignatureColumn, type Values, type Warning } from '../model';
-import { BLANK, cite, g, l, lineItems } from './_shared';
+import { BLANK, cite, formatMoney, g, l, lineItems, money } from './_shared';
 
 // ---------------------------------------------------------------- local helpers
 
@@ -295,7 +295,7 @@ export default defineTemplate({
     const p = ctx.profile?.kind === 'empresa' ? ctx.profile : null;
     const ident = [
       p?.nuel ? `matriculada sob o NUEL ${p.nuel}` : '',
-      p?.capitalSocial && entidadeTipo === 'sociedade' ? `com o capital social de ${String(p.capitalSocial).trim()}` : '',
+      p?.capitalSocial && entidadeTipo === 'sociedade' ? `com o capital social de ${money(p.capitalSocial) != null ? formatMoney(money(p.capitalSocial)) : String(p.capitalSocial).trim()}` : '',
     ].filter(Boolean);
     const da = `da ${entidadeTipo} **${firma}**${ident.length ? `, ${ident.join(', ')}` : ''}`;
     const presidente = ag ? 'Presidente da Mesa' : 'Presidente';
@@ -327,13 +327,13 @@ export default defineTemplate({
     let reuniu: string;
     switch (v.tipo) {
       case 'direccao':
-        reuniu = `reuniu-se ${v.localReuniao || BLANK} a Direcção ${da}`;
+        reuniu = `reuniu-se ${v.localReuniao || BLANK}, a Direcção ${da}`;
         break;
       case 'conselhoAdministracao':
-        reuniu = `reuniu-se ${v.localReuniao || BLANK} o Conselho de Administração ${da}`;
+        reuniu = `reuniu-se ${v.localReuniao || BLANK}, o Conselho de Administração ${da}`;
         break;
       case 'socios':
-        reuniu = `reuniram-se ${v.localReuniao || BLANK} os ${membros} ${da}`;
+        reuniu = `reuniram-se ${v.localReuniao || BLANK}, os ${membros} ${da}`;
         break;
       case 'agExtraordinaria':
         reuniu = `reuniu-se ${v.localReuniao || BLANK}, em sessão extraordinária, a Assembleia Geral ${da}`;

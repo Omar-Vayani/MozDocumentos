@@ -1,4 +1,4 @@
-import { profileDisplayName } from '@/lib/storage/types';
+import { isPublicBody, profileDisplayName } from '@/lib/storage/types';
 import { addressLine } from '../layouts/address';
 import { defineTemplate, type Block, type Warning } from '../model';
 import { BLANK, dateField, dateLong, l, lineItems, localField, refField } from './_shared';
@@ -144,7 +144,8 @@ export default defineTemplate({
     }
 
     blocks.push(
-      { type: 'reference', ref: v.ref || undefined, place: ctx.place, date: dateLong(v.data) },
+      // A public body numbers its letters as ofícios ("Ofício n.º 14/DPS/2026").
+      { type: 'reference', ref: v.ref ? (isPublicBody(p) && !/n\.º/.test(String(v.ref)) ? `Ofício n.º ${v.ref}` : v.ref) : undefined, place: ctx.place, date: dateLong(v.data) },
       {
         type: 'recipient',
         salutation: tratamento,
