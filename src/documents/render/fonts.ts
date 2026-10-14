@@ -41,7 +41,8 @@ function registerHyphenation() {
   hyphenationRegistered = true;
 }
 
-export type FontFamilies = Record<FontPreset, string>;
+/** Document fonts by preset, plus a small fallback font for symbols they lack (‰, ☐, ✓, →…). */
+export type FontFamilies = Record<FontPreset, string> & { symbols?: string };
 
 /**
  * Registers the document fonts under fresh family names for one render.
@@ -68,6 +69,18 @@ export function registerFontGeneration(base: string): FontFamilies {
     });
     out[preset] = name;
   }
+  // Symbols subset of DejaVu Sans (free licence), used where the text font has no glyph.
+  const symbols = `DmzSymbols-g${generation}`;
+  Font.register({
+    family: symbols,
+    fonts: [
+      { src: `${base}${sep}symbols.woff`, fontWeight: 400 },
+      { src: `${base}${sep}symbols.woff`, fontWeight: 400, fontStyle: 'italic' },
+      { src: `${base}${sep}symbols-bold.woff`, fontWeight: 700 },
+      { src: `${base}${sep}symbols-bold.woff`, fontWeight: 700, fontStyle: 'italic' },
+    ],
+  });
+  out.symbols = symbols;
   const registered = Font.getRegisteredFonts() as Record<string, unknown>;
   for (const key of Object.keys(registered)) {
     const m = /-g(\d+)$/.exec(key);

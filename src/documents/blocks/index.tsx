@@ -322,10 +322,10 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
       return (
         <Fragment key={key}>
           {block.items.map((item, i) => {
-            // The heading needs room for at least three lines of its text below it,
-            // so it is never left alone at the foot of a page; the text itself may
-            // then run on to the next page (no large gaps before long clauses).
-            const ahead = theme.bodySize * theme.lineHeight * 3;
+            // The heading needs room for a line of its text below it (the text's own
+            // orphan control then keeps two), so it is never left alone at the foot
+            // of a page. A larger presence moves whole clauses and leaves gaps.
+            const ahead = theme.bodySize * theme.lineHeight * 1.2;
             const heading =
               block.style === 'numeric' ? (
                 <Text style={{ ...para(env), fontWeight: 700, marginBottom: 2, color: theme.heading }}>{clauseHeading('numeric', i + (block.start ?? 1) - 1, item)}</Text>
@@ -836,7 +836,8 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
 
     case 'checklist':
       return (
-        <View key={key} style={{ marginBottom: theme.gap, flexDirection: block.columns === 2 ? 'row' : 'column', flexWrap: 'wrap' }}>
+        // Wrap only in two-column mode: a wrapping column continues beside itself at a page break.
+        <View key={key} style={{ marginBottom: theme.gap, ...(block.columns === 2 ? { flexDirection: 'row', flexWrap: 'wrap' } : { flexDirection: 'column' }) }}>
           {block.items.map((it, i) => (
             <View key={i} wrap={false} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 3, width: block.columns === 2 ? '50%' : '100%', paddingRight: block.columns === 2 ? 8 : 0 }}>
               <View
@@ -953,6 +954,8 @@ export function estimateHeight(b: Block, theme: Theme): number {
   }
 }
 
+const FLOWING = new Set<Block['type']>(['numberedClauses', 'articulado', 'paragraph', 'list', 'table', 'checklist']);
+
 const isHalfBox = (b: Block | undefined): b is Extract<Block, { type: 'box' }> => b?.type === 'box' && b.width === 'half' && !b.keepWithNext;
 
 /**
@@ -993,7 +996,10 @@ export function renderBlocks(blocks: Block[], env: BlockEnv): ReactNode[] {
       out.push(renderBlock(b, i, env));
     } else {
       const height = group.reduce((h, g) => h + estimateHeight(g, env.theme), 0);
-      if (height <= pageBody * 0.6) {
+      // Text that can flow across pages (clauses, paragraphs, tables) is only kept
+      // whole when short; otherwise moving it leaves a large gap on the page before.
+      const flows = FLOWING.has(b.type);
+      if (height <= pageBody * (flows ? 0.22 : 0.6)) {
         out.push(
           <View key={`g${i}`} wrap={false}>
             {group.map((g, j) => renderBlock(g, `${i}-${j}`, env))}

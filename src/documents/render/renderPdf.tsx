@@ -6,6 +6,7 @@ import { loadTemplate } from '../registry';
 import { DocumentPdf, pdfMetadata } from './DocumentPdf';
 import { registerFontGeneration } from './fonts';
 import { FORMATS } from './theme';
+import { pageOf } from '../model';
 import type { RenderInput, RenderResult } from './types';
 
 export async function renderPdf(input: RenderInput): Promise<RenderResult> {
@@ -22,9 +23,9 @@ export async function renderPdf(input: RenderInput): Promise<RenderResult> {
       return buildBlocks(template, vctx, input.overrides);
     });
     // Small formats printed on A4 sheets: each item takes one cell.
-    const fmt = FORMATS[template.page ?? 'A4'];
+    const format = pageOf(template, input.values);
     const pres = (input.values.__presentation ?? {}) as { imposed?: boolean };
-    if (fmt.sheet && (pres.imposed ?? (template.page === 'A6' || template.page === 'cartao'))) {
+    if (FORMATS[format].sheet && (pres.imposed ?? (format === 'A6' || format === 'cartao'))) {
       const doc = <DocumentPdf input={input} template={template} blocks={blocks} refNumber={ref} families={families} variants={variantBlocks} />;
       return { pdf: await (await pdf(doc).toBlob()).arrayBuffer(), title: template.formalTitle };
     }

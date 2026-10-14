@@ -24,6 +24,8 @@ export const isSmallFormat = (f: PageFormat) => f === 'A6' || f === 'DL' || f ==
 
 export type Theme = {
   font: string;
+  /** The text font followed by the symbols fallback (for page-level styles). */
+  fontStack: string | string[];
   accent: string;
   accentTint: string;
   rule: string;
@@ -90,8 +92,10 @@ export function makeTheme(
   const page = { width: fmt.w * MM, height: fmt.h * MM };
   const lineHeight = (spacing === 'compacto' ? 1.3 : spacing === 'amplo' ? 1.55 : 1.42) - fit * 0.05;
   const serif = b.font === 'classico';
+  const font = families?.[b.font] ?? families?.classico ?? FONT_FAMILIES[b.font]?.family ?? FONT_FAMILIES.classico.family;
   return {
-    font: families?.[b.font] ?? families?.classico ?? FONT_FAMILIES[b.font]?.family ?? FONT_FAMILIES.classico.family,
+    font,
+    fontStack: families?.symbols ? [font, families.symbols] : font,
     accent,
     accentTint: tint(accent, 0.9),
     rule: '#9aa0a6',

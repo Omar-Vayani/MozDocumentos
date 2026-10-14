@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { defaultValues } from '../context';
 import { AVAILABLE_TEMPLATE_IDS, loadTemplate } from '../registry';
+import { pageOf } from '../model';
 import { companyProfile, fixtureValues, personProfile, type ProfileFixture } from '@/test/fixtures';
 import type { LetterheadLayout } from '@/lib/storage/types';
 import { renderPdf } from './renderPdf';
@@ -57,13 +58,13 @@ describe('templates render without overflow', () => {
       const t = await loadTemplate(id);
       for (const fx of profilesFor()) {
         for (const mode of ['minimal', 'long'] as const) {
-          const theme = makeTheme(fx.profile.branding, undefined, {}, { format: t.page, family: t.family });
-          const format = t.page ?? 'A4';
+          const base = defaultValues(t, { profile: fx.profile, today, nextRef: 'RH/2026/014' });
+          const values = fixtureValues(t, base, mode);
+          const format = pageOf(t, values);
+          const theme = makeTheme(fx.profile.branding, undefined, {}, { format, family: t.family });
           // Small formats print several per A4 sheet: check page bounds only.
           const imposed = format === 'A6' || format === 'cartao';
           const numbered = !imposed && !['A6', 'DL', 'cartao'].includes(format) && !t.frame && t.verticalAlign !== 'center';
-          const base = defaultValues(t, { profile: fx.profile, today, nextRef: 'RH/2026/014' });
-          const values = fixtureValues(t, base, mode);
           const res = await renderPdf({
             templateId: id,
             values,

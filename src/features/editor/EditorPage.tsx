@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { usePrefs, useL10n } from '@/app/store';
 import { buildBlocks, buildContext, defaultValues, editableTexts } from '@/documents/context';
-import type { Values, Warning } from '@/documents/model';
+import { pageOf, type Values, type Warning } from '@/documents/model';
 import { isTemplateAvailable, loadTemplate, type FullTemplate } from '@/documents/registry';
 import { isPublicBody } from '@/lib/storage/types';
 import type { RenderInput } from '@/documents/render/types';
@@ -176,6 +176,7 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
   const schema = useMemo(() => buildSchema(template.fields, lang), [template, lang]);
   const methods = useForm<Values>({ defaultValues: initialValues, resolver: zodResolver(schema), mode: 'onTouched' });
   const values = useWatch({ control: methods.control }) as Values;
+  const pageFormat = pageOf(template, values);
   const valuesKey = JSON.stringify(values);
 
   const [overrides, setOverrides] = useState<Record<string, string>>(saved?.overrides ?? {});
@@ -597,11 +598,11 @@ function EditorForm({ template, initialProfile, saved, caseObj, stepId, legal }:
             </FieldWrap>
           ) : null}
         </div>
-        {template.page && PER_SHEET[template.page] ? (
+        {PER_SHEET[pageFormat] ? (
           <Checkbox
-            label={t('editor.imposed', { n: PER_SHEET[template.page] })}
+            label={t('editor.imposed', { n: PER_SHEET[pageFormat] })}
             hint={t('editor.imposedHelp')}
-            checked={presentation.imposed ?? (template.page === 'A6' || template.page === 'cartao')}
+            checked={presentation.imposed ?? (pageFormat === 'A6' || pageFormat === 'cartao')}
             onChange={(v) => setP({ imposed: v })}
           />
         ) : null}

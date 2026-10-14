@@ -30,6 +30,7 @@ each package under `node_modules/<package>/LICENSE`) with any distribution.
 | Source Serif 4 | SIL Open Font License 1.1 | Documents ("Clássico") |
 | Arimo | Apache-2.0 | Documents ("Institucional") |
 | IBM Plex Sans | SIL Open Font License 1.1 | Documents ("Moderno") |
+| DejaVu Sans (symbols subset: ‰, ☐, ✓, arrows…) | Bitstream Vera / DejaVu licence (free, permits embedding and modification) | Documents (fallback for symbols) |
 
 The fonts are embedded in generated PDFs, which their licences permit.
 

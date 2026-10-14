@@ -3,7 +3,7 @@ import { OWNER } from '@/app/owner';
 import { isPublicBody, professionalRegistration, profileDisplayName, type Presentation } from '@/lib/storage/types';
 import { renderBlocks, type BlockEnv } from '../blocks';
 import { estimateLines, FaixaBand, footerLines, Letterhead, ProfessionalHeader, RepublicaHeader, type LetterheadEnv } from '../layouts';
-import type { Block } from '../model';
+import { pageOf, type Block } from '../model';
 import type { FullTemplate } from '../registry';
 import type { FontFamilies } from './fonts';
 import { documentId } from './docId';
@@ -31,7 +31,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
   const officialUse = typeof template.official === 'function' ? template.official(input.values) : template.official;
   const official = Boolean(officialUse);
   const family = template.family ?? 'carta';
-  const format = template.page ?? 'A4';
+  const format = pageOf(template, input.values);
   const fmt = FORMATS[format];
   const small = isSmallFormat(format);
   // Small formats print several per A4 sheet with cutting marks unless the user asks for their own size.
@@ -102,7 +102,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
       <Page
         size={[PW, PH]}
         style={{
-          fontFamily: theme.font,
+          fontFamily: theme.fontStack,
           fontSize: theme.bodySize,
           color: theme.text,
           lineHeight: theme.lineHeight,
@@ -377,7 +377,7 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
       ? Array.from({ length: Math.ceil(variants.length / perSheet) }, (_, s) => variants.slice(s * perSheet, (s + 1) * perSheet))
       : [Array.from({ length: perSheet }, () => blocks)];
     const sheet = sheets.map((items, s) => (
-      <Page key={s} size={[SW, SH]} style={{ fontFamily: theme.font, fontSize: theme.bodySize, color: theme.text, lineHeight: theme.lineHeight }}>
+      <Page key={s} size={[SW, SH]} style={{ fontFamily: theme.fontStack, fontSize: theme.bodySize, color: theme.text, lineHeight: theme.lineHeight }}>
         {items.map((b, i) => cell(i, b))}
         {marks.map((k, i) => (
           <View key={`m${i}`} style={{ position: 'absolute', left: k.x, top: k.y, width: k.w, height: k.h, backgroundColor: '#9aa0a6' }} />

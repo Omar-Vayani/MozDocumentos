@@ -303,8 +303,8 @@ export type DocumentTemplate = {
    * goes to a public body only for some purposes).
    */
   official?: OfficialUse | ((v: Values) => OfficialUse | undefined);
-  /** Paper format (default 'A4'). */
-  page?: PageFormat;
+  /** Paper format (default 'A4'); a function chooses it from the values (e.g. a notice on A5, a formal demand on A4). */
+  page?: PageFormat | ((v: Values) => PageFormat);
   /** Centre the content vertically on the page (certificates, invitations, cards). */
   verticalAlign?: 'top' | 'center';
   /** Decorative frame around the page (certificates, diplomas, invitations). */
@@ -358,3 +358,8 @@ export const ORDINAIS_F = [
   'Vigésima Primeira', 'Vigésima Segunda', 'Vigésima Terceira', 'Vigésima Quarta', 'Vigésima Quinta',
 ];
 export const ORDINAIS_M = ORDINAIS_F.map((s) => s.replace(/a\b/g, 'o'));
+
+/** The paper format of a document with these values. */
+export function pageOf(t: Pick<DocumentTemplate, 'page'>, v: Values): PageFormat {
+  return (typeof t.page === 'function' ? t.page(v) : t.page) ?? 'A4';
+}

@@ -76,7 +76,14 @@ with cutting marks by default), `'DL'` (envelope 220 × 110), `'cartao'`
 (business or membership card 85 × 55 — ten per A4 with cutting marks).
 Type and spacing scale with the format; small formats (A6, DL, card) have no
 page numbers, running header, footer lines or brand line. **Design to one
-page** on small formats: anything longer is cut.
+page** on small formats: anything longer is cut. `page` may be a function of
+the values, e.g. `page: (v) => (v.tipo === 'interpelacao' ? 'A4' : 'A5')`; code
+that needs the format calls `pageOf(template, values)`.
+
+**Symbols.** The document fonts cover Latin text only. A small symbols font
+(DejaVu Sans subset) is embedded as a fallback, so ☐ ☑ ✓ ‰ → ≥ ≤ № ± × print
+correctly. Any other symbol falls back to an unembedded font and fails the
+render test — add it to the subset (`public/fonts/symbols*.woff`) first.
 
 Template options for designed documents:
 - `verticalAlign: 'center'` — centre the content on the page (certificates,
@@ -87,14 +94,16 @@ Template options for designed documents:
   `style: { font: 'classico' }` — force the serif face (invitations);
 - `rubricas: false` — no initials line on a contract;
 - `repeat: (v) => v.participantes.map((p) => ({ participanteNome: p.nome }))` —
-  one page per item (a certificate for each participant);
+  one page per item (a certificate for each participant); on A6 and card
+  formats printed on A4 sheets, one cell per item (numbered vouchers, a card
+  for each member);
 - `official` may be a function of the values: `(v) => (v.finalidade === 'tribunal' ? 'tribunal' : undefined)`.
 
 Design blocks:
 
 | type | use |
 |---|---|
-| `display` | `{ text, size: 'xxl'…'xs', align?, tone: 'accent'|'text'|'muted', weight, italic, uppercase, after?, fit? }` — invitation and certificate typography; `\n` for line breaks; `fit` shrinks a long line to the width; never below 6.5 pt |
+| `display` | `{ text, size: 'xxl'…'xs', align?, tone: 'accent'|'text'|'muted', weight, italic, uppercase, after?, fit? }` — invitation and certificate typography; `\n` for line breaks, `**bold**`, and lines starting "• " or "- " as bullets with a hanging indent; `fit` shrinks a long line to the width; never below 6.5 pt |
 | `ornament` | `{ style: 'rule'|'double'|'tricolour'|'dots'|'cross', width?, align? }` — separators; `tricolour` is the app's subtle Mozambican mark; `cross` for religious/funeral notices |
 | `logo` | the issuing profile's logo `{ size, align }` |
 | `envelope` | DL envelope face `{ sender: string[], recipient: string[], note? }` |

@@ -33,6 +33,141 @@ export const GUIDE: Record<string, GuideNode> = {
       { id: 'estado', label: l('Uma entidade pública', 'A public body'), hint: l('Ofícios, informações, despachos, circulares, guias de marcha.', 'Official letters, briefings, orders, circulars, travel orders.'), next: 'estado' },
       { id: 'saude', label: l('Saúde', 'Health'), hint: l('Médicos, clínicas, laboratórios.', 'Doctors, clinics, laboratories.'), next: 'saude' },
       { id: 'comunidade', label: l('Autoridade comunitária', 'Community authority'), hint: l('Secretário do bairro, chefe de quarteirão, régulo.', 'Neighbourhood secretary, block chief, traditional leader.'), next: 'comunidade' },
+      { id: 'educacao', label: l('Escola ou centro de formação', 'School or training centre'), hint: l('Declarações, certificados, propinas, pais e encarregados.', 'Certificates, fees, parents and guardians.'), next: 'educacao' },
+      { id: 'associacoes', label: l('Associação, igreja ou ONG', 'Association, church or NGO'), hint: l('Estatutos, membros, quotas, xitique, certificados.', 'Statutes, members, dues, savings groups, certificates.'), next: 'associacoes' },
+      { id: 'construcao', label: l('Obras e imobiliário', 'Construction and property'), hint: l('Orçamentos de obra, autos, mediação, condomínio.', 'Building quotes, site records, agency, condominium.'), next: 'construcao' },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Educação
+  educacao: {
+    id: 'educacao',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'alunos', label: l('Documentos para um aluno', 'Documents for a student'), next: 'educacao-alunos' },
+      { id: 'pais', label: l('Comunicar com os pais', 'Communicate with parents'), next: 'educacao-pais' },
+      { id: 'contratos', label: l('Matrícula, propinas e contratos', 'Enrolment, fees and contracts'), next: 'educacao-contratos' },
+    ],
+  },
+  'educacao-alunos': {
+    id: 'educacao-alunos',
+    question: l('Que documento?', 'Which document?'),
+    options: [
+      { id: 'frequencia', label: l('Confirmar que frequenta a escola', 'Confirm enrolment'), result: { doc: 'declaracao-de-frequencia', why: l('Classe, turma e ano lectivo, para bolsas, abonos ou viagens.', 'Grade, class and school year, for grants or travel.') } },
+      { id: 'aproveitamento', label: l('Notas e aproveitamento', 'Grades and results'), result: { doc: 'declaracao-de-aproveitamento', why: l('Disciplinas, classificações e resultado final.', 'Subjects, marks and final result.') } },
+      { id: 'certificado', label: l('Certificado de um curso', 'Course certificate'), result: { doc: 'certificado-de-formacao', why: l('Certificado em A4 horizontal, um por formando.', 'A4 landscape certificate, one per trainee.') } },
+      { id: 'transferencia', label: l('Transferir de escola', 'Transfer school'), result: { doc: 'pedido-de-transferencia-escolar', why: l('Pedido do encarregado à direcção da escola.', "The guardian's request to the school.") } },
+      { id: 'recomendacao', label: l('Recomendar um aluno', 'Recommend a student'), result: { doc: 'carta-recomendacao-academica', why: l('Para bolsas, universidades ou estágios, em português e inglês.', 'For scholarships, universities or internships, in Portuguese and English.'), also: ['declaracao-de-estagio'] } },
+    ],
+  },
+  'educacao-pais': {
+    id: 'educacao-pais',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'comunicado', label: l('Informar os encarregados', 'Inform guardians'), result: { doc: 'comunicado-encarregados', why: l('Comunicado com destacável de tomada de conhecimento.', 'A notice with a tear-off acknowledgement slip.') } },
+      { id: 'reuniao', label: l('Convocar uma reunião de pais', 'Call a parents\' meeting'), result: { doc: 'convocatoria-reuniao-pais', why: l('Data, hora, local e ordem de trabalhos.', 'Date, time, place and agenda.') } },
+      { id: 'visita', label: l('Autorizar uma visita de estudo', 'Authorise a school trip'), result: { doc: 'autorizacao-visita-de-estudo', why: l('Autorização do encarregado com destacável.', "The guardian's consent with a tear-off slip.") } },
+      { id: 'falta', label: l('Justificar a falta de um aluno', "Justify a student's absence"), result: { doc: 'justificacao-falta-aluno', why: l('Justificação do encarregado em A5.', "The guardian's note on A5.") } },
+    ],
+  },
+  'educacao-contratos': {
+    id: 'educacao-contratos',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'inscricao', label: l('Ficha de inscrição', 'Enrolment form'), result: { doc: 'ficha-de-inscricao', why: l('Dados do aluno e do encarregado, preenchida ou em branco.', 'Student and guardian details, filled or blank.') } },
+      { id: 'contrato', label: l('Contrato com o encarregado', 'Contract with the guardian'), result: { doc: 'contrato-servicos-educativos', why: l('Serviços, propinas, pagamento e rescisão.', 'Services, fees, payment and termination.'), also: ['tabela-de-propinas'] } },
+      { id: 'atraso', label: l('Propinas em atraso', 'Overdue fees'), result: { doc: 'aviso-propinas-em-atraso', why: l('Aviso ao encarregado, sem prejudicar o aluno.', 'A notice to the guardian that never penalises the child.') } },
+      { id: 'bolsa', label: l('Atribuir uma bolsa de estudo', 'Award a scholarship'), result: { doc: 'termo-bolsa-de-estudo', why: l('Condições, obrigações do bolseiro e reembolso.', "Terms, the holder's duties and repayment.") } },
+      { id: 'conducao', label: l('Escola de condução', 'Driving school'), result: { doc: 'contrato-escola-de-conducao', why: l('Aulas, exames, preço e desistência.', 'Lessons, tests, price and withdrawal.') } },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Associações
+  associacoes: {
+    id: 'associacoes',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'constituir', label: l('Constituir ou organizar a associação', 'Set up or organise the association'), next: 'associacoes-constituir' },
+      { id: 'membros', label: l('Membros e quotas', 'Members and dues'), next: 'associacoes-membros' },
+      { id: 'poupanca', label: l('Grupo de poupança (xitique)', 'Savings group (xitique)'), next: 'associacoes-poupanca' },
+      { id: 'igreja', label: l('Baptismo ou casamento religioso', 'Baptism or religious wedding'), next: 'associacoes-igreja' },
+    ],
+  },
+  'associacoes-constituir': {
+    id: 'associacoes-constituir',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'estatutos', label: l('Estatutos', 'Statutes'), result: { doc: 'estatutos-associacao', why: l('Fins, membros, órgãos sociais e património.', 'Purpose, members, governing bodies and assets.'), also: ['acta-constituicao-associacao'] } },
+      { id: 'reconhecimento', label: l('Pedir o reconhecimento', 'Apply for recognition'), result: { doc: 'requerimento-reconhecimento-associacao', why: l('Requerimento à entidade competente para reconhecer a associação.', 'The application for legal recognition.') } },
+      { id: 'regulamento', label: l('Regulamento interno', 'Internal rules'), result: { doc: 'regulamento-interno-associacao', why: l('Regras de funcionamento que completam os estatutos.', 'Operating rules that complete the statutes.') } },
+      { id: 'contas', label: l('Relatório de actividades e contas', 'Activity report and accounts'), result: { doc: 'relatorio-actividades-contas', why: l('Para a assembleia geral, com o parecer do Conselho Fiscal.', 'For the general meeting, with the audit board opinion.') } },
+      { id: 'voluntario', label: l('Acordo com um voluntário', 'Agreement with a volunteer'), result: { doc: 'acordo-de-voluntariado', why: l('Funções, horário, seguro e despesas.', 'Duties, schedule, insurance and expenses.') } },
+    ],
+  },
+  'associacoes-membros': {
+    id: 'associacoes-membros',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'inscricao', label: l('Inscrever um membro', 'Register a member'), result: { doc: 'ficha-de-inscricao-membro', why: l('Ficha de inscrição, também em branco.', 'Membership form, also blank.') } },
+      { id: 'cartao', label: l('Cartões de membro', 'Membership cards'), result: { doc: 'cartao-de-membro', why: l('Dez cartões por folha A4.', 'Ten cards per A4 sheet.') } },
+      { id: 'quota', label: l('Recibo de quota', 'Dues receipt'), result: { doc: 'recibo-de-quota', why: l('Original e duplicado em A5.', 'Original and duplicate on A5.') } },
+      { id: 'declaracao', label: l('Confirmar que é membro', 'Confirm membership'), result: { doc: 'declaracao-de-membro', why: l('Declaração de membro, em português e inglês.', 'A membership letter, in Portuguese and English.'), also: ['carta-transferencia-membro'] } },
+      { id: 'presencas', label: l('Lista de presenças', 'Attendance list'), result: { doc: 'lista-de-presencas', why: l('Para reuniões e assembleias.', 'For meetings and assemblies.') } },
+    ],
+  },
+  'associacoes-poupanca': {
+    id: 'associacoes-poupanca',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'regulamento', label: l('Regras do grupo', 'Group rules'), result: { doc: 'regulamento-grupo-poupanca', why: l('Rotativo ou de poupança e crédito, com a ordem de recebimento.', 'Rotating or savings-and-loan, with the payout order.') } },
+      { id: 'mapa', label: l('Registar as contribuições', 'Record contributions'), result: { doc: 'mapa-contribuicoes-poupanca', why: l('Mapa mensal das contribuições de cada membro.', "A monthly sheet of each member's contributions.") } },
+    ],
+  },
+  'associacoes-igreja': {
+    id: 'associacoes-igreja',
+    question: l('Que certificado?', 'Which certificate?'),
+    options: [
+      { id: 'baptismo', label: l('Baptismo', 'Baptism'), result: { doc: 'certificado-de-baptismo', why: l('Certificado religioso; não substitui o registo civil.', 'A religious certificate; not a civil record.') } },
+      { id: 'casamento', label: l('Casamento religioso', 'Religious wedding'), result: { doc: 'certificado-casamento-religioso', why: l('Certificado religioso; o casamento prova-se pela certidão do Registo Civil.', 'A religious certificate; the civil record is the proof of marriage.') } },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Construção
+  construcao: {
+    id: 'construcao',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'obra', label: l('Uma obra', 'A building job'), next: 'construcao-obra' },
+      { id: 'imobiliario', label: l('Mediação imobiliária', 'Estate agency'), next: 'construcao-imobiliario' },
+      { id: 'condominio', label: l('Condomínio', 'Condominium'), next: 'construcao-condominio' },
+    ],
+  },
+  'construcao-obra': {
+    id: 'construcao-obra',
+    question: l('Em que fase?', 'At which stage?'),
+    options: [
+      { id: 'orcamento', label: l('Orçamentar a obra', 'Quote the job'), result: { doc: 'orcamento-de-obra', why: l('Capítulos, quantidades, preços unitários e IVA.', 'Chapters, quantities, unit prices and VAT.'), also: ['proposta-de-honorarios-projecto'] } },
+      { id: 'inicio', label: l('Entregar o terreno e começar', 'Hand over the site and start'), result: { doc: 'auto-de-consignacao-obra', why: l('Regista a entrega do local e o início do prazo.', 'Records the site handover and the start of the period.'), also: ['termo-de-responsabilidade-tecnica'] } },
+      { id: 'medicao', label: l('Medir os trabalhos feitos', 'Measure the work done'), result: { doc: 'auto-de-medicao', why: l('Quantidades executadas e valor a facturar.', 'Quantities done and the amount to invoice.'), also: ['ordem-de-trabalhos-a-mais'] } },
+      { id: 'subempreitada', label: l('Subcontratar parte da obra', 'Subcontract part of the job'), result: { doc: 'contrato-de-subempreitada', why: l('Trabalhos, preço, prazos e responsabilidade.', 'Work, price, deadlines and liability.') } },
+      { id: 'recepcao', label: l('Receber a obra', 'Accept the work'), result: { doc: 'auto-de-recepcao-obra', why: l('Recepção provisória ou definitiva, com os defeitos a corrigir.', 'Provisional or final acceptance, with defects to fix.'), also: ['relatorio-de-vistoria'] } },
+    ],
+  },
+  'construcao-imobiliario': {
+    id: 'construcao-imobiliario',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'mediacao', label: l('Contrato com o proprietário', 'Contract with the owner'), result: { doc: 'contrato-de-mediacao-imobiliaria', why: l('Imóvel, preço, exclusividade e comissão.', 'Property, price, exclusivity and commission.') } },
+      { id: 'visita', label: l('Registar uma visita', 'Record a viewing'), result: { doc: 'ficha-de-visita-imovel', why: l('Quem visitou, quando e com que interesse.', 'Who viewed, when and how interested.') } },
+    ],
+  },
+  'construcao-condominio': {
+    id: 'construcao-condominio',
+    question: l('O que precisa?', 'What do you need?'),
+    options: [
+      { id: 'regulamento', label: l('Regulamento do condomínio', 'Condominium rules'), result: { doc: 'regulamento-de-condominio', why: l('Partes comuns, despesas, administração e assembleia.', 'Common parts, expenses, administration and meetings.') } },
+      { id: 'convocar', label: l('Convocar a assembleia', 'Call the meeting'), result: { doc: 'convocatoria-assembleia-condominos', why: l('Com o destacável de procuração.', 'With the tear-off proxy slip.'), also: ['acta-assembleia-condominos'] } },
+      { id: 'quotas', label: l('Cobrar quotas', 'Collect dues'), result: { doc: 'aviso-de-quotas-condominio', why: l('Aviso mensal ou interpelação por atraso.', 'A monthly notice or a demand for arrears.') } },
     ],
   },
 
