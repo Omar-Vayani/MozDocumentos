@@ -35,8 +35,11 @@ function registerHyphenation() {
     .hyphenateSync;
   Font.registerHyphenationCallback((word: string) => {
     if (word.length < 6 || /[\d_@/.]/.test(word)) return splitLong(word);
-    // Names and headings in capitals (court addressees, party names) are never hyphenated.
+    // Names and headings in capitals (court addressees, party names) are never
+    // hyphenated, nor are capitalised words: names and positions ("Nhantumbo").
+    // (A per-Text hyphenation callback would be simpler but breaks react-pdf's layout.)
     if (word === word.toLocaleUpperCase('pt') && /\p{L}/u.test(word)) return splitLong(word);
+    if (/^\p{Lu}/u.test(word)) return splitLong(word);
     try {
       const parts = hyphenateSync(word, { hyphenChar: '\u00AD' }).split('\u00AD');
       return parts.flatMap(splitLong);

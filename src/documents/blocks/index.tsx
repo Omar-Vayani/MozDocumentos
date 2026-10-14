@@ -25,8 +25,6 @@ export type BlockEnv = {
   publicBody?: boolean;
 };
 
-/** Names and positions are never hyphenated ("Nhantum-bo"). */
-const noHyphens = (w: string) => [w];
 
 const DISPLAY_PT = { xxxl: 44, xxl: 30, xl: 22, lg: 16, md: 13, sm: 10.5, xs: 8.5 } as const;
 
@@ -153,7 +151,7 @@ function SignatureColumnView({
     <View style={{ width, paddingHorizontal: 8, alignItems: 'center' }}>
       <View style={{ minHeight: roleHeight, marginBottom: 4, width: '100%', justifyContent: 'flex-end' }}>
         {col.role.split(/\r?\n/).map((r, i) => (
-          <Text key={i} style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center' }} hyphenationCallback={noHyphens}>
+          <Text key={i} style={{ fontSize: theme.bodySize - 0.5, textAlign: 'center' }}>
             {r}
           </Text>
         ))}
@@ -192,13 +190,13 @@ function SignatureColumnView({
       </View>
       <View style={{ borderTopWidth: 0.75, borderTopColor: theme.text, width: '100%', marginBottom: 3 }} />
       {col.name ? (
-        <Text style={{ fontSize: theme.bodySize - 0.5, fontWeight: 700, textAlign: 'center' }} hyphenationCallback={noHyphens}>
+        <Text style={{ fontSize: theme.bodySize - 0.5, fontWeight: 700, textAlign: 'center' }}>
           {col.name}
         </Text>
       ) : null}
       {col.detail
         ? col.detail.split(/\r?\n/).map((d, i) => (
-            <Text key={i} style={{ fontSize: theme.bodySize - 1.5, color: theme.muted, textAlign: 'center' }} hyphenationCallback={noHyphens}>
+            <Text key={i} style={{ fontSize: theme.bodySize - 1.5, color: theme.muted, textAlign: 'center' }}>
               {d}
             </Text>
           ))
@@ -600,7 +598,7 @@ export function renderBlock(block: Block, key: number | string, env: BlockEnv): 
           }}
         >
           <Text style={{ fontSize: theme.smallSize, color: theme.muted, marginBottom: 3, letterSpacing: 0.3 }}>RECEPÇÃO</Text>
-          <Text style={{ fontSize: theme.bodySize - 1 }} hyphenationCallback={noHyphens}>
+          <Text style={{ fontSize: theme.bodySize - 1 }}>
             {block.text ?? 'Recebi o original em ___/___/______'}
           </Text>
           {/* A drawn line (underscores wrap and hyphenate in a narrow box). */}
@@ -972,7 +970,14 @@ export function estimateHeight(b: Block, theme: Theme): number {
       // Worst case: images present at the chosen sizes, plus extra lines in names and details.
       return (
         (b.columns.some((c) => c.image) ? Math.max(130, 84 + Math.max(46, 40 * theme.signatureScale + 6, 58 * theme.stampScale * 0.75)) : 120) +
-        Math.max(0, ...b.columns.map((c) => (c.detail ?? '').split('\n').length - 1 + (c.role ?? '').split('\n').length - 1)) * 11
+        // Extra wrapped lines in roles, names and details at the column width.
+        Math.max(
+          0,
+          ...b.columns.map((c) => {
+            const w = b.columns.length === 3 ? 0.29 : 0.44;
+            return lines(c.role, w) - 1 + (c.name ? lines(c.name, w) - 1 : 0) + (c.detail ? lines(c.detail, w * 1.1) - 1 : 0);
+          }),
+        ) * 12
       );
     case 'acknowledgement':
       return 60;

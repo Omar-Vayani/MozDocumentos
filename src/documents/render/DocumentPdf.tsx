@@ -211,10 +211,10 @@ export function DocumentPdf({ input, template, blocks, refNumber, families, page
                   paddingBottom: 2,
                 }}
               >
-                <Text style={{ fontSize: 7.5, color: theme.muted, width: '60%', maxLines: 1, textOverflow: 'ellipsis' }} hyphenationCallback={(w) => [w]}>
+                <Text style={{ fontSize: 7.5, color: theme.muted, width: '60%', maxLines: 1, textOverflow: 'ellipsis' }}>
                   {runningLeft}
                 </Text>
-                <Text style={{ fontSize: 7.5, color: theme.muted, width: '38%', textAlign: 'right', maxLines: 1, textOverflow: 'ellipsis' }} hyphenationCallback={(w) => [w]}>
+                <Text style={{ fontSize: 7.5, color: theme.muted, width: '38%', textAlign: 'right', maxLines: 1, textOverflow: 'ellipsis' }}>
                   {runningRight}
                 </Text>
               </View>
