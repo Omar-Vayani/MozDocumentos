@@ -97,7 +97,7 @@ export const CATALOG_ADVOCACIA: TemplateMeta[] = [
       pt: 'Para participar factos criminosos ao Ministério Público, à PRM ou ao SERNIC e pedir a abertura do procedimento criminal.',
       en: 'To report a crime to the Public Prosecutor, the police (PRM) or SERNIC and ask for criminal proceedings.',
     },
-    tags: ['queixa', 'queixa-crime', 'participação criminal', 'denúncia', 'polícia', 'PRM', 'SERNIC', 'Ministério Público', 'procuradoria', 'criminal complaint', 'report a crime'],
+    tags: ['queixa', 'queixa-crime', 'participação criminal', 'denúncia', 'polícia', 'PRM', 'SERNIC', 'Ministério Público', 'procuradoria', 'criminal complaint', 'report a crime', 'participação à polícia', 'participacao a policia', 'queixa na esquadra'],
     legalRefs: ['advQueixa', 'advQueixaCaducidade'],
     related: ['procuracao-forense'],
     lastReviewed: REVIEWED,

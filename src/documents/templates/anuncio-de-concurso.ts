@@ -53,7 +53,7 @@ export default defineTemplate({
     { name: 'dcHorario', type: 'text', section: 'dc', width: 'half', label: l('Horário', 'Office hours'), default: 'dias úteis, das 8:00 às 15:30' },
     { name: 'dcPreco', type: 'money', section: 'dc', width: 'half', label: l('Preço do documento (vazio = gratuito)', 'Price of the document (empty = free)') },
     { name: 'dcPagamento', type: 'text', section: 'dc', label: l('Forma de pagamento do documento (opcional)', 'How to pay for the document (optional)'), placeholder: l('Ex.: depósito na conta n.º … do BCI, com entrega do talão', 'E.g. deposit into account no. …') },
-    ...condicoesFields('condicoes', { documentos: false }),
+    ...condicoesFields('condicoes', { documentos: false }).map((f) => (f.name === 'pagamento' ? { ...f, default: '' } : f)),
     ...signatarioFields(),
     ...rodapeFields('assinatura', { anexos: false }),
   ],

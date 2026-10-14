@@ -64,7 +64,9 @@ describe('templates render without overflow', () => {
           const theme = makeTheme(fx.profile.branding, undefined, {}, { format, family: t.family });
           // Small formats print several per A4 sheet: check page bounds only.
           const imposed = format === 'A6' || format === 'cartao';
-          const numbered = !imposed && !['A6', 'DL', 'cartao'].includes(format) && !t.frame && !t.noBrand && t.verticalAlign !== 'center';
+          // Repeated documents (one letter or certificate per item) are numbered per item, not across the file.
+          const repeated = (t.repeat?.(values)?.length ?? 0) > 1;
+          const numbered = !imposed && !repeated && !['A6', 'DL', 'cartao'].includes(format) && !t.frame && !t.noBrand && t.verticalAlign !== 'center';
           const res = await renderPdf({
             templateId: id,
             values,

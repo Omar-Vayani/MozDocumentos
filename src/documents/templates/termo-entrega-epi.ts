@@ -48,7 +48,7 @@ export default defineTemplate({
         { equipamento: 'Luvas de protecção', referencia: '', quantidade: 2, data: '', motivo: 'primeira' },
       ],
     },
-    { name: 'linhasBranco', type: 'number', section: 'equipamentos', width: 'half', min: 0, max: 15, default: 6, label: l('Linhas em branco para próximas entregas', 'Blank rows for later handovers') },
+    { name: 'linhasBranco', type: 'number', section: 'equipamentos', width: 'half', min: 0, max: 15, default: 4, label: l('Linhas em branco para próximas entregas', 'Blank rows for later handovers') },
     { name: 'formacao', type: 'toggle', section: 'equipamentos', default: true, label: l('O trabalhador recebeu instrução sobre o uso', 'The employee was trained in its use') },
   ],
 
@@ -64,7 +64,7 @@ export default defineTemplate({
   blocks: (ctx) => {
     const v = ctx.values;
     const itens = lineItems(v.itens).filter((r) => str(r.equipamento));
-    const branco = Math.max(0, Math.min(15, Number(v.linhasBranco ?? 6) || 0));
+    const branco = Math.max(0, Math.min(15, Number(v.linhasBranco ?? 4) || 0));
     const rows = [
       ...itens.map((r) => [str(r.equipamento), str(r.referencia) || '—', r.quantidade != null && r.quantidade !== '' ? String(r.quantidade) : '1', fmt(r.data) || fmt(v.data) || '___/___/____', MOTIVO[r.motivo as string] ?? MOTIVO.primeira, '']),
       ...Array.from({ length: branco }, () => ['', '', '', '___/___/______', '', '']),

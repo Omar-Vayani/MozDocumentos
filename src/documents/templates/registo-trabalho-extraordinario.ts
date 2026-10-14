@@ -72,7 +72,7 @@ export default defineTemplate({
       ],
       default: [],
     },
-    { name: 'linhasBranco', type: 'number', section: 'registos', width: 'half', min: 0, max: 25, default: 6, label: l('Linhas em branco', 'Blank rows') },
+    { name: 'linhasBranco', type: 'number', section: 'registos', width: 'half', min: 0, max: 25, default: 4, label: l('Linhas em branco', 'Blank rows') },
   ],
 
   computed: (v) => {
@@ -110,7 +110,7 @@ export default defineTemplate({
     const lim = ctx.legal.value<{ trimestre: number; semana: number; ano: number }>('rhpTrabalhoExtraordinario');
     const exc = ctx.legal.value<{ compensatorioDias: number; meioDiaHoras: number }>('rhpTrabalhoExcepcional');
     const regs = ctx.computed.regs as Record<string, any>[];
-    const branco = Math.max(0, Math.min(25, Number(v.linhasBranco ?? 6) || 0));
+    const branco = Math.max(0, Math.min(25, Number(v.linhasBranco ?? 4) || 0));
     const [ano, mes] = String(v.mes ?? '').split('-');
     const mesTxt = ano && mes ? `${MESES[Number(mes) - 1] ?? ''} de ${ano}` : BLANK;
     const rows = [
@@ -140,15 +140,11 @@ export default defineTemplate({
         rows,
       },
     ];
-    if (total.length) blocks.push({ type: 'note', text: `Total de horas no mês por trabalhador — ${total.join('; ')}.` });
-    blocks.push(
-      {
-        type: 'note',
-        text: `O trabalho extraordinário só é prestado por ordem da chefia, para acréscimos de trabalho ou motivos ponderosos, até ${qty(lim.semana, 'hora', 'horas', true)} por semana, ${qty(lim.trimestre, 'hora', 'horas', true)} por trimestre e ${qty(lim.ano, 'hora', 'horas', true)} por ano por trabalhador (${cite('rhpTrabalhoExtraordinario')}). O trabalho em dia de descanso ou feriado dá direito a um dia de descanso compensatório num dos ${qty(exc.compensatorioDias, 'dia', 'dias')} seguintes, ou a meio dia se não exceder ${qty(exc.meioDiaHoras, 'hora', 'horas', true)} (${cite('rhpTrabalhoExcepcional')}). Cada registo é feito antes do início e depois do termo do trabalho e visado pelo trabalhador.`,
-        keepWithNext: true,
-      },
-      { type: 'signatures', columns: [{ role: 'O Responsável pelo registo', detail: 'Data: ___/___/______' }, { role: 'Visto da Direcção', detail: 'Data: ___/___/______' }] },
-    );
+    blocks.push({
+      type: 'note',
+      text: `${total.length ? `Total no mês — ${total.join('; ')}. ` : ''}Limites por trabalhador: ${qty(lim.semana, 'hora', 'horas', true)} por semana, ${qty(lim.trimestre, 'hora', 'horas', true)} por trimestre e ${qty(lim.ano, 'hora', 'horas', true)} por ano (${cite('rhpTrabalhoExtraordinario')}). Trabalho em dia de descanso ou feriado: descanso compensatório num dos ${qty(exc.compensatorioDias, 'dia', 'dias')} seguintes (${cite('rhpTrabalhoExcepcional')}). Registo feito antes e depois do trabalho e visado pelo trabalhador.`,
+    });
+    blocks.push({ type: 'paragraph', id: 'visto', text: 'Visto da Direcção: ________________________________________     Data: ___/___/______', en: 'Management approval and date.', align: 'right' });
     return blocks;
   },
 });

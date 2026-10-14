@@ -26,7 +26,7 @@ function quartos(v: Values): Quarto[] {
 
 export default defineTemplate({
   id: 'confirmacao-de-reserva',
-  family: 'carta',
+  family: 'mapa',
   sections: [
     { id: 'reserva', title: l('Reserva', 'Booking') },
     { id: 'hospede', title: l('Hóspede', 'Guest'), personRole: 'cliente' },
@@ -103,6 +103,7 @@ export default defineTemplate({
     const c = ctx.computed;
     const nome = str(v.hospedeNome) || BLANK;
     const sal = v.hospedeGenero === 'F' ? 'Exma. Senhora' : 'Exmo. Senhor';
+    const placeLine = (place: string, iso: unknown) => `${place}, ${dateLong(iso)}`;
     const est = issuer(ctx);
     const pessoas = `${Number(v.adultos) || BLANK} ${Number(v.adultos) === 1 ? 'adulto' : 'adultos'}${Number(v.criancas) > 0 ? ` e ${Number(v.criancas)} ${Number(v.criancas) === 1 ? 'criança' : 'crianças'}` : ''}`;
     const canc = linhas(v.cancelamento).map(semPonto);
@@ -110,13 +111,11 @@ export default defineTemplate({
     const quando = v.saldoQuando === 'checkout' ? 'no check-out' : v.saldoQuando === 'antes' ? 'antes da chegada' : 'no check-in';
 
     const blocks: Block[] = [
-      { type: 'reference', ref: `Reserva n.º ${str(v.ref) || BLANK}`, place: ctx.place, date: dateLong(v.data) },
-      { type: 'recipient', salutation: sal, lines: [nome, str(v.hospedeEmpresa), str(v.hospedeContacto)].filter(Boolean) },
-      { type: 'title', text: 'Confirmação de reserva', subtitle: `Reserva n.º ${str(v.ref) || BLANK}` },
+      { type: 'title', text: 'Confirmação de reserva', subtitle: `Reserva n.º ${str(v.ref) || BLANK} · ${placeLine(ctx.place, v.data)}` },
       {
         type: 'paragraph',
         id: 'abertura',
-        text: `Confirmamos a sua reserva no **${est}**, nas condições abaixo indicadas. Apresente esta confirmação e um documento de identificação válido no check-in.`,
+        text: `${sal} ${nome}${str(v.hospedeEmpresa) ? ` (${str(v.hospedeEmpresa)})` : ''}, confirmamos a sua reserva no **${est}**, nas condições abaixo indicadas. Apresente esta confirmação e um documento de identificação válido no check-in; para qualquer alteração, indique o número da reserva.`,
         en: `We confirm your booking at ${est} on the terms below. Please show this confirmation and valid ID at check-in.`,
       },
       {
@@ -125,9 +124,10 @@ export default defineTemplate({
         items: [
           { label: 'Hóspede', value: nome },
           { label: 'Pessoas', value: pessoas },
-          { label: 'Entrada', value: v.checkin ? `${formatDateShort(String(v.checkin))}, a partir das ${semPonto(v.horaCheckin) || BLANK}` : BLANK },
+          { label: 'Entrada', value: v.checkin ? `${formatDateShort(String(v.checkin))}, desde as ${semPonto(v.horaCheckin) || BLANK}` : BLANK },
           { label: 'Saída', value: v.checkout ? `${formatDateShort(String(v.checkout))}, até às ${semPonto(v.horaCheckout) || BLANK}` : BLANK },
           { label: 'Noites', value: c.noites > 0 ? String(c.noites) : BLANK },
+          { label: 'Contacto', value: str(v.hospedeContacto) || BLANK },
           ...(str(v.canal) ? [{ label: 'Canal', value: str(v.canal) }] : []),
         ],
       },
@@ -136,7 +136,7 @@ export default defineTemplate({
         columns: [
           { label: 'Quarto', width: 2.4 },
           { label: 'Qtd.', width: 0.6, align: 'right' },
-          { label: 'Regime', width: 2 },
+          { label: 'Regime', width: 2.2 },
           { label: 'Preço/noite', width: 1.3, align: 'right' },
           { label: 'Total (MT)', width: 1.4, align: 'right' },
         ],
@@ -155,15 +155,13 @@ export default defineTemplate({
     blocks.push({
       type: 'paragraph',
       id: 'pagamento',
-      text: `${c.saldo > 0 ? `O saldo de **${formatMoney(c.saldo)}** é pago ${quando}` : 'A estadia encontra-se integralmente paga'}${str(v.dadosPagamento) && c.saldo > 0 ? `, por transferência para ${semPonto(v.dadosPagamento)}, ou no local por cartão, M-Pesa ou numerário` : ''}. A factura é emitida em nome do hóspede ou da empresa que este indicar.`,
+      text: `**Pagamento:** ${c.saldo > 0 ? `o saldo de ${formatMoney(c.saldo)} é pago ${quando}` : 'a estadia encontra-se integralmente paga'}${str(v.dadosPagamento) && c.saldo > 0 ? `, por transferência para ${semPonto(v.dadosPagamento)}, ou no local por cartão, M-Pesa ou numerário` : ''}. A factura é emitida em nome do hóspede ou da empresa que este indicar.`,
       en: c.saldo > 0 ? 'The balance is payable as stated. The invoice is issued to the guest or the company named.' : 'The stay is fully paid.',
     });
-    if (canc.length) {
-      blocks.push({ type: 'heading', text: 'Cancelamento e alterações' }, { type: 'list', style: 'bullet', items: canc.map((s) => s + '.') });
-    }
+    if (canc.length) blocks.push({ type: 'paragraph', id: 'cancelamento', text: `**Cancelamento e alterações:** ${canc.map((x) => x.charAt(0).toLowerCase() + x.slice(1)).join('; ')}.`, en: 'Cancellation and changes as stated.' });
     if (str(v.notas)) blocks.push({ type: 'note', text: semPonto(v.notas) + '.', en: 'Notes.' });
+    blocks[blocks.length - 1] = { ...blocks[blocks.length - 1], keepWithNext: true } as Block;
     blocks.push(
-      { type: 'paragraph', id: 'fecho', text: 'Aguardamos a sua visita. Para qualquer alteração, contacte-nos indicando o número da reserva.', en: 'We look forward to welcoming you. For any change, contact us quoting the booking number.', keepWithNext: true },
       { type: 'signatures', columns: [{ role: 'Pelo estabelecimento', name: ctx.profile?.representanteNome || undefined, detail: ctx.profile?.representanteCargo || 'Reservas', image: 'both' }] },
     );
     return blocks;

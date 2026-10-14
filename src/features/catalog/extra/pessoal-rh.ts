@@ -68,7 +68,7 @@ export const CATALOG_PESSOAL_RH: TemplateMeta[] = [
       pt: 'Para pedir ao Secretário do Bairro ou ao Chefe do Quarteirão a declaração (atestado) de residência.',
       en: 'To ask the neighbourhood secretary or block chief for a proof-of-residence certificate.',
     },
-    tags: ['declaração de residência', 'atestado de residência', 'secretário do bairro', 'chefe do quarteirão', 'morada', 'comprovativo de residência', 'proof of address', 'residence certificate'],
+    tags: ['declaração de residência', 'atestado de residência', 'secretário do bairro', 'chefe do quarteirão', 'morada', 'comprovativo de residência', 'proof of address', 'residence certificate', 'declaração de residência para estrangeiros', 'residência estrangeiro', 'residence certificate for foreigners'],
     legalRefs: ['declaracaoResidencia', 'requerimentoConteudo'],
     related: ['requerimento', 'declaracao-uniao-de-facto'],
     lastReviewed: REVIEWED,

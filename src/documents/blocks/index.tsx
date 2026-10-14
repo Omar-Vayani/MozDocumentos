@@ -71,18 +71,17 @@ const oneLine = (s: string | undefined) => (s ?? '').replace(/\s*\r?\n\s*/g, ' '
 
 function Translation({ text, env }: { text?: string; env: BlockEnv }) {
   if (!env.bilingual || !text) return null;
+  const style = { fontStyle: 'italic', fontSize: env.theme.bodySize - 1.5, color: env.theme.muted, textAlign: 'left' } as const;
+  // One Text per line: a literal "\n" inside a Text makes react-pdf reference an unembedded font.
+  const lines = text.split(/\r?\n/).filter((ln) => ln.trim());
   return (
-    <Text
-      style={{
-        fontStyle: 'italic',
-        fontSize: env.theme.bodySize - 1.5,
-        color: env.theme.muted,
-        marginTop: 2,
-        textAlign: 'left',
-      }}
-    >
-      {text}
-    </Text>
+    <View style={{ marginTop: 2 }}>
+      {lines.map((ln, i) => (
+        <Text key={i} style={style}>
+          {ln}
+        </Text>
+      ))}
+    </View>
   );
 }
 

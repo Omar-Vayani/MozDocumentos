@@ -36,7 +36,7 @@ export default defineTemplate({
     { name: 'telefone', type: 'text', section: 'hospede', width: 'half', label: l('Telefone', 'Phone') },
     { name: 'email', type: 'text', section: 'hospede', width: 'half', label: l('E-mail', 'E-mail') },
 
-    { name: 'acompanhantesLinhas', type: 'number', section: 'opcoes', width: 'half', min: 0, max: 8, default: 3, label: l('Linhas para acompanhantes', 'Lines for companions') },
+    { name: 'acompanhantesLinhas', type: 'number', section: 'opcoes', width: 'half', min: 0, max: 8, default: 2, label: l('Linhas para acompanhantes', 'Lines for companions') },
     { name: 'viatura', type: 'toggle', section: 'opcoes', default: true, label: l('Pedir a matrícula da viatura', 'Ask for the car plate') },
     { name: 'marketing', type: 'toggle', section: 'opcoes', default: true, label: l('Pedir consentimento para novidades e promoções', 'Ask consent for news and offers') },
   ],
@@ -107,7 +107,7 @@ export default defineTemplate({
           { label: 'M-Pesa / e-Mola', checked: false },
           { label: 'Transferência / Bank transfer', checked: false },
           { label: 'Empresa ou agência / Company or agency', checked: false },
-          ...(v.marketing ? [{ label: 'Aceito receber novidades e promoções / I agree to receive news and offers', checked: false }] : []),
+          ...(v.marketing ? [{ label: 'Aceito receber promoções / I accept offers', checked: false }] : []),
         ],
       },
       {
@@ -119,7 +119,7 @@ export default defineTemplate({
         keepWithNext: true,
       },
       { type: 'signatures', placeDate: `${ctx.place}, ___/___/______`, columns: [{ role: 'O Hóspede / Guest' }] },
-      { type: 'box', label: 'Reservado à recepção / Office use', text: 'Documento verificado por: ____________________   Boletim de estrangeiro n.º: __________   Depósito/caução: __________', lines: 1 },
+      { type: 'box', label: 'Reservado à recepção / Office use', text: 'Documento verificado por: ______________   Boletim de estrangeiro n.º: ________   Caução: ________' },
     );
     return blocks;
   },

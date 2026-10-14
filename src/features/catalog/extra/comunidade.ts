@@ -36,7 +36,7 @@ export const CATALOG_COMUNIDADE: TemplateMeta[] = [
       pt: 'Para o Posto Administrativo, a Localidade ou o Município atestar a residência com base na declaração do bairro e em duas testemunhas.',
       en: 'For the administrative post, locality or municipality to certify residence based on the neighbourhood declaration and two witnesses.',
     },
-    tags: ['atestado de residência', 'posto administrativo', 'município', 'conselho municipal', 'localidade', 'residência', 'testemunhas', 'residence certificate', 'municipal certificate'],
+    tags: ['atestado de residência', 'posto administrativo', 'município', 'conselho municipal', 'localidade', 'residência', 'testemunhas', 'residence certificate', 'municipal certificate', 'declaração de residência para estrangeiros', 'residência estrangeiro', 'residence certificate for foreigners'],
     legalRefs: ['estruturaBairroMunicipal', 'residenciaTempoMinimo', 'requerimentoConteudo'],
     related: ['declaracao-de-residencia', 'declaracao-de-testemunhas'],
     lastReviewed: REVIEWED,

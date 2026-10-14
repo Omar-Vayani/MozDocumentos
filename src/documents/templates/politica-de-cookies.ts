@@ -90,20 +90,20 @@ export default defineTemplate({
       text: `Para saber como tratamos os seus dados pessoais, consulte a nossa Política de Privacidade.${contactos(ctx.profile) ? ` Contactos: ${contactos(ctx.profile)}.` : ''}`,
       en: 'See our Privacy Policy for more on personal data.',
     });
-    const blocks: Block[] = [...politicaHeader(ctx, 'Política de cookies', v.versaoData, site !== BLANK ? site : undefined), { type: 'paragraph', id: 'intro', text: `Esta política explica como o site ${site} utiliza cookies e tecnologias semelhantes, e como pode escolher quais aceita.`, en: 'This policy explains how the site uses cookies and how you can choose which to accept.' }, { type: 'numberedClauses', style: 'numeric', items }];
-    if (linhas.length) {
-      blocks.push({
-        type: 'table',
-        caption: 'Lista de cookies',
-        columns: [
-          { label: 'Cookie', width: 1.4 },
-          { label: 'Fornecedor', width: 1.3 },
-          { label: 'Finalidade', width: 2.8 },
-          { label: 'Duração', width: 1.1 },
-        ],
-        rows: linhas.map((r) => [r.nome || BLANK, r.fornecedor || 'Próprio', r.finalidade || BLANK, r.duracao || BLANK]),
-      });
-    }
+    const quadroCookies: Block[] = linhas.length
+      ? [{
+          type: 'table',
+          caption: 'Lista de cookies',
+          columns: [
+            { label: 'Cookie', width: 1.4 },
+            { label: 'Fornecedor', width: 1.3 },
+            { label: 'Finalidade', width: 2.8 },
+            { label: 'Duração', width: 1.1 },
+          ],
+          rows: linhas.map((r: Linha) => [r.nome || BLANK, r.fornecedor || 'Próprio', r.finalidade || BLANK, r.duracao || BLANK]),
+        }]
+      : [];
+    const blocks: Block[] = [...politicaHeader(ctx, 'Política de cookies', v.versaoData, site !== BLANK ? site : undefined), { type: 'paragraph', id: 'intro', text: `Esta política explica como o site ${site} utiliza cookies e tecnologias semelhantes, e como pode escolher quais aceita.`, en: 'This policy explains how the site uses cookies and how you can choose which to accept.' }, { type: 'numberedClauses', style: 'numeric', items: items.slice(0, 2) }, ...quadroCookies, { type: 'numberedClauses', style: 'numeric', items: items.slice(2), start: 3 }];
     return blocks;
   },
 });

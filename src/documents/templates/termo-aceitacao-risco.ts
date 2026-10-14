@@ -45,7 +45,7 @@ const menor = (v: Values) => Boolean(v.menor);
 
 export default defineTemplate({
   id: 'termo-aceitacao-risco',
-  family: 'declaracao',
+  family: 'mapa',
   sections: [
     { id: 'actividade', title: l('Actividade', 'Activity') },
     { id: 'participante', title: l('Participante (opcional)', 'Participant (optional)'), description: l('Deixe em branco para imprimir termos para preencher à mão.', 'Leave blank to print forms to fill in by hand.') },

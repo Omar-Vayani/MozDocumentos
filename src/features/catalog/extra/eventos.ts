@@ -85,7 +85,7 @@ export const CATALOG_EVENTOS: TemplateMeta[] = [
       pt: 'Convite em A5 horizontal com o logótipo, para inaugurações, lançamentos, galas, conferências e cerimónias.',
       en: 'Landscape A5 invitation with the logo, for openings, launches, galas, conferences and ceremonies.',
     },
-    tags: ['convite', 'inauguracao', 'lancamento', 'gala', 'cerimonia', 'evento', 'conferencia', 'corporate invitation', 'launch', 'opening'],
+    tags: ['convite', 'inauguracao', 'lancamento', 'gala', 'cerimonia', 'evento', 'conferencia', 'corporate invitation', 'launch', 'opening', 'convite para culto', 'convite para ordenação', 'convite para celebração religiosa'],
     legalRefs: [],
     related: ['programa-de-cerimonia', 'certificado-de-participacao', 'envelope-dl', 'cartao-de-agradecimento'],
     sectors: ['empresa', 'educacao', 'associacoes', 'estado'],

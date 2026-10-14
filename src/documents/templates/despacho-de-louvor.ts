@@ -67,7 +67,7 @@ export default defineTemplate({
   blocks: (ctx) => {
     const v = ctx.values;
     const col = v.tipo === 'colectivo';
-    const cons = splitLines(v.considerandos).map((s) => s.replace(/^que\s+/i, '').replace(/[.;,]+$/, ''));
+    const cons = splitLines(v.considerandos).map((s) => s.replace(/^que\b\s*/i, '').replace(/[.;,]+$/, ''));
     const quem = col
       ? `**${semPonto(v.equipa) || '____________________'}**`
       : `${g(v.louvadoGenero, 'o funcionário', 'a funcionária')} **${str(v.louvadoNome) || '____________________'}**${str(v.louvadoCategoria) ? `, ${semPonto(v.louvadoCategoria)}` : ''}${str(v.louvadoFuncao) ? `, ${semPonto(v.louvadoFuncao)}` : ''}`;
@@ -77,7 +77,7 @@ export default defineTemplate({
       { type: 'title', text: 'Despacho', subtitle: 'Louvor' },
     ];
     (cons.length ? cons : ['____________________']).forEach((c, i) =>
-      blocks.push({ type: 'paragraph', id: `considerando-${i + 1}`, text: `Considerando que ${c};`, en: 'Whereas…' }),
+      blocks.push({ type: 'paragraph', id: `considerando-${i + 1}`, text: `Considerando que${c.startsWith(',') ? '' : ' '}${c};`, en: 'Whereas…' }),
     );
     blocks.push({
       type: 'paragraph',

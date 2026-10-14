@@ -46,6 +46,7 @@ export default defineTemplate({
     },
     { name: 'contratoData', type: 'date', section: 'requisitos', width: 'half', label: l('Assinatura do contrato prevista para (opcional)', 'Contract signing planned for (optional)') },
     { name: 'contratoLocal', type: 'text', section: 'requisitos', width: 'half', label: l('Local da assinatura (opcional)', 'Place of signing (optional)') },
+    { name: 'recibo', type: 'toggle', section: 'assinatura', label: l('Incluir o recibo de recepção', 'Include an acknowledgement of receipt'), help: l('Ligue quando a notificação for entregue em mão e não pelo livro de protocolo.', 'Turn on when delivered by hand rather than through the dispatch book.') },
     ...signatarioFields(),
     ...rodapeFields(),
   ],
@@ -105,8 +106,8 @@ export default defineTemplate({
       { type: 'paragraph', id: 'fecho', text: 'Melhores cumprimentos.', align: 'left', keepWithNext: true, en: 'Best regards.' },
       { type: 'signatures', columns: [signatarioColumn(v)] },
       ...rodapeBlocks(v),
-      { type: 'acknowledgement', text: 'Recebi a presente notificação em ___/___/______', signer: 'Pelo adjudicatário' },
     );
+    if (v.recibo) blocks.push({ type: 'acknowledgement', text: 'Recebi a presente notificação em ___/___/______', signer: 'Pelo adjudicatário' });
     return blocks;
   },
 });
